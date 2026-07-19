@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/jwt_helper.dart';
 import 'lobby_screen.dart';
+import 'signup_screen.dart';
 
 class ConfigScreen extends StatefulWidget {
   const ConfigScreen({super.key});
@@ -89,6 +90,21 @@ class _ConfigScreenState extends State<ConfigScreen> {
           ),
         ),
       );
+    }
+  }
+
+  Future<void> _navigateToSignUp() async {
+    final result = await Navigator.of(context).push<String>(
+      MaterialPageRoute(
+        builder: (context) => SignUpScreen(
+          initialServerUrl: _urlController.text.trim(),
+        ),
+      ),
+    );
+
+    if (result != null && result.isNotEmpty) {
+      _tokenController.text = result;
+      _onTokenChanged();
     }
   }
 
@@ -187,6 +203,20 @@ class _ConfigScreenState extends State<ConfigScreen> {
                 child: const Text(
                   'Connect to Lobby',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+              const SizedBox(height: 16),
+              OutlinedButton.icon(
+                onPressed: _navigateToSignUp,
+                icon: const Icon(Icons.person_add),
+                label: const Text('Sign Up / Register to get API Key'),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  foregroundColor: Colors.deepPurple,
+                  side: const BorderSide(color: Colors.deepPurple, width: 1.5),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
               ),
             ],
