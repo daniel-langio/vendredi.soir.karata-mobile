@@ -123,8 +123,8 @@ class _MenuScreenState extends State<MenuScreen> {
                 children: [
                   const CircleAvatar(
                     radius: 28,
-                    backgroundColor: OffsuitColors.pill,
-                    child: Icon(Icons.person, color: OffsuitColors.ink),
+                    backgroundColor: KarataColors.pill,
+                    child: Icon(Icons.person, color: KarataColors.ink),
                   ),
                   const SizedBox(width: 14),
                   Column(
@@ -133,10 +133,10 @@ class _MenuScreenState extends State<MenuScreen> {
                       Text(
                         widget.username,
                         style: const TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.w500, color: OffsuitColors.ink),
+                            fontSize: 20, fontWeight: FontWeight.w500, color: KarataColors.ink),
                       ),
                       const Text('This name is your sign-in',
-                          style: TextStyle(fontSize: 12.5, color: OffsuitColors.dim)),
+                          style: TextStyle(fontSize: 12.5, color: KarataColors.dim)),
                     ],
                   ),
                 ],
@@ -144,7 +144,7 @@ class _MenuScreenState extends State<MenuScreen> {
               const SizedBox(height: 28),
               ElevatedButton.icon(
                 onPressed: _createTable,
-                icon: const Text('♠', style: TextStyle(color: OffsuitColors.dim)),
+                icon: const Text('♠', style: TextStyle(color: KarataColors.dim)),
                 label: const Text('Create a table'),
               ),
               const SizedBox(height: 11),
@@ -158,10 +158,10 @@ class _MenuScreenState extends State<MenuScreen> {
                 children: [
                   const Text('Your tables',
                       style: TextStyle(
-                          fontSize: 14, fontWeight: FontWeight.w600, color: OffsuitColors.ink)),
+                          fontSize: 14, fontWeight: FontWeight.w600, color: KarataColors.ink)),
                   const SizedBox(width: 8),
                   const Text('kept on this phone',
-                      style: TextStyle(fontSize: 12.5, color: OffsuitColors.dim)),
+                      style: TextStyle(fontSize: 12.5, color: KarataColors.dim)),
                 ],
               ),
               const SizedBox(height: 4),
@@ -171,7 +171,7 @@ class _MenuScreenState extends State<MenuScreen> {
                         child: Text(
                           'No tables yet. Create or join one to see it here.',
                           textAlign: TextAlign.center,
-                          style: TextStyle(color: OffsuitColors.dim),
+                          style: TextStyle(color: KarataColors.dim),
                         ),
                       )
                     : ListView.separated(
@@ -182,9 +182,9 @@ class _MenuScreenState extends State<MenuScreen> {
                           final t = _recent[index];
                           return ListTile(
                             contentPadding: EdgeInsets.zero,
-                            leading: const Icon(Icons.circle, size: 7, color: OffsuitColors.live),
+                            leading: const Icon(Icons.circle, size: 7, color: KarataColors.live),
                             title: Text(t.name,
-                                style: const TextStyle(color: OffsuitColors.ink, fontSize: 16.5)),
+                                style: const TextStyle(color: KarataColors.ink, fontSize: 16.5)),
                             trailing: TextButton(
                               onPressed: () => _openTable(t.gameId),
                               child: const Text('Open'),

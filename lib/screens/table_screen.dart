@@ -150,7 +150,7 @@ class _TableScreenState extends State<TableScreen> {
   void _showError(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: OffsuitColors.red),
+      SnackBar(content: Text(message), backgroundColor: KarataColors.red),
     );
   }
 
@@ -176,7 +176,7 @@ class _TableScreenState extends State<TableScreen> {
     final outcome = _currentDeal?['outcome'] as Map<String, dynamic>?;
 
     return Scaffold(
-      backgroundColor: OffsuitColors.bg,
+      backgroundColor: KarataColors.bg,
       appBar: AppBar(
         title: Text(gameName),
         actions: [
@@ -186,10 +186,10 @@ class _TableScreenState extends State<TableScreen> {
               child: Row(
                 children: [
                   Icon(Icons.circle,
-                      size: 7, color: _isStale ? OffsuitColors.stale : OffsuitColors.live),
+                      size: 7, color: _isStale ? KarataColors.stale : KarataColors.live),
                   const SizedBox(width: 6),
                   Text(_liveStatusLabel(),
-                      style: const TextStyle(fontSize: 11.5, color: OffsuitColors.dim)),
+                      style: const TextStyle(fontSize: 11.5, color: KarataColors.dim)),
                 ],
               ),
             ),
@@ -218,7 +218,7 @@ class _TableScreenState extends State<TableScreen> {
                         children: [
                           Text('POT: $pot CHIPS',
                               style: const TextStyle(
-                                  color: OffsuitColors.chipInk,
+                                  color: KarataColors.chipInk,
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
                                   letterSpacing: 1.2)),
@@ -283,11 +283,11 @@ class _TableScreenState extends State<TableScreen> {
                   children: [
                     const Text('MY HAND:',
                         style: TextStyle(
-                            color: OffsuitColors.ink, fontWeight: FontWeight.bold, fontSize: 13)),
+                            color: KarataColors.ink, fontWeight: FontWeight.bold, fontSize: 13)),
                     const SizedBox(width: 12),
                     if (_myCards.isEmpty)
                       const Text('Waiting for deal...',
-                          style: TextStyle(color: OffsuitColors.dim, fontSize: 13))
+                          style: TextStyle(color: KarataColors.dim, fontSize: 13))
                     else
                       ..._myCards.map((c) => Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -330,10 +330,10 @@ class _TableScreenState extends State<TableScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         child: Row(
           children: [
-            const Icon(Icons.timer_outlined, size: 14, color: OffsuitColors.dim),
+            const Icon(Icons.timer_outlined, size: 14, color: KarataColors.dim),
             const SizedBox(width: 6),
             Text('Your turn — ${secs}s left',
-                style: const TextStyle(fontSize: 13, color: OffsuitColors.dim)),
+                style: const TextStyle(fontSize: 13, color: KarataColors.dim)),
           ],
         ),
       );
@@ -347,7 +347,7 @@ class _TableScreenState extends State<TableScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       child: Text('Waiting on ${active['username']}',
-          style: const TextStyle(fontSize: 13, color: OffsuitColors.dim)),
+          style: const TextStyle(fontSize: 13, color: KarataColors.dim)),
     );
   }
 
@@ -379,7 +379,7 @@ class _TableScreenState extends State<TableScreen> {
         child: const Center(
           child: Text('WAITING FOR OTHER PLAYERS...',
               style: TextStyle(
-                  color: OffsuitColors.dim,
+                  color: KarataColors.dim,
                   fontWeight: FontWeight.bold,
                   fontSize: 13,
                   letterSpacing: 1.1)),
@@ -399,20 +399,20 @@ class _TableScreenState extends State<TableScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _actionBtn('Fold', OffsuitColors.red, () => _submitAction('FOLD')),
+          _actionBtn('Fold', KarataColors.red, () => _submitAction('FOLD')),
           _actionBtn(
             callLabel,
-            OffsuitColors.live,
+            KarataColors.live,
             () => callAmount == 0
                 ? _submitAction('CHECK')
                 : _submitAction('CALL', amount: callAmount),
           ),
-          _actionBtn(raiseLabel, OffsuitColors.chipInk, () => _submitAction(raiseType, amount: minRaise)),
+          _actionBtn(raiseLabel, KarataColors.chipInk, () => _submitAction(raiseType, amount: minRaise)),
           IconButton(
             onPressed: () => _openSizer(raiseType),
-            icon: const Icon(Icons.arrow_upward, color: OffsuitColors.ink),
+            icon: const Icon(Icons.arrow_upward, color: KarataColors.ink),
             style: IconButton.styleFrom(
-              backgroundColor: OffsuitColors.pill,
+              backgroundColor: KarataColors.pill,
               shape: const CircleBorder(),
             ),
           ),
@@ -428,7 +428,7 @@ class _TableScreenState extends State<TableScreen> {
         child: ElevatedButton(
           onPressed: onPressed,
           style: ElevatedButton.styleFrom(
-            backgroundColor: OffsuitColors.pill,
+            backgroundColor: KarataColors.pill,
             foregroundColor: color,
             minimumSize: const Size.fromHeight(48),
           ),
@@ -459,10 +459,10 @@ class _TableScreenState extends State<TableScreen> {
             children: [
               Text('$type AMOUNT: $_sizerAmount',
                   style: const TextStyle(
-                      color: OffsuitColors.chipInk, fontWeight: FontWeight.bold, fontSize: 14)),
+                      color: KarataColors.chipInk, fontWeight: FontWeight.bold, fontSize: 14)),
               TextButton(
                 onPressed: () => setState(() => _selectedActionType = null),
-                child: const Text('Back', style: TextStyle(color: OffsuitColors.red)),
+                child: const Text('Back', style: TextStyle(color: KarataColors.red)),
               ),
             ],
           ),
@@ -470,7 +470,7 @@ class _TableScreenState extends State<TableScreen> {
             value: clampAmount(_sizerAmount).toDouble(),
             min: minRaise.toDouble(),
             max: maxRaise > minRaise ? maxRaise.toDouble() : minRaise.toDouble() + 1,
-            activeColor: OffsuitColors.chipInk,
+            activeColor: KarataColors.chipInk,
             onChanged: (v) => setState(() => _sizerAmount = v.round()),
           ),
           Row(
@@ -488,7 +488,7 @@ class _TableScreenState extends State<TableScreen> {
             child: ElevatedButton(
               onPressed: () => _submitAction(type, amount: _sizerAmount),
               style: ElevatedButton.styleFrom(
-                  backgroundColor: OffsuitColors.chipInk, foregroundColor: Colors.black),
+                  backgroundColor: KarataColors.chipInk, foregroundColor: Colors.black),
               child: Text('CONFIRM $type'),
             ),
           ),
@@ -505,8 +505,8 @@ class _TableScreenState extends State<TableScreen> {
           onPressed: onPressed,
           style: OutlinedButton.styleFrom(
             minimumSize: const Size.fromHeight(34),
-            backgroundColor: on ? OffsuitColors.pill : null,
-            foregroundColor: on ? OffsuitColors.ink : OffsuitColors.dim,
+            backgroundColor: on ? KarataColors.pill : null,
+            foregroundColor: on ? KarataColors.ink : KarataColors.dim,
           ),
           child: Text(label, style: const TextStyle(fontSize: 12.5)),
         ),
@@ -564,12 +564,12 @@ class _MadeHandBadge extends StatelessWidget {
       height: 56,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        border: Border.all(color: OffsuitColors.pillLine),
+        border: Border.all(color: KarataColors.pillLine),
         borderRadius: BorderRadius.circular(12),
       ),
       child: const Text('Hand strength\navailable soon',
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 11, color: OffsuitColors.dim)),
+          style: TextStyle(fontSize: 11, color: KarataColors.dim)),
     );
   }
 }
@@ -589,9 +589,9 @@ class _OutcomeBanner extends StatelessWidget {
       children: [
         Text('💰 $names won $total',
             style: const TextStyle(
-                color: OffsuitColors.ink, fontSize: 14.5, fontWeight: FontWeight.w500)),
+                color: KarataColors.ink, fontSize: 14.5, fontWeight: FontWeight.w500)),
         if (rank != null)
-          Text(rank, style: const TextStyle(color: OffsuitColors.dim, fontSize: 12.5)),
+          Text(rank, style: const TextStyle(color: KarataColors.dim, fontSize: 12.5)),
       ],
     );
   }
@@ -641,7 +641,7 @@ class _SeatCard extends StatelessWidget {
                     textAlign: TextAlign.center,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                        color: OffsuitColors.ink,
+                        color: KarataColors.ink,
                         fontWeight: isMe ? FontWeight.bold : FontWeight.normal,
                         fontSize: 11)),
               ],
@@ -650,7 +650,7 @@ class _SeatCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.circle, size: 9, color: OffsuitColors.chipInk),
+                const Icon(Icons.circle, size: 9, color: KarataColors.chipInk),
                 const SizedBox(width: 3),
                 Text(chips,
                     style: const TextStyle(
@@ -663,7 +663,7 @@ class _SeatCard extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                   decoration: BoxDecoration(
-                    color: isAllIn ? OffsuitColors.allInBg : const Color(0xFF2E2C34),
+                    color: isAllIn ? KarataColors.allInBg : const Color(0xFF2E2C34),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
@@ -671,7 +671,7 @@ class _SeatCard extends StatelessWidget {
                     style: TextStyle(
                         fontSize: 8,
                         fontWeight: FontWeight.bold,
-                        color: isAllIn ? OffsuitColors.allInInk : OffsuitColors.ink),
+                        color: isAllIn ? KarataColors.allInInk : KarataColors.ink),
                   ),
                 ),
               ),
@@ -681,12 +681,12 @@ class _SeatCard extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 1),
                   decoration: BoxDecoration(
-                    color: OffsuitColors.chipBg,
+                    color: KarataColors.chipBg,
                     borderRadius: BorderRadius.circular(11),
                   ),
                   child: Text('$contribution',
                       style: const TextStyle(
-                          color: OffsuitColors.chipInk, fontSize: 10.5, fontWeight: FontWeight.bold)),
+                          color: KarataColors.chipInk, fontSize: 10.5, fontWeight: FontWeight.bold)),
                 ),
               ),
           ],
@@ -712,9 +712,9 @@ class PokerCardWidget extends StatelessWidget {
         decoration: BoxDecoration(
           color: const Color(0xFF8B1E2E),
           borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: OffsuitColors.ink, width: 2),
+          border: Border.all(color: KarataColors.ink, width: 2),
         ),
-        child: const Center(child: Icon(Icons.help_outline, color: OffsuitColors.ink, size: 20)),
+        child: const Center(child: Icon(Icons.help_outline, color: KarataColors.ink, size: 20)),
       );
     }
 
@@ -726,13 +726,13 @@ class PokerCardWidget extends StatelessWidget {
     const suitSymbols = {'c': '♣', 'd': '♦', 'h': '♥', 's': '♠'};
     const redSuits = {'d', 'h'};
     final suitSymbol = suitSymbols[suitChar] ?? '?';
-    final suitColor = redSuits.contains(suitChar) ? OffsuitColors.red : Colors.black;
+    final suitColor = redSuits.contains(suitChar) ? KarataColors.red : Colors.black;
 
     return Container(
       width: width,
       height: height,
       decoration: BoxDecoration(
-        color: OffsuitColors.card,
+        color: KarataColors.card,
         borderRadius: BorderRadius.circular(6),
         border: Border.all(color: Colors.grey.shade400),
       ),

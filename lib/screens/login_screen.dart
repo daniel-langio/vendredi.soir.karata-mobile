@@ -52,7 +52,7 @@ class _LoginScreenState extends State<LoginScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not log in: $e'), backgroundColor: OffsuitColors.red),
+          SnackBar(content: Text('Could not log in: $e'), backgroundColor: KarataColors.red),
         );
       }
     } finally {
@@ -74,7 +74,7 @@ class _LoginScreenState extends State<LoginScreen> {
               children: [
                 const Text(
                   'Log in',
-                  style: TextStyle(fontSize: 34, fontWeight: FontWeight.w300, color: OffsuitColors.ink),
+                  style: TextStyle(fontSize: 34, fontWeight: FontWeight.w300, color: KarataColors.ink),
                 ),
                 const SizedBox(height: 26),
                 TextFormField(
@@ -96,7 +96,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ? const SizedBox(
                           width: 20,
                           height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: OffsuitColors.ink),
+                          child: CircularProgressIndicator(strokeWidth: 2, color: KarataColors.ink),
                         )
                       : const Text('Log in'),
                 ),

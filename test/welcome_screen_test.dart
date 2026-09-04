@@ -7,7 +7,7 @@ void main() {
       (WidgetTester tester) async {
     await tester.pumpWidget(const MaterialApp(home: WelcomeScreen()));
 
-    expect(find.text('Offsuit'), findsOneWidget);
+    expect(find.text('Karata'), findsOneWidget);
     expect(find.widgetWithText(ElevatedButton, 'Create account'), findsOneWidget);
     expect(find.widgetWithText(OutlinedButton, 'Log in'), findsOneWidget);
 

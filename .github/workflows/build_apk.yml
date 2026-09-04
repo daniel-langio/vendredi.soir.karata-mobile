@@ -43,8 +43,17 @@ jobs:
       - name: Build APK
         run: flutter build apk --release
 
+      - name: Rename APK for easy sideloading
+        id: rename
+        run: |
+          VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: *//' | cut -d'+' -f1 | tr -d '\r')
+          APK_NAME="Karata-${VERSION}.apk"
+          mkdir -p build/app/outputs/flutter-apk/release
+          cp build/app/outputs/flutter-apk/app-release.apk "build/app/outputs/flutter-apk/release/${APK_NAME}"
+          echo "apk_name=${APK_NAME}" >> "$GITHUB_OUTPUT"
+
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: poker-mobile-client-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          name: ${{ steps.rename.outputs.apk_name }}
+          path: build/app/outputs/flutter-apk/release/${{ steps.rename.outputs.apk_name }}

@@ -44,7 +44,7 @@ class _NewTableScreenState extends State<NewTableScreen> {
 
     if (name.isEmpty || sb == null || sb <= 0 || bb == null || bb <= 0 || buyIn == null || buyIn <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill in valid values'), backgroundColor: OffsuitColors.red),
+        const SnackBar(content: Text('Please fill in valid values'), backgroundColor: KarataColors.red),
       );
       return;
     }
@@ -72,7 +72,7 @@ class _NewTableScreenState extends State<NewTableScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not create table: $e'), backgroundColor: OffsuitColors.red),
+          SnackBar(content: Text('Could not create table: $e'), backgroundColor: KarataColors.red),
         );
       }
     } finally {
@@ -90,18 +90,18 @@ class _NewTableScreenState extends State<NewTableScreen> {
           children: [
             const Text(
               'New table',
-              style: TextStyle(fontSize: 34, fontWeight: FontWeight.w300, color: OffsuitColors.ink),
+              style: TextStyle(fontSize: 34, fontWeight: FontWeight.w300, color: KarataColors.ink),
             ),
             const SizedBox(height: 8),
             const Text(
               'Name and blinds are all the server keeps. Everything else is set when '
               'each player sits down.',
-              style: TextStyle(fontSize: 13.5, color: OffsuitColors.dim, height: 1.45),
+              style: TextStyle(fontSize: 13.5, color: KarataColors.dim, height: 1.45),
             ),
             const SizedBox(height: 24),
             TextField(
               controller: _nameController,
-              style: const TextStyle(color: OffsuitColors.ink),
+              style: const TextStyle(color: KarataColors.ink),
               decoration: const InputDecoration(labelText: 'Name'),
             ),
             const SizedBox(height: 11),
@@ -111,7 +111,7 @@ class _NewTableScreenState extends State<NewTableScreen> {
                   child: TextField(
                     controller: _smallBlindController,
                     keyboardType: TextInputType.number,
-                    style: const TextStyle(color: OffsuitColors.ink),
+                    style: const TextStyle(color: KarataColors.ink),
                     decoration: const InputDecoration(labelText: 'Small blind'),
                   ),
                 ),
@@ -120,7 +120,7 @@ class _NewTableScreenState extends State<NewTableScreen> {
                   child: TextField(
                     controller: _bigBlindController,
                     keyboardType: TextInputType.number,
-                    style: const TextStyle(color: OffsuitColors.ink),
+                    style: const TextStyle(color: KarataColors.ink),
                     decoration: const InputDecoration(labelText: 'Big blind'),
                   ),
                 ),
@@ -128,19 +128,19 @@ class _NewTableScreenState extends State<NewTableScreen> {
             ),
             const SizedBox(height: 24),
             const Text('Your buy-in',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: OffsuitColors.ink)),
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: KarataColors.ink)),
             const SizedBox(height: 12),
             TextField(
               controller: _buyInController,
               keyboardType: TextInputType.number,
-              style: const TextStyle(color: OffsuitColors.ink),
+              style: const TextStyle(color: KarataColors.ink),
               decoration: const InputDecoration(labelText: 'Chips'),
             ),
             const SizedBox(height: 14),
             const Text(
               'Creating the table seats you at it. Everyone else picks their own buy-in '
               'when they join, and chips carry between hands.',
-              style: TextStyle(fontSize: 12, color: OffsuitColors.dim, height: 1.5),
+              style: TextStyle(fontSize: 12, color: KarataColors.dim, height: 1.5),
             ),
             const SizedBox(height: 24),
             ElevatedButton(
@@ -149,7 +149,7 @@ class _NewTableScreenState extends State<NewTableScreen> {
                   ? const SizedBox(
                       width: 20,
                       height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: OffsuitColors.ink),
+                      child: CircularProgressIndicator(strokeWidth: 2, color: KarataColors.ink),
                     )
                   : const Text('Create and sit down'),
             ),

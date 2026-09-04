@@ -52,7 +52,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not create account: $e'), backgroundColor: OffsuitColors.red),
+          SnackBar(content: Text('Could not create account: $e'), backgroundColor: KarataColors.red),
         );
       }
     } finally {
@@ -74,12 +74,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
               children: [
                 const Text(
                   'Create account',
-                  style: TextStyle(fontSize: 34, fontWeight: FontWeight.w300, color: OffsuitColors.ink),
+                  style: TextStyle(fontSize: 34, fontWeight: FontWeight.w300, color: KarataColors.ink),
                 ),
                 const SizedBox(height: 8),
                 const Text(
                   'This name is how everyone else at the table will see you.',
-                  style: TextStyle(fontSize: 13.5, color: OffsuitColors.dim, height: 1.45),
+                  style: TextStyle(fontSize: 13.5, color: KarataColors.dim, height: 1.45),
                 ),
                 const SizedBox(height: 26),
                 TextFormField(
@@ -104,7 +104,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ? const SizedBox(
                           width: 20,
                           height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: OffsuitColors.ink),
+                          child: CircularProgressIndicator(strokeWidth: 2, color: KarataColors.ink),
                         )
                       : const Text('Create account'),
                 ),

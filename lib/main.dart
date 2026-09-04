@@ -14,9 +14,9 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Offsuit',
+      title: 'Karata',
       debugShowCheckedModeBanner: false,
-      theme: offsuitTheme(),
+      theme: karataTheme(),
       home: const RootScreen(),
     );
   }

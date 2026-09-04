@@ -47,7 +47,7 @@ class _JoinTableScreenState extends State<JoinTableScreen> {
     final gameId = _extractGameId();
     if (gameId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No valid table link found'), backgroundColor: OffsuitColors.red),
+        const SnackBar(content: Text('No valid table link found'), backgroundColor: KarataColors.red),
       );
       return;
     }
@@ -64,7 +64,7 @@ class _JoinTableScreenState extends State<JoinTableScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Table not found: $e'), backgroundColor: OffsuitColors.red),
+          SnackBar(content: Text('Table not found: $e'), backgroundColor: KarataColors.red),
         );
       }
     } finally {
@@ -82,7 +82,7 @@ class _JoinTableScreenState extends State<JoinTableScreen> {
         final buyIn = int.tryParse(_buyInController.text.trim());
         if (buyIn == null || buyIn <= 0) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Enter a valid buy-in'), backgroundColor: OffsuitColors.red),
+            const SnackBar(content: Text('Enter a valid buy-in'), backgroundColor: KarataColors.red),
           );
           return;
         }
@@ -105,7 +105,7 @@ class _JoinTableScreenState extends State<JoinTableScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not sit down: $e'), backgroundColor: OffsuitColors.red),
+          SnackBar(content: Text('Could not sit down: $e'), backgroundColor: KarataColors.red),
         );
       }
     } finally {
@@ -124,13 +124,13 @@ class _JoinTableScreenState extends State<JoinTableScreen> {
           children: [
             const Text(
               'Join a table',
-              style: TextStyle(fontSize: 34, fontWeight: FontWeight.w300, color: OffsuitColors.ink),
+              style: TextStyle(fontSize: 34, fontWeight: FontWeight.w300, color: KarataColors.ink),
             ),
             const SizedBox(height: 8),
             const Text(
               "Paste the link someone sent you. Table IDs are long, so nobody should ever "
               'have to read one out.',
-              style: TextStyle(fontSize: 13.5, color: OffsuitColors.dim, height: 1.45),
+              style: TextStyle(fontSize: 13.5, color: KarataColors.dim, height: 1.45),
             ),
             const SizedBox(height: 24),
             Row(
@@ -138,8 +138,8 @@ class _JoinTableScreenState extends State<JoinTableScreen> {
                 Expanded(
                   child: TextField(
                     controller: _linkController,
-                    style: const TextStyle(color: OffsuitColors.ink, fontSize: 13),
-                    decoration: const InputDecoration(hintText: 'offsuit.app/t/…'),
+                    style: const TextStyle(color: KarataColors.ink, fontSize: 13),
+                    decoration: const InputDecoration(hintText: 'karata.app/t/…'),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -153,35 +153,35 @@ class _JoinTableScreenState extends State<JoinTableScreen> {
             if (_preview != null) ...[
               const SizedBox(height: 24),
               const Text('Found it',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: OffsuitColors.ink)),
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: KarataColors.ink)),
               const SizedBox(height: 8),
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.circle, size: 7, color: OffsuitColors.live),
+                leading: const Icon(Icons.circle, size: 7, color: KarataColors.live),
                 title: Text(_preview!['name'] as String? ?? '',
-                    style: const TextStyle(color: OffsuitColors.ink, fontSize: 16.5)),
+                    style: const TextStyle(color: KarataColors.ink, fontSize: 16.5)),
                 subtitle: Text(
                   'Blinds ${_preview!['blinds']?['small']} / ${_preview!['blinds']?['big']} · '
                   '${players.length} seated',
-                  style: const TextStyle(color: OffsuitColors.dim, fontSize: 12.5),
+                  style: const TextStyle(color: KarataColors.dim, fontSize: 12.5),
                 ),
               ),
               if (!_alreadySeated) ...[
                 const SizedBox(height: 20),
                 const Text('Your buy-in',
                     style:
-                        TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: OffsuitColors.ink)),
+                        TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: KarataColors.ink)),
                 const SizedBox(height: 12),
                 TextField(
                   controller: _buyInController,
                   keyboardType: TextInputType.number,
-                  style: const TextStyle(color: OffsuitColors.ink),
+                  style: const TextStyle(color: KarataColors.ink),
                   decoration: const InputDecoration(labelText: 'Chips'),
                 ),
                 const SizedBox(height: 14),
                 const Text(
                   'You can only buy in once per table, so pick a stack you\'re happy to sit with.',
-                  style: TextStyle(fontSize: 12, color: OffsuitColors.dim, height: 1.5),
+                  style: TextStyle(fontSize: 12, color: KarataColors.dim, height: 1.5),
                 ),
               ],
               const SizedBox(height: 24),
@@ -191,7 +191,7 @@ class _JoinTableScreenState extends State<JoinTableScreen> {
                     ? const SizedBox(
                         width: 20,
                         height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: OffsuitColors.ink),
+                        child: CircularProgressIndicator(strokeWidth: 2, color: KarataColors.ink),
                       )
                     : Text(_alreadySeated ? 'Open table' : 'Sit down'),
               ),

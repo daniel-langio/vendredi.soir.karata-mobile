@@ -47,24 +47,24 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Spacer(),
-              const Icon(Icons.casino, size: 72, color: OffsuitColors.ink),
+              const Icon(Icons.casino, size: 72, color: KarataColors.ink),
               const SizedBox(height: 16),
               const Text(
-                'Offsuit',
+                'Karata',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 34, fontWeight: FontWeight.w300, color: OffsuitColors.ink),
+                style: TextStyle(fontSize: 34, fontWeight: FontWeight.w300, color: KarataColors.ink),
               ),
               const SizedBox(height: 8),
               const Text(
                 'Play poker with your friends. No accounts to manage,\njust a name and a table.',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 13.5, color: OffsuitColors.dim, height: 1.45),
+                style: TextStyle(fontSize: 13.5, color: KarataColors.dim, height: 1.45),
               ),
               const Spacer(),
               if (_showServerField) ...[
                 TextField(
                   controller: _urlController,
-                  style: const TextStyle(color: OffsuitColors.ink, fontSize: 13),
+                  style: const TextStyle(color: KarataColors.ink, fontSize: 13),
                   decoration: const InputDecoration(labelText: 'Server base URL'),
                 ),
                 const SizedBox(height: 16),
