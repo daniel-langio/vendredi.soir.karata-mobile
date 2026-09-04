@@ -176,7 +176,7 @@ class _MenuScreenState extends State<MenuScreen> {
                       )
                     : ListView.separated(
                         itemCount: _recent.length,
-                        separatorBuilder: (_, __) =>
+                        separatorBuilder: (context, index) =>
                             const Divider(height: 1, color: Color(0xFF1A181E)),
                         itemBuilder: (context, index) {
                           final t = _recent[index];
