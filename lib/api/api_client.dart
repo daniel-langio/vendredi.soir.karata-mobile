@@ -1,18 +1,42 @@
-import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'package:http/http.dart' as http;
 
 class ApiClient {
   final String baseUrl;
   final String token;
 
-  ApiClient({required this.baseUrl, required this.token});
+  ApiClient({required this.baseUrl, this.token = ''});
 
   Map<String, String> get _headers => {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
+        if (token.isNotEmpty) 'Authorization': 'Bearer $token',
       };
+
+  /// POST /auth/register
+  Future<String> register(String username, String password) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/auth/register'),
+      headers: _headers,
+      body: jsonEncode({'username': username, 'password': password}),
+    );
+    if (response.statusCode == 201) {
+      return (jsonDecode(response.body) as Map<String, dynamic>)['token'] as String;
+    }
+    _throwDetailedError(response);
+  }
+
+  /// POST /auth/login
+  Future<String> login(String username, String password) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/auth/login'),
+      headers: _headers,
+      body: jsonEncode({'username': username, 'password': password}),
+    );
+    if (response.statusCode == 200) {
+      return (jsonDecode(response.body) as Map<String, dynamic>)['token'] as String;
+    }
+    _throwDetailedError(response);
+  }
 
   /// POST /games
   /// Create a new game table
@@ -37,7 +61,8 @@ class ApiClient {
   }
 
   /// GET /games/{gameId}
-  /// Get game details
+  /// Get game details. Sends the auth token when available so the response
+  /// includes the personalized "you" betting context.
   Future<Map<String, dynamic>> getGame(String gameId) async {
     final response = await http.get(
       Uri.parse('$baseUrl/games/$gameId'),
@@ -64,6 +89,21 @@ class ApiClient {
 
     if (response.statusCode == 204) {
       return;
+    } else {
+      _throwDetailedError(response);
+    }
+  }
+
+  /// POST /games/{gameId}/deals
+  /// Start a new hand: the server automatically posts blinds and deals hole cards.
+  Future<Map<String, dynamic>> startDeal(String gameId) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/games/$gameId/deals'),
+      headers: _headers,
+    );
+
+    if (response.statusCode == 201) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
     } else {
       _throwDetailedError(response);
     }
@@ -110,61 +150,6 @@ class ApiClient {
       return jsonDecode(response.body) as Map<String, dynamic>;
     } else {
       _throwDetailedError(response);
-    }
-  }
-
-  /// GET /games/{gameId}/events
-  /// Stream of timeline events (SSE)
-  Stream<Map<String, dynamic>> streamEvents(String gameId) async* {
-    final client = HttpClient();
-    try {
-      final uri = Uri.parse('$baseUrl/games/$gameId/events');
-      final request = await client.getUrl(uri);
-      request.headers.set('Authorization', 'Bearer $token');
-      request.headers.set('Accept', 'text/event-stream');
-      request.headers.set('Cache-Control', 'no-cache');
-
-      final response = await request.close();
-      if (response.statusCode != 200) {
-        throw Exception('Failed to connect to event stream (Status ${response.statusCode})');
-      }
-
-      final lines = response
-          .transform(utf8.decoder)
-          .transform(const LineSplitter());
-
-      String currentData = '';
-      await for (final line in lines) {
-        final trimmed = line.trim();
-        if (trimmed.isEmpty) {
-          if (currentData.isNotEmpty) {
-            try {
-              final decoded = jsonDecode(currentData);
-              yield decoded;
-            } catch (e) {
-              // Ignore malformed JSON
-            }
-            currentData = '';
-          }
-          continue;
-        }
-
-        if (trimmed.startsWith('data:')) {
-          final dataVal = trimmed.substring(5).trim();
-          currentData += dataVal;
-        } else if (trimmed.startsWith('data :')) {
-          final dataVal = trimmed.substring(6).trim();
-          currentData += dataVal;
-        }
-      }
-    } catch (e) {
-      yield {
-        'type': 'ERROR',
-        'timestamp': DateTime.now().toIso8601String(),
-        'payload': {'message': e.toString()}
-      };
-    } finally {
-      client.close();
     }
   }
 
