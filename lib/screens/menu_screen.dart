@@ -1,11 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../api/api_client.dart';
 import '../theme.dart';
-import 'new_table_screen.dart';
-import 'join_table_screen.dart';
-import 'table_screen.dart';
-import 'welcome_screen.dart';
 
 class RecentTable {
   final String gameId;
@@ -35,22 +32,41 @@ class MenuScreen extends StatefulWidget {
 }
 
 class _MenuScreenState extends State<MenuScreen> {
+  late final ApiClient _apiClient;
   List<RecentTable> _recent = [];
 
   @override
   void initState() {
     super.initState();
+    _apiClient = ApiClient(baseUrl: widget.serverUrl, token: widget.token);
     _loadRecent();
   }
 
   Future<void> _loadRecent() async {
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getStringList('recent_tables') ?? [];
-    setState(() {
-      _recent = raw
-          .map((s) => RecentTable.fromJson(jsonDecode(s) as Map<String, dynamic>))
-          .toList();
-    });
+    final all = raw.map((s) => RecentTable.fromJson(jsonDecode(s) as Map<String, dynamic>)).toList();
+
+    // Closed tables are permanent - drop them from the list rather than just hiding them, so we
+    // don't keep re-checking a table that can never reopen on every future menu visit.
+    final stillOpen = <RecentTable>[];
+    for (final t in all) {
+      try {
+        final game = await _apiClient.getGame(t.gameId);
+        if (game['closed'] != true) stillOpen.add(t);
+      } catch (_) {
+        // Couldn't confirm status (e.g. offline) - keep it rather than risk hiding a live table.
+        stillOpen.add(t);
+      }
+    }
+
+    if (stillOpen.length != all.length) {
+      await prefs.setStringList(
+          'recent_tables', stillOpen.map((t) => jsonEncode(t.toJson())).toList());
+    }
+
+    if (!mounted) return;
+    setState(() => _recent = stillOpen);
   }
 
   Future<void> _logOut() async {
@@ -58,50 +74,26 @@ class _MenuScreenState extends State<MenuScreen> {
     await prefs.remove('jwt_token');
     await prefs.remove('username');
     if (mounted) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const WelcomeScreen()),
-      );
+      Navigator.of(context).pushReplacementNamed('/');
     }
   }
 
+  Map<String, dynamic> get _sessionArgs =>
+      {'serverUrl': widget.serverUrl, 'token': widget.token, 'username': widget.username};
+
   void _openTable(String gameId) {
     Navigator.of(context)
-        .push(
-          MaterialPageRoute(
-            builder: (context) => TableScreen(
-              serverUrl: widget.serverUrl,
-              token: widget.token,
-              username: widget.username,
-              gameId: gameId,
-            ),
-          ),
-        )
+        .pushNamed('/table/$gameId', arguments: _sessionArgs)
         .then((_) => _loadRecent());
   }
 
   Future<void> _createTable() async {
-    await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => NewTableScreen(
-          serverUrl: widget.serverUrl,
-          token: widget.token,
-          username: widget.username,
-        ),
-      ),
-    );
+    await Navigator.of(context).pushNamed('/new-table', arguments: _sessionArgs);
     _loadRecent();
   }
 
   Future<void> _joinTable() async {
-    await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => JoinTableScreen(
-          serverUrl: widget.serverUrl,
-          token: widget.token,
-          username: widget.username,
-        ),
-      ),
-    );
+    await Navigator.of(context).pushNamed('/join-table', arguments: _sessionArgs);
     _loadRecent();
   }
 
