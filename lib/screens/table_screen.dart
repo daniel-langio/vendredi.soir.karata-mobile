@@ -219,8 +219,12 @@ class _TableScreenState extends State<TableScreen> {
     try {
       await _apiClient.leaveTable(widget.gameId);
       if (!mounted) return;
-      Navigator.of(context).pushReplacementNamed(
+      // Clears the whole stack rather than just replacing this screen - normally reached via
+      // Menu pushing this table on top of itself, so a plain replace would leave that earlier
+      // Menu instance underneath and show as a stray back button.
+      Navigator.of(context).pushNamedAndRemoveUntil(
         '/menu',
+        (route) => false,
         arguments: {
           'serverUrl': widget.serverUrl,
           'token': widget.token,
@@ -628,20 +632,30 @@ class _SeatWidget extends StatelessWidget {
         child: Column(
           children: [
             if (lastAction != null)
-              Container(
-                margin: const EdgeInsets.only(bottom: 5),
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                decoration: BoxDecoration(
-                  color: KarataColors.live,
-                  borderRadius: BorderRadius.circular(999),
+              // Keying on the action text itself restarts this tween from scratch every time it
+              // changes to a genuinely new value (including its first appearance), giving a brief
+              // "just happened" pop without any manual AnimationController bookkeeping.
+              TweenAnimationBuilder<double>(
+                key: ValueKey(lastAction),
+                tween: Tween(begin: 1.4, end: 1.0),
+                duration: const Duration(milliseconds: 380),
+                curve: Curves.easeOutBack,
+                builder: (context, scale, child) => Transform.scale(scale: scale, child: child),
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 5),
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: KarataColors.live,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(lastAction,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.w700,
+                          color: KarataColors.cardInk,
+                          height: 1)),
                 ),
-                child: Text(lastAction,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                        fontSize: 9.5,
-                        fontWeight: FontWeight.w700,
-                        color: KarataColors.cardInk,
-                        height: 1)),
               ),
             SizedBox(
               width: 64,

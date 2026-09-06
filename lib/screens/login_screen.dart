@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../api/api_client.dart';
 import '../theme.dart';
-import 'menu_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   final String serverUrl;
@@ -42,11 +41,12 @@ class _LoginScreenState extends State<LoginScreen> {
       await prefs.setString('username', username);
 
       if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) =>
-                MenuScreen(serverUrl: widget.serverUrl, token: token, username: username),
-          ),
+        // Clears the whole stack (not just this screen) - reached via WelcomeScreen's
+        // RootScreen, which would otherwise linger below Menu and show as a stray back button.
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          '/menu',
+          (route) => false,
+          arguments: {'serverUrl': widget.serverUrl, 'token': token, 'username': username},
         );
       }
     } catch (e) {
