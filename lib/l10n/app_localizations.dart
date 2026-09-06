@@ -38,8 +38,6 @@ class AppLocalizations {
 
   // WelcomeScreen
   String get welcomeTagline => _s('welcomeTagline');
-  String get serverSettings => _s('serverSettings');
-  String get hideServerSettings => _s('hideServerSettings');
   String get serverBaseUrl => _s('serverBaseUrl');
 
   // RegisterScreen
@@ -141,8 +139,6 @@ class AppLocalizations {
       'password': 'Password',
       'welcomeTagline':
           'Play poker with your friends. No accounts to manage,\njust a name and a table.',
-      'serverSettings': 'Server settings',
-      'hideServerSettings': 'Hide server settings',
       'serverBaseUrl': 'Server base URL',
       'registerSubtitle': 'This name is how everyone else at the table will see you.',
       'usernameTooShort': 'At least 3 characters',
@@ -235,8 +231,6 @@ class AppLocalizations {
       'password': 'Mot de passe',
       'welcomeTagline':
           'Jouez au poker avec vos amis. Pas de compte à gérer,\njuste un nom et une table.',
-      'serverSettings': 'Paramètres du serveur',
-      'hideServerSettings': 'Masquer les paramètres du serveur',
       'serverBaseUrl': 'URL de base du serveur',
       'registerSubtitle': 'Ce nom est celui que les autres joueurs verront à la table.',
       'usernameTooShort': 'Au moins 3 caractères',
