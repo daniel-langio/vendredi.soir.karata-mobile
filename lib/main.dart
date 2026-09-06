@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'l10n/app_localizations.dart';
+import 'locale_controller.dart';
 import 'screens/welcome_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/login_screen.dart';
@@ -10,6 +13,7 @@ import 'screens/table_screen.dart';
 import 'theme.dart';
 
 void main() {
+  LocaleController.instance.load();
   runApp(const MyApp());
 }
 
@@ -18,11 +22,23 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Karata',
-      debugShowCheckedModeBanner: false,
-      theme: karataTheme(),
-      onGenerateRoute: _onGenerateRoute,
+    return ValueListenableBuilder<Locale?>(
+      valueListenable: LocaleController.instance,
+      builder: (context, locale, _) {
+        return MaterialApp(
+          title: 'Karata',
+          debugShowCheckedModeBanner: false,
+          theme: karataTheme(),
+          locale: locale,
+          supportedLocales: AppLocalizations.supportedLocales,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+          ],
+          onGenerateRoute: _onGenerateRoute,
+        );
+      },
     );
   }
 }
