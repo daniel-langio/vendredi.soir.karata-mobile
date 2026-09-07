@@ -129,6 +129,9 @@ class AppLocalizations {
   String get sb => _s('sb');
   String get bb => _s('bb');
   String get allInTag => _s('allInTag');
+  String get you => _s('you');
+  String get playing => _s('playing');
+  String get spectating => _s('spectating');
 
   static const Map<String, Map<String, String>> _strings = {
     'en': {
@@ -223,6 +226,9 @@ class AppLocalizations {
       'sb': 'SB',
       'bb': 'BB',
       'allInTag': 'ALL',
+      'you': 'You',
+      'playing': 'Playing',
+      'spectating': 'Spectating',
     },
     'fr': {
       'cancel': 'Annuler',
@@ -316,6 +322,9 @@ class AppLocalizations {
       'sb': 'PB',
       'bb': 'GB',
       'allInTag': 'TAPIS',
+      'you': 'Toi',
+      'playing': 'En jeu',
+      'spectating': 'Spectateur',
     },
   };
 }
