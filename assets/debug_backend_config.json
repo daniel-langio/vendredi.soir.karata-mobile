@@ -1,6 +1,0 @@
-{
-  "enabled": true,
-  "backends": [
-    { "name": "Render (prod)", "url": "https://karata.onrender.com/poker" }
-  ]
-}

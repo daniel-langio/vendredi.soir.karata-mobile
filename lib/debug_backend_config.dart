@@ -1,6 +1,6 @@
-import 'dart:convert';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:yaml/yaml.dart';
 
 class BackendOption {
   final String name;
@@ -9,7 +9,7 @@ class BackendOption {
 }
 
 /// A debug-only way to switch which backend server the app talks to, entirely controlled by
-/// assets/debug_backend_config.json - flip "enabled" to false, or remove entries from the
+/// assets/debug_backend_config.yml - flip "enabled" to false, or remove entries from the
 /// "backends" list, to shrink or unplug this feature with no code changes.
 ///
 /// Never active outside a debug build (kDebugMode is always false in profile/release builds,
@@ -18,19 +18,19 @@ class BackendOption {
 class DebugBackendConfig {
   DebugBackendConfig._();
 
-  static const _assetPath = 'assets/debug_backend_config.json';
+  static const _assetPath = 'assets/debug_backend_config.yml';
 
   static Future<List<BackendOption>> load() async {
     if (!kDebugMode) return const [];
     try {
       final raw = await rootBundle.loadString(_assetPath);
-      final json = jsonDecode(raw) as Map<String, dynamic>;
-      if (json['enabled'] != true) return const [];
-      final list = json['backends'] as List<dynamic>? ?? [];
+      final doc = loadYaml(raw) as YamlMap;
+      if (doc['enabled'] != true) return const [];
+      final list = doc['backends'] as YamlList? ?? YamlList.wrap(const []);
       return [
         for (final entry in list)
           BackendOption(
-            name: (entry as Map<String, dynamic>)['name'] as String,
+            name: (entry as YamlMap)['name'] as String,
             url: entry['url'] as String,
           ),
       ];
