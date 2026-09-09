@@ -1,4 +1,4 @@
 enabled: true
 backends:
-  - name: "Cloud Run (vendredi-soir)"
-    url: "https://preprod-karata-490641885062.southamerica-east1.run.app/poker"
+  - name: "Cloud Run (karata0)"
+    url: "https://preprod-karata-210977503792.southamerica-east1.run.app/poker"

@@ -32,7 +32,7 @@ void main() {
     // assets/debug_backend_config.yml's one entry shares its URL with defaultServerUrl(), so
     // it should be auto-selected - the free-text field stays hidden until "Custom URL..." is
     // explicitly chosen.
-    expect(find.textContaining('Debug backend: Cloud Run (vendredi-soir)'), findsOneWidget);
+    expect(find.textContaining('Debug backend: Cloud Run (karata0)'), findsOneWidget);
     expect(find.text('Server base URL'), findsNothing);
 
     await tester.tap(find.byIcon(Icons.dns_outlined));
