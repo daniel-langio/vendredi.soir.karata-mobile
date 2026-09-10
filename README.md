@@ -35,8 +35,7 @@ get an email invite.
    need to re-download an APK by hand each time.
 
 **How this is wired up** (for reference / if it ever needs touching):
-- Firebase project: `karata0` (same GCP project karata's backend already deploys to - see
-  [[project_deployment_pipelines]]).
+- Firebase project: `karata0` (same GCP project karata's backend already deploys to).
 - Android app registered as `com.vendredi.poker.poker_client`, Firebase app id
   `1:210977503792:android:c89d272d5d925f5c4dcbf5`.
 - CI authenticates via Workload Identity Federation (no downloadable service account key - this
@@ -45,6 +44,26 @@ get an email invite.
   `roles/firebaseappdistro.admin`. The existing `github-actions-pool`/`github-provider` WIF
   provider (originally scoped to the karata backend repo only) had its trust condition widened to
   also allow `daniel-langio/vendredi.soir.karata-mobile`.
+
+## Release versioning
+
+Every push to `main`, `preprod`, or `master` auto-bumps `pubspec.yaml`'s version and publishes a
+tagged GitHub Release with the built APK attached (`.github/workflows/build_apk.yml`, after the
+Firebase distribution step) - no manual version bumping needed for routine changes:
+
+- A `feat:`/`feat(scope):` commit message bumps **minor** (resets patch to 0).
+- Anything else bumps **patch**.
+- **Major** is never bumped automatically - see below.
+
+The build number (Android's `versionCode`) keeps auto-incrementing via commit count as before,
+independent of this. Pull request / manual (`workflow_dispatch`) builds don't bump or tag
+anything - they just build with whatever version is already committed.
+
+**Publishing a major version**: run the **Release Major Version** workflow manually (Actions tab
+→ "Release Major Version" → Run workflow). This bumps to `X+1.0.0`, builds, distributes to
+testers, and tags/publishes a release exactly like the automatic path - kept as an explicit,
+separate action rather than something that falls out of a commit message convention, since a
+major version is a real product decision.
 
 ## License
 
