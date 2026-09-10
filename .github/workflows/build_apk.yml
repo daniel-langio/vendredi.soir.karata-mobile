@@ -48,6 +48,12 @@ jobs:
 
       - name: Compute version
         id: version
+        env:
+          # A GitHub Actions expression interpolated straight into a shell string is unsafe for
+          # arbitrary text like a commit message - backticks/$()/quotes in it would be re-parsed
+          # by bash (this bit a real commit once: a `code span` in the message broke the build).
+          # Routing it through an env var instead means bash treats the whole value as inert text.
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
         run: |
           # versionCode (the build number) auto-increments every commit via the commit count, so
           # every build is distinct and installable over the last one - Android refuses to install
@@ -62,7 +68,7 @@ jobs:
 
           if [ "${{ github.event_name }}" = "push" ]; then
             IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
-            if echo "${{ github.event.head_commit.message }}" | grep -qE '^feat(\(.+\))?!?:'; then
+            if echo "$COMMIT_MESSAGE" | grep -qE '^feat(\(.+\))?!?:'; then
               VERSION_NAME="${MAJOR}.$((MINOR + 1)).0"
             else
               VERSION_NAME="${MAJOR}.${MINOR}.$((PATCH + 1))"
@@ -107,12 +113,14 @@ jobs:
 
       - name: Distribute to testers via Firebase App Distribution
         if: github.event_name == 'push'
+        env:
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
         run: |
           firebase appdistribution:distribute \
             "build/app/outputs/flutter-apk/release/${{ steps.rename.outputs.apk_name }}" \
             --app "1:210977503792:android:c89d272d5d925f5c4dcbf5" \
             --groups "testers" \
-            --release-notes "${{ github.event.head_commit.message }}"
+            --release-notes "$COMMIT_MESSAGE"
 
       # Commits the version bump made in "Compute version" and tags/publishes it - only after a
       # successful build+distribution, so a broken commit never ends up tagged as a release.
