@@ -9,6 +9,10 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+  id-token: write
+
 jobs:
   build:
     name: Build Android APK
@@ -70,3 +74,25 @@ jobs:
         with:
           name: ${{ steps.rename.outputs.apk_name }}
           path: build/app/outputs/flutter-apk/release/${{ steps.rename.outputs.apk_name }}
+
+      # Only real pushes (not PRs) get distributed to testers - a PR build isn't necessarily
+      # meant for testers yet, and this keeps every distributed release traceable to a branch.
+      - name: Authenticate to Google Cloud
+        if: github.event_name == 'push'
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: projects/210977503792/locations/global/workloadIdentityPools/github-actions-pool/providers/github-provider
+          service_account: github-actions-distributor@karata0.iam.gserviceaccount.com
+
+      - name: Install Firebase CLI
+        if: github.event_name == 'push'
+        run: npm install -g firebase-tools
+
+      - name: Distribute to testers via Firebase App Distribution
+        if: github.event_name == 'push'
+        run: |
+          firebase appdistribution:distribute \
+            "build/app/outputs/flutter-apk/release/${{ steps.rename.outputs.apk_name }}" \
+            --app "1:210977503792:android:c89d272d5d925f5c4dcbf5" \
+            --groups "testers" \
+            --release-notes "${{ github.event.head_commit.message }}"
