@@ -495,7 +495,9 @@ class _TableScreenState extends State<TableScreen> {
   }
 
   Widget _buildTurnLine() {
-    if (_isClosed || _dealId.isEmpty || _phase == 'SHOWDOWN') return const SizedBox();
+    if (_isClosed || _dealId.isEmpty || _phase == "SHOWDOWN") {
+      return const SizedBox();
+    }
     final t = AppLocalizations.of(context);
 
     if (_isMyTurn && _turnDeadline != null) {
@@ -854,7 +856,9 @@ class _SeatWidget extends StatelessWidget {
     final isActive = activePlayerId != null && activePlayerId == playerId;
     final isFolded = status == 'FOLDED';
     final isAllIn = status == 'ALL_IN';
-    final initial = username.isNotEmpty ? username[0].toUpperCase() : '?';
+    final String usernameSafe = player['username']?.toString() ?? 'Player';
+final bool isBot = player['isBot'] == true;
+final initial = isBot ? 'BOT' : (usernameSafe.isNotEmpty ? usernameSafe[0].toUpperCase() : '?');
     final holeCards = revealedHand?['holeCards'] as List<dynamic>?;
     final handRank = revealedHand?['handRank'] as String?;
 
@@ -880,7 +884,7 @@ class _SeatWidget extends StatelessWidget {
                       width: 46,
                       height: 46,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF221F28),
+                        color: isBot ? const Color(0xFF1A1A1A) : const Color(0xFF221F28),
                         shape: BoxShape.circle,
                         border: isActive ? Border.all(color: KarataColors.ink, width: 2) : null,
                       ),
@@ -915,10 +919,11 @@ class _SeatWidget extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 7),
-            Text(username,
-                textAlign: TextAlign.center,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 11, color: KarataColors.dim)),
+            Text(
+              usernameSafe + (isBot ? ' (BOT)' : ''),
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 11, color: KarataColors.dim)),
             Text(chips,
                 style: const TextStyle(
                     fontSize: 15, color: KarataColors.ink, fontWeight: FontWeight.w500)),
