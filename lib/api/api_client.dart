@@ -161,6 +161,68 @@ class ApiClient {
     }
   }
 
+  /// GET /games/public
+  /// The house lobbies listed on the home screen. Seeded server-side and never closable, so this
+  /// list is stable - what changes is how many players each one reports.
+  Future<List<Map<String, dynamic>>> listPublicTables() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/games/public'),
+      headers: _headers,
+    );
+
+    if (response.statusCode == 200) {
+      return (jsonDecode(response.body) as List).cast<Map<String, dynamic>>();
+    } else {
+      _throwDetailedError(response);
+    }
+  }
+
+  /// GET /games/mine
+  /// Every open table the caller hosts or is still seated at - server-side, so it survives a
+  /// reinstall or a change of device.
+  Future<List<Map<String, dynamic>>> listMyTables() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/games/mine'),
+      headers: _headers,
+    );
+
+    if (response.statusCode == 200) {
+      return (jsonDecode(response.body) as List).cast<Map<String, dynamic>>();
+    } else {
+      _throwDetailedError(response);
+    }
+  }
+
+  /// POST /games/{gameId}/pause
+  /// Host-only. A paused table rejects deals and actions until it is resumed.
+  Future<void> pauseTable(String gameId) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/games/$gameId/pause'),
+      headers: _headers,
+    );
+
+    if (response.statusCode == 204) {
+      return;
+    } else {
+      _throwDetailedError(response);
+    }
+  }
+
+  /// POST /games/{gameId}/resume
+  /// Host-only. Lifts the pause set by [pauseTable].
+  Future<void> resumeTable(String gameId) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/games/$gameId/resume'),
+      headers: _headers,
+    );
+
+    if (response.statusCode == 204) {
+      return;
+    } else {
+      _throwDetailedError(response);
+    }
+  }
+
   /// POST /games/{gameId}/leave
   /// Stands the caller up from the table for good - excluded from future deals, and folded out of
   /// whichever hand is in progress if they were dealt into it.

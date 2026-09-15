@@ -61,9 +61,18 @@ class AppLocalizations {
   String get createTable => _s('createTable');
   String get joinWithLink => _s('joinWithLink');
   String get yourTables => _s('yourTables');
-  String get keptOnThisDevice => _s('keptOnThisDevice');
+  String get syncedToYourAccount => _s('syncedToYourAccount');
   String get noTablesYet => _s('noTablesYet');
   String get open => _s('open');
+  String get publicTables => _s('publicTables');
+  String get anyoneCanSitDown => _s('anyoneCanSitDown');
+  String get noPublicTables => _s('noPublicTables');
+  String buyInOf(String amount) => _fmt('buyInOf', {'amount': amount});
+  String seatedCount(String count) => _fmt('seatedCount', {'count': count});
+  String get seatedCountOne => _s('seatedCountOne');
+  String get seatedCountNone => _s('seatedCountNone');
+  String couldNotLoadTables(String error) =>
+      _fmt('couldNotLoadTables', {'error': error});
   String get logOut => _s('logOut');
   String get language => _s('language');
   String get systemDefault => _s('systemDefault');
@@ -110,6 +119,12 @@ class AppLocalizations {
   String get closeTableTitle => _s('closeTableTitle');
   String get closeTableContent => _s('closeTableContent');
   String get closeTable => _s('closeTable');
+  String get pauseTable => _s('pauseTable');
+  String get resumeTable => _s('resumeTable');
+  String get tablePaused => _s('tablePaused');
+  String get tablePausedExplainer => _s('tablePausedExplainer');
+  String couldNotPauseTable(String error) =>
+      _fmt('couldNotPauseTable', {'error': error});
   String get closedSuffix => _s('closedSuffix');
   String couldNotCloseTable(String error) =>
       _fmt('couldNotCloseTable', {'error': error});
@@ -264,7 +279,15 @@ class AppLocalizations {
       'createTable': 'Create a table',
       'joinWithLink': 'Join with a link',
       'yourTables': 'Your tables',
-      'keptOnThisDevice': 'kept on this device',
+      'syncedToYourAccount': 'synced to your account',
+      'publicTables': 'Public tables',
+      'anyoneCanSitDown': 'anyone can sit down',
+      'noPublicTables': 'No public tables are open right now.',
+      'buyInOf': '{amount} buy-in',
+      'seatedCount': '{count} players',
+      'seatedCountOne': '1 player',
+      'seatedCountNone': 'empty',
+      'couldNotLoadTables': 'Could not load your tables: {error}',
       'noTablesYet': 'No tables yet. Create or join one to see it here.',
       'open': 'Open',
       'logOut': 'Log out',
@@ -307,6 +330,12 @@ class AppLocalizations {
       'closeTableContent':
           'Nobody will be able to join, start a hand, or act at this table again. This cannot be undone.',
       'closeTable': 'Close table',
+      'pauseTable': 'Pause table',
+      'resumeTable': 'Resume table',
+      'tablePaused': 'Paused by the host',
+      'tablePausedExplainer':
+          'No deals or actions until the host resumes. Your chips stay where they are.',
+      'couldNotPauseTable': 'Could not change the pause state: {error}',
       'closedSuffix': 'closed',
       'couldNotCloseTable': 'Could not close table: {error}',
       'leaveTableTitle': 'Leave this table?',
@@ -449,7 +478,15 @@ class AppLocalizations {
       'createTable': 'Créer une table',
       'joinWithLink': 'Rejoindre avec un lien',
       'yourTables': 'Vos tables',
-      'keptOnThisDevice': 'conservées sur cet appareil',
+      'syncedToYourAccount': 'synchronisées avec votre compte',
+      'publicTables': 'Tables publiques',
+      'anyoneCanSitDown': 'ouvertes à tous',
+      'noPublicTables': 'Aucune table publique n\'est ouverte pour le moment.',
+      'buyInOf': 'cave de {amount}',
+      'seatedCount': '{count} joueurs',
+      'seatedCountOne': '1 joueur',
+      'seatedCountNone': 'vide',
+      'couldNotLoadTables': 'Impossible de charger vos tables : {error}',
       'noTablesYet':
           'Aucune table pour le moment. Créez-en une ou rejoignez-en une pour la voir ici.',
       'open': 'Ouvrir',
@@ -494,6 +531,12 @@ class AppLocalizations {
       'closeTableContent':
           'Plus personne ne pourra rejoindre, démarrer une main ni jouer à cette table. Cette action est irréversible.',
       'closeTable': 'Fermer la table',
+      'pauseTable': 'Mettre la table en pause',
+      'resumeTable': 'Reprendre la partie',
+      'tablePaused': 'En pause par l\'hôte',
+      'tablePausedExplainer':
+          'Aucune donne ni action tant que l\'hôte n\'a pas repris. Vos jetons restent en place.',
+      'couldNotPauseTable': 'Impossible de changer l\'état de pause : {error}',
       'closedSuffix': 'fermée',
       'couldNotCloseTable': 'Impossible de fermer la table : {error}',
       'leaveTableTitle': 'Quitter cette table ?',

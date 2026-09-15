@@ -3,7 +3,6 @@ import '../api/api_client.dart';
 import '../l10n/app_localizations.dart';
 import '../table_name_generator.dart';
 import '../theme.dart';
-import 'menu_screen.dart';
 
 class NewTableScreen extends StatefulWidget {
   final String serverUrl;
@@ -44,11 +43,18 @@ class _NewTableScreenState extends State<NewTableScreen> {
     final bb = int.tryParse(_bigBlindController.text.trim());
     final buyIn = int.tryParse(_buyInController.text.trim());
 
-    if (name.isEmpty || sb == null || sb <= 0 || bb == null || bb <= 0 || buyIn == null || buyIn <= 0) {
+    if (name.isEmpty ||
+        sb == null ||
+        sb <= 0 ||
+        bb == null ||
+        bb <= 0 ||
+        buyIn == null ||
+        buyIn <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text(AppLocalizations.of(context).fillValidValues),
-            backgroundColor: KarataColors.red),
+          content: Text(AppLocalizations.of(context).fillValidValues),
+          backgroundColor: KarataColors.red,
+        ),
       );
       return;
     }
@@ -56,11 +62,15 @@ class _NewTableScreenState extends State<NewTableScreen> {
     setState(() => _isLoading = true);
     try {
       final client = ApiClient(baseUrl: widget.serverUrl, token: widget.token);
-      final game = await client.createGame(name, sb, bb, defaultBuyIn: buyIn, variant: _variant);
+      final game = await client.createGame(
+        name,
+        sb,
+        bb,
+        defaultBuyIn: buyIn,
+        variant: _variant,
+      );
       final gameId = game['gameId'] as String;
       await client.buyIn(gameId, buyIn);
-      await saveRecentTable(gameId, name);
-
       if (mounted) {
         Navigator.of(context).pushReplacementNamed(
           '/table/$gameId',
@@ -75,8 +85,11 @@ class _NewTableScreenState extends State<NewTableScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text(AppLocalizations.of(context).couldNotCreateTable('$e')),
-              backgroundColor: KarataColors.red),
+            content: Text(
+              AppLocalizations.of(context).couldNotCreateTable('$e'),
+            ),
+            backgroundColor: KarataColors.red,
+          ),
         );
       }
     } finally {
@@ -96,12 +109,19 @@ class _NewTableScreenState extends State<NewTableScreen> {
             Text(
               t.newTableTitle,
               style: const TextStyle(
-                  fontSize: 34, fontWeight: FontWeight.w300, color: KarataColors.ink),
+                fontSize: 34,
+                fontWeight: FontWeight.w300,
+                color: KarataColors.ink,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               t.newTableSubtitle,
-              style: const TextStyle(fontSize: 13.5, color: KarataColors.dim, height: 1.45),
+              style: const TextStyle(
+                fontSize: 13.5,
+                color: KarataColors.dim,
+                height: 1.45,
+              ),
             ),
             const SizedBox(height: 24),
             Row(
@@ -117,7 +137,9 @@ class _NewTableScreenState extends State<NewTableScreen> {
                 IconButton(
                   icon: const Icon(Icons.shuffle),
                   tooltip: t.generateTableName,
-                  onPressed: () => setState(() => _nameController.text = generateTableName()),
+                  onPressed: () => setState(
+                    () => _nameController.text = generateTableName(),
+                  ),
                 ),
               ],
             ),
@@ -128,14 +150,24 @@ class _NewTableScreenState extends State<NewTableScreen> {
               style: const TextStyle(color: KarataColors.ink),
               decoration: InputDecoration(labelText: t.gameVariant),
               items: [
-                DropdownMenuItem(value: 'TEXAS_HOLDEM', child: Text(t.variantTexasHoldemShort)),
-                DropdownMenuItem(value: 'OMAHA', child: Text(t.variantOmahaShort)),
                 DropdownMenuItem(
-                    value: 'FIVE_CARD_DRAW', child: Text(t.variantFiveCardDrawShort)),
+                  value: 'TEXAS_HOLDEM',
+                  child: Text(t.variantTexasHoldemShort),
+                ),
+                DropdownMenuItem(
+                  value: 'OMAHA',
+                  child: Text(t.variantOmahaShort),
+                ),
+                DropdownMenuItem(
+                  value: 'FIVE_CARD_DRAW',
+                  child: Text(t.variantFiveCardDrawShort),
+                ),
                 DropdownMenuItem(
                   value: 'SEVEN_CARD_STUD',
-                  child: Text('${t.variantSevenCardStudShort} (${t.comingSoon})',
-                      style: const TextStyle(color: KarataColors.dim)),
+                  child: Text(
+                    '${t.variantSevenCardStudShort} (${t.comingSoon})',
+                    style: const TextStyle(color: KarataColors.dim),
+                  ),
                 ),
               ],
               // SEVEN_CARD_STUD is shown (dimmed) but not selectable yet - DropdownMenuItem has
@@ -144,8 +176,11 @@ class _NewTableScreenState extends State<NewTableScreen> {
                 if (value == 'SEVEN_CARD_STUD') {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                        content: Text('${t.variantSevenCardStudShort} - ${t.comingSoon}'),
-                        backgroundColor: KarataColors.pill),
+                      content: Text(
+                        '${t.variantSevenCardStudShort} - ${t.comingSoon}',
+                      ),
+                      backgroundColor: KarataColors.pill,
+                    ),
                   );
                   return;
                 }
@@ -175,9 +210,14 @@ class _NewTableScreenState extends State<NewTableScreen> {
               ],
             ),
             const SizedBox(height: 24),
-            Text(t.yourBuyIn,
-                style: const TextStyle(
-                    fontSize: 14, fontWeight: FontWeight.w600, color: KarataColors.ink)),
+            Text(
+              t.yourBuyIn,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: KarataColors.ink,
+              ),
+            ),
             const SizedBox(height: 12),
             TextField(
               controller: _buyInController,
@@ -188,7 +228,11 @@ class _NewTableScreenState extends State<NewTableScreen> {
             const SizedBox(height: 14),
             Text(
               t.newTableFooter,
-              style: const TextStyle(fontSize: 12, color: KarataColors.dim, height: 1.5),
+              style: const TextStyle(
+                fontSize: 12,
+                color: KarataColors.dim,
+                height: 1.5,
+              ),
             ),
             const SizedBox(height: 24),
             ElevatedButton(
@@ -197,7 +241,10 @@ class _NewTableScreenState extends State<NewTableScreen> {
                   ? const SizedBox(
                       width: 20,
                       height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: KarataColors.ink),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: KarataColors.ink,
+                      ),
                     )
                   : Text(t.createAndSitDown),
             ),

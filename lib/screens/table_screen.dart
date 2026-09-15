@@ -86,6 +86,18 @@ class _TableScreenState extends State<TableScreen> {
   Map<String, dynamic>? get _you => _game?['you'] as Map<String, dynamic>?;
   List<dynamic> get _players => _game?['players'] as List<dynamic>? ?? [];
   bool get _isClosed => _game?['closed'] == true;
+  bool get _isPaused => _game?['paused'] == true;
+
+  /// Pausing, resuming and closing are the host's alone (see GameService.requireInitiator /
+  /// requireCanClose) - hiding them from everyone else keeps the menu honest rather than offering
+  /// actions the server will refuse.
+  bool get _isHost => _game?['initiatorUsername'] == widget.username;
+
+  /// Mirrors GameService.requireCanClose: the host, or the last player still seated at a table
+  /// whose host has walked away. Public tables are nobody's to close.
+  bool get _canClose =>
+      _game?['isPublic'] != true &&
+      (_isHost || (_isPlaying && _players.length == 1));
   bool get _isMyTurn {
     final me = _players.firstWhere(
       (p) => p['username'] == widget.username,
@@ -350,6 +362,65 @@ class _TableScreenState extends State<TableScreen> {
     }
   }
 
+  Future<void> _setPaused(bool paused) async {
+    setState(() => _isLoading = true);
+    try {
+      if (paused) {
+        await _apiClient.pauseTable(widget.gameId);
+      } else {
+        await _apiClient.resumeTable(widget.gameId);
+      }
+      await _refresh();
+    } catch (e) {
+      _showError((t) => t.couldNotPauseTable('$e'));
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Widget _pausedBanner(AppLocalizations t) => Container(
+    margin: const EdgeInsets.only(bottom: 8),
+    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+    decoration: BoxDecoration(
+      color: KarataColors.pill,
+      borderRadius: BorderRadius.circular(10),
+    ),
+    child: Row(
+      children: [
+        const Icon(
+          Icons.pause_circle_outline,
+          size: 18,
+          color: KarataColors.ink,
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                t.tablePaused,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: KarataColors.ink,
+                ),
+              ),
+              Text(
+                t.tablePausedExplainer,
+                style: const TextStyle(fontSize: 11.5, color: KarataColors.dim),
+              ),
+            ],
+          ),
+        ),
+        if (_isHost)
+          TextButton(
+            onPressed: _isLoading ? null : () => _setPaused(false),
+            child: Text(t.resumeTable),
+          ),
+      ],
+    ),
+  );
+
   void _showVariantInfo() {
     final variant = _game?['variant'] as String? ?? 'TEXAS_HOLDEM';
     showDialog<void>(
@@ -496,16 +567,25 @@ class _TableScreenState extends State<TableScreen> {
                   },
                   child: Text(t.leaveTable),
                 ),
-                PopupMenuItem(
-                  onTap: () {
-                    _sounds.click();
-                    _closeTable();
-                  },
-                  child: Text(
-                    t.closeTable,
-                    style: const TextStyle(color: KarataColors.red),
+                if (_isHost)
+                  PopupMenuItem(
+                    onTap: () {
+                      _sounds.click();
+                      _setPaused(!_isPaused);
+                    },
+                    child: Text(_isPaused ? t.resumeTable : t.pauseTable),
                   ),
-                ),
+                if (_canClose)
+                  PopupMenuItem(
+                    onTap: () {
+                      _sounds.click();
+                      _closeTable();
+                    },
+                    child: Text(
+                      t.closeTable,
+                      style: const TextStyle(color: KarataColors.red),
+                    ),
+                  ),
               ],
             ),
           Padding(
@@ -539,6 +619,10 @@ class _TableScreenState extends State<TableScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                // The server refuses every deal and action while a table is paused. Without this
+                // the refusal surfaces as a bare error snackbar, reading as a bug rather than as
+                // the host having deliberately stopped play.
+                if (_isPaused && !_isClosed) _pausedBanner(t),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: _players
