@@ -3,11 +3,6 @@ import '../api/api_client.dart';
 import '../l10n/app_localizations.dart';
 import '../theme.dart';
 
-/// Only "dev" can create a listing right now (server-enforced - this is purely a client-side
-/// convenience so most users don't see a "sell" affordance that would just 403 for them; opening
-/// this up to more sellers later is a server config change, not something this needs to know).
-const _sellerUsername = 'dev';
-
 class MarketplaceScreen extends StatefulWidget {
   final String serverUrl;
   final String token;
@@ -32,6 +27,12 @@ class _MarketplaceScreenState extends State<MarketplaceScreen>
   List<Map<String, dynamic>> _stands = [];
   bool _isLoading = true;
 
+  /// Who may create a listing, answered by the server (`operator` on GET /poker/account) rather
+  /// than by comparing the username to a hardcoded "dev". Selling is server-enforced either way;
+  /// this only decides whether the affordance is worth showing. Defaults to false so a failed
+  /// lookup hides the button rather than offering one that would 403.
+  bool _canSell = false;
+
   @override
   void initState() {
     super.initState();
@@ -42,6 +43,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen>
       if (!_tabController.indexIsChanging) setState(() {});
     });
     _load();
+    _loadCanSell();
   }
 
   @override
@@ -84,6 +86,15 @@ class _MarketplaceScreenState extends State<MarketplaceScreen>
       }
     }
     if (mounted) setState(() => _isLoading = false);
+  }
+
+  Future<void> _loadCanSell() async {
+    try {
+      final isOperator = await _apiClient.isOperator();
+      if (mounted) setState(() => _canSell = isOperator);
+    } catch (_) {
+      // Leave _canSell false: an unreachable server is not a reason to show a sell button.
+    }
   }
 
   Future<void> _openListing(Map<String, dynamic> listing) async {
@@ -222,7 +233,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen>
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
-    final canSell = widget.username == _sellerUsername;
+    final canSell = _canSell;
     final onRedeemTab = _tabController.index == 1;
 
     return Scaffold(

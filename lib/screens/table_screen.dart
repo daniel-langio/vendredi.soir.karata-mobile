@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../api/api_client.dart';
+import '../chip_display.dart';
 import '../game_sounds.dart';
 import '../l10n/app_localizations.dart';
 import '../theme.dart';
@@ -68,12 +69,20 @@ class _TableScreenState extends State<TableScreen> {
       }
     });
     _sounds.prepare();
+    // Every chip amount on this screen is formatted through ChipDisplay, so a change made in
+    // settings has to repaint the table.
+    ChipDisplay.instance.addListener(_onChipDisplayChanged);
+  }
+
+  void _onChipDisplayChanged() {
+    if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
     _pollTimer?.cancel();
     _tickTimer?.cancel();
+    ChipDisplay.instance.removeListener(_onChipDisplayChanged);
     unawaited(_sounds.dispose());
     super.dispose();
   }
@@ -518,7 +527,7 @@ class _TableScreenState extends State<TableScreen> {
 
     final t = AppLocalizations.of(context);
     final gameName = _game?['name'] as String? ?? '';
-    final pot = _currentDeal?['pot']?.toString() ?? '0';
+    final pot = ChipDisplay.instance.format(_currentDeal?['pot'] as num?);
     final communityCards =
         _currentDeal?['communityCards'] as List<dynamic>? ??
         [null, null, null, null, null];
@@ -1024,7 +1033,10 @@ class _TableScreenState extends State<TableScreen> {
               orElse: () => null,
             )
             as Map<String, dynamic>?;
-    final myChips = me?['chips']?.toString();
+    final myChipsAmount = me?['chips'] as num?;
+    final myChips = myChipsAmount == null
+        ? null
+        : ChipDisplay.instance.format(myChipsAmount);
     final myLastActionRaw = me?['lastAction']?.toString();
     final myLastAction = myLastActionRaw != null
         ? _formatLastAction(t, myLastActionRaw)
@@ -1163,7 +1175,7 @@ class _SeatWidget extends StatelessWidget {
     final t = AppLocalizations.of(context);
     final playerId = player['playerId']?.toString();
     final username = player['username']?.toString() ?? 'Player';
-    final chips = player['chips']?.toString() ?? '0';
+    final chips = ChipDisplay.instance.format(player['chips'] as num?);
     final status = player['status']?.toString() ?? 'ACTIVE';
     final blind = player['blind']?.toString();
     final lastActionRaw = player['lastAction']?.toString();
