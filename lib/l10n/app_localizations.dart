@@ -14,7 +14,8 @@ class AppLocalizations {
 
   static const supportedLocales = [Locale('en'), Locale('fr')];
 
-  static const LocalizationsDelegate<AppLocalizations> delegate = _AppLocalizationsDelegate();
+  static const LocalizationsDelegate<AppLocalizations> delegate =
+      _AppLocalizationsDelegate();
 
   static AppLocalizations of(BuildContext context) =>
       Localizations.of<AppLocalizations>(context, AppLocalizations)!;
@@ -38,13 +39,19 @@ class AppLocalizations {
 
   // WelcomeScreen
   String get welcomeTagline => _s('welcomeTagline');
+  // Used by the web client's server-settings toggle only; the Android client reaches the same
+  // setting through its debug backend picker. Keep them - this file is shared, and dropping
+  // them here breaks the web build.
+  String get serverSettings => _s('serverSettings');
+  String get hideServerSettings => _s('hideServerSettings');
   String get serverBaseUrl => _s('serverBaseUrl');
 
   // RegisterScreen
   String get registerSubtitle => _s('registerSubtitle');
   String get usernameTooShort => _s('usernameTooShort');
   String get passwordTooShort => _s('passwordTooShort');
-  String couldNotCreateAccount(String error) => _fmt('couldNotCreateAccount', {'error': error});
+  String couldNotCreateAccount(String error) =>
+      _fmt('couldNotCreateAccount', {'error': error});
 
   // LoginScreen
   String couldNotLogIn(String error) => _fmt('couldNotLogIn', {'error': error});
@@ -74,7 +81,8 @@ class AppLocalizations {
   String get newTableFooter => _s('newTableFooter');
   String get createAndSitDown => _s('createAndSitDown');
   String get fillValidValues => _s('fillValidValues');
-  String couldNotCreateTable(String error) => _fmt('couldNotCreateTable', {'error': error});
+  String couldNotCreateTable(String error) =>
+      _fmt('couldNotCreateTable', {'error': error});
 
   // JoinTableScreen
   String get joinTableTitle => _s('joinTableTitle');
@@ -90,10 +98,12 @@ class AppLocalizations {
   String get noValidLink => _s('noValidLink');
   String tableNotFound(String error) => _fmt('tableNotFound', {'error': error});
   String get enterValidBuyIn => _s('enterValidBuyIn');
-  String couldNotSitDown(String error) => _fmt('couldNotSitDown', {'error': error});
+  String couldNotSitDown(String error) =>
+      _fmt('couldNotSitDown', {'error': error});
 
   // TableScreen
-  String couldNotStartHand(String error) => _fmt('couldNotStartHand', {'error': error});
+  String couldNotStartHand(String error) =>
+      _fmt('couldNotStartHand', {'error': error});
   String actionFailed(String action, String error) =>
       _fmt('actionFailed', {'action': action, 'error': error});
   String get inviteCopied => _s('inviteCopied');
@@ -101,17 +111,20 @@ class AppLocalizations {
   String get closeTableContent => _s('closeTableContent');
   String get closeTable => _s('closeTable');
   String get closedSuffix => _s('closedSuffix');
-  String couldNotCloseTable(String error) => _fmt('couldNotCloseTable', {'error': error});
+  String couldNotCloseTable(String error) =>
+      _fmt('couldNotCloseTable', {'error': error});
   String get leaveTableTitle => _s('leaveTableTitle');
   String get leaveTableContent => _s('leaveTableContent');
   String get leaveTable => _s('leaveTable');
-  String couldNotLeaveTable(String error) => _fmt('couldNotLeaveTable', {'error': error});
+  String couldNotLeaveTable(String error) =>
+      _fmt('couldNotLeaveTable', {'error': error});
   String get copyInvite => _s('copyInvite');
   String get live => _s('live');
   String get reconnecting => _s('reconnecting');
   String lastUpdateAgo(int secs) => _fmt('lastUpdateAgo', {'secs': '$secs'});
   String yourTurnLeft(int secs) => _fmt('yourTurnLeft', {'secs': '$secs'});
-  String waitingOn(String username) => _fmt('waitingOn', {'username': username});
+  String waitingOn(String username) =>
+      _fmt('waitingOn', {'username': username});
   String get tableClosed => _s('tableClosed');
   String get waitingForDraw => _s('waitingForDraw');
   String get standPat => _s('standPat');
@@ -124,13 +137,15 @@ class AppLocalizations {
   String call(int amount) => _fmt('call', {'amount': '$amount'});
   String bet(int amount) => _fmt('bet', {'amount': '$amount'});
   String raise(int amount) => _fmt('raise', {'amount': '$amount'});
-  String minAllIn(int min, int max) => _fmt('minAllIn', {'min': '$min', 'max': '$max'});
+  String minAllIn(int min, int max) =>
+      _fmt('minAllIn', {'min': '$min', 'max': '$max'});
   String get min => _s('min');
   String get halfPot => _s('halfPot');
   String get pot => _s('pot');
   String get allIn => _s('allIn');
   String get handStrengthAvailableSoon => _s('handStrengthAvailableSoon');
-  String won(String names, int amount) => _fmt('won', {'names': names, 'amount': '$amount'});
+  String won(String names, int amount) =>
+      _fmt('won', {'names': names, 'amount': '$amount'});
   String get sb => _s('sb');
   String get bb => _s('bb');
   String get allInTag => _s('allInTag');
@@ -156,7 +171,8 @@ class AppLocalizations {
   String get variantFiveCardDrawShort => _s('variantFiveCardDrawShort');
   String get variantSevenCardStudShort => _s('variantSevenCardStudShort');
   String get comingSoon => _s('comingSoon');
-  String get variantSimplificationsHeading => _s('variantSimplificationsHeading');
+  String get variantSimplificationsHeading =>
+      _s('variantSimplificationsHeading');
   String get variantNoSidePots => _s('variantNoSidePots');
   String get variantNoButtonRotation => _s('variantNoButtonRotation');
   String get variantSimplifiedMinRaise => _s('variantSimplifiedMinRaise');
@@ -170,12 +186,15 @@ class AppLocalizations {
   String get buy => _s('buy');
   String unitPriceLine(String price, String provider) =>
       _fmt('unitPriceLine', {'price': price, 'provider': provider});
-  String chipsAvailable(String count) => _fmt('chipsAvailable', {'count': count});
+  String chipsAvailable(String count) =>
+      _fmt('chipsAvailable', {'count': count});
   String get cancelListingTitle => _s('cancelListingTitle');
   String get cancelListingContent => _s('cancelListingContent');
   String get cancelListingButton => _s('cancelListingButton');
-  String couldNotLoadListings(String error) => _fmt('couldNotLoadListings', {'error': error});
-  String couldNotCancelListing(String error) => _fmt('couldNotCancelListing', {'error': error});
+  String couldNotLoadListings(String error) =>
+      _fmt('couldNotLoadListings', {'error': error});
+  String couldNotCancelListing(String error) =>
+      _fmt('couldNotCancelListing', {'error': error});
 
   // CreateListingScreen
   String get newListingSubtitle => _s('newListingSubtitle');
@@ -183,7 +202,8 @@ class AppLocalizations {
   String get receivingPhoneNumber => _s('receivingPhoneNumber');
   String get paymentProvider => _s('paymentProvider');
   String get createListing => _s('createListing');
-  String couldNotCreateListing(String error) => _fmt('couldNotCreateListing', {'error': error});
+  String couldNotCreateListing(String error) =>
+      _fmt('couldNotCreateListing', {'error': error});
 
   // ListingPurchaseScreen
   String get quantity => _s('quantity');
@@ -196,7 +216,8 @@ class AppLocalizations {
   String get waitingForConfirmation => _s('waitingForConfirmation');
   String get chipsCredited => _s('chipsCredited');
   String get listingNoLongerAvailable => _s('listingNoLongerAvailable');
-  String couldNotBuyListing(String error) => _fmt('couldNotBuyListing', {'error': error});
+  String couldNotBuyListing(String error) =>
+      _fmt('couldNotBuyListing', {'error': error});
 
   static const Map<String, Map<String, String>> _strings = {
     'en': {
@@ -208,8 +229,11 @@ class AppLocalizations {
       'password': 'Password',
       'welcomeTagline':
           'Play poker with your friends. No accounts to manage,\njust a name and a table.',
+      'serverSettings': 'Server settings',
+      'hideServerSettings': 'Hide server settings',
       'serverBaseUrl': 'Server base URL',
-      'registerSubtitle': 'This name is how everyone else at the table will see you.',
+      'registerSubtitle':
+          'This name is how everyone else at the table will see you.',
       'usernameTooShort': 'At least 3 characters',
       'passwordTooShort': 'At least 6 characters',
       'couldNotCreateAccount': 'Could not create account: {error}',
@@ -303,9 +327,12 @@ class AppLocalizations {
       'variantTitle': 'No-Limit Texas Hold\'em',
       'variantName': 'No-Limit Texas Hold\'em',
       'variantHoleCards': '2 hole cards per player, dealt face down',
-      'variantBoard': '5 shared community cards, revealed in three stages: flop (3), turn (1), river (1)',
-      'variantBetting': 'No-limit betting - you can raise up to your entire stack at any time',
-      'variantRanking': 'Best 5-card hand using any combination of your hole cards and the board',
+      'variantBoard':
+          '5 shared community cards, revealed in three stages: flop (3), turn (1), river (1)',
+      'variantBetting':
+          'No-limit betting - you can raise up to your entire stack at any time',
+      'variantRanking':
+          'Best 5-card hand using any combination of your hole cards and the board',
       'variantTitleOmaha': 'No-Limit Omaha',
       'variantHoleCardsOmaha': '4 hole cards per player, dealt face down',
       'variantRankingOmaha':
@@ -313,7 +340,8 @@ class AppLocalizations {
       'variantTexasHoldemShort': 'Texas Hold\'em',
       'variantOmahaShort': 'Omaha',
       'variantTitleFiveCardDraw': 'No-Limit Five-Card Draw',
-      'variantHoleCardsFiveCardDraw': '5 hole cards per player, dealt face down',
+      'variantHoleCardsFiveCardDraw':
+          '5 hole cards per player, dealt face down',
       'variantDrawPhase':
           'No shared community cards - after the first betting round, each player may discard 0-5 cards and draw replacements, then a second betting round',
       'variantRankingFiveCardDraw': 'Best 5-card hand using your own 5 cards',
@@ -321,18 +349,21 @@ class AppLocalizations {
       'variantSevenCardStudShort': 'Seven-Card Stud',
       'comingSoon': 'Soon',
       'variantSimplificationsHeading': 'This table simplifies a few things',
-      'variantNoSidePots': 'No side pots - an all-in tie splits the whole pot evenly, regardless of stack size',
-      'variantNoButtonRotation': 'No dealer button rotation - the same two seats always post the blinds',
-      'variantSimplifiedMinRaise': 'Minimum raise is simplified (double the current bet), not the standard last-raise-size rule',
+      'variantNoSidePots':
+          'No side pots - an all-in tie splits the whole pot evenly, regardless of stack size',
+      'variantNoButtonRotation':
+          'No dealer button rotation - the same two seats always post the blinds',
+      'variantSimplifiedMinRaise':
+          'Minimum raise is simplified (double the current bet), not the standard last-raise-size rule',
       'close': 'Close',
       'marketplaceTitle': 'Marketplace',
       'marketplaceSubtitle':
           'Buy chips at a price the seller set - no negotiating. Selling is invite-only for now.',
       'noListingsYet': 'No listings for sale right now.',
       'newListing': 'New listing',
+      'buy': 'Buy',
       'unitPriceLine': '{price} Ar/chip · {provider}',
       'chipsAvailable': '{count} available',
-      'buy': 'Buy',
       'cancelListingTitle': 'Cancel this listing?',
       'cancelListingContent': 'Your chips will be refunded to your wallet.',
       'cancelListingButton': 'Cancel listing',
@@ -366,8 +397,11 @@ class AppLocalizations {
       'password': 'Mot de passe',
       'welcomeTagline':
           'Jouez au poker avec vos amis. Pas de compte à gérer,\njuste un nom et une table.',
+      'serverSettings': 'Paramètres du serveur',
+      'hideServerSettings': 'Masquer les paramètres du serveur',
       'serverBaseUrl': 'URL de base du serveur',
-      'registerSubtitle': 'Ce nom est celui que les autres joueurs verront à la table.',
+      'registerSubtitle':
+          'Ce nom est celui que les autres joueurs verront à la table.',
       'usernameTooShort': 'Au moins 3 caractères',
       'passwordTooShort': 'Au moins 6 caractères',
       'couldNotCreateAccount': 'Impossible de créer le compte : {error}',
@@ -377,7 +411,8 @@ class AppLocalizations {
       'joinWithLink': 'Rejoindre avec un lien',
       'yourTables': 'Vos tables',
       'keptOnThisDevice': 'conservées sur cet appareil',
-      'noTablesYet': 'Aucune table pour le moment. Créez-en une ou rejoignez-en une pour la voir ici.',
+      'noTablesYet':
+          'Aucune table pour le moment. Créez-en une ou rejoignez-en une pour la voir ici.',
       'open': 'Ouvrir',
       'logOut': 'Se déconnecter',
       'language': 'Langue',
@@ -414,7 +449,8 @@ class AppLocalizations {
       'couldNotSitDown': "Impossible de s'installer : {error}",
       'couldNotStartHand': 'Impossible de démarrer la main : {error}',
       'actionFailed': '{action} a échoué : {error}',
-      'inviteCopied': "Invitation copiée — envoyez-la à qui vous voulez inviter",
+      'inviteCopied':
+          "Invitation copiée — envoyez-la à qui vous voulez inviter",
       'closeTableTitle': 'Fermer cette table ?',
       'closeTableContent':
           'Plus personne ne pourra rejoindre, démarrer une main ni jouer à cette table. Cette action est irréversible.',
@@ -460,39 +496,50 @@ class AppLocalizations {
       'gameVariant': 'Variante jouée',
       'variantTitle': 'Texas Hold\'em sans limite',
       'variantName': 'Texas Hold\'em sans limite',
-      'variantHoleCards': '2 cartes fermées par joueur, distribuées face cachée',
-      'variantBoard': '5 cartes communes partagées, révélées en trois temps : flop (3), turn (1), river (1)',
-      'variantBetting': 'Mises sans limite - vous pouvez relancer jusqu\'à tout votre tapis à tout moment',
-      'variantRanking': 'Meilleure main de 5 cartes parmi vos cartes et le tableau, dans n\'importe quelle combinaison',
+      'variantHoleCards':
+          '2 cartes fermées par joueur, distribuées face cachée',
+      'variantBoard':
+          '5 cartes communes partagées, révélées en trois temps : flop (3), turn (1), river (1)',
+      'variantBetting':
+          'Mises sans limite - vous pouvez relancer jusqu\'à tout votre tapis à tout moment',
+      'variantRanking':
+          'Meilleure main de 5 cartes parmi vos cartes et le tableau, dans n\'importe quelle combinaison',
       'variantTitleOmaha': 'Omaha sans limite',
-      'variantHoleCardsOmaha': '4 cartes fermées par joueur, distribuées face cachée',
+      'variantHoleCardsOmaha':
+          '4 cartes fermées par joueur, distribuées face cachée',
       'variantRankingOmaha':
           'Meilleure main de 5 cartes en utilisant exactement 2 de vos cartes fermées et exactement 3 du tableau',
       'variantTexasHoldemShort': 'Texas Hold\'em',
       'variantOmahaShort': 'Omaha',
       'variantTitleFiveCardDraw': 'Five-Card Draw sans limite',
-      'variantHoleCardsFiveCardDraw': '5 cartes fermées par joueur, distribuées face cachée',
+      'variantHoleCardsFiveCardDraw':
+          '5 cartes fermées par joueur, distribuées face cachée',
       'variantDrawPhase':
           'Pas de cartes communes - après le premier tour de mises, chaque joueur peut défausser 0 à 5 cartes et en piocher autant, puis un second tour de mises',
-      'variantRankingFiveCardDraw': 'Meilleure main de 5 cartes parmi vos propres cartes',
+      'variantRankingFiveCardDraw':
+          'Meilleure main de 5 cartes parmi vos propres cartes',
       'variantFiveCardDrawShort': 'Five-Card Draw',
       'variantSevenCardStudShort': 'Seven-Card Stud',
       'comingSoon': 'Bientôt',
       'variantSimplificationsHeading': 'Cette table simplifie quelques règles',
-      'variantNoSidePots': 'Pas de pots secondaires - une égalité à tapis partage tout le pot également, peu importe la taille des tapis',
-      'variantNoButtonRotation': 'Pas de rotation du bouton donneur - les deux mêmes sièges misent toujours les blindes',
-      'variantSimplifiedMinRaise': 'Relance minimale simplifiée (le double de la mise actuelle), pas la règle standard de la taille de la dernière relance',
+      'variantNoSidePots':
+          'Pas de pots secondaires - une égalité à tapis partage tout le pot également, peu importe la taille des tapis',
+      'variantNoButtonRotation':
+          'Pas de rotation du bouton donneur - les deux mêmes sièges misent toujours les blindes',
+      'variantSimplifiedMinRaise':
+          'Relance minimale simplifiée (le double de la mise actuelle), pas la règle standard de la taille de la dernière relance',
       'close': 'Fermer',
       'marketplaceTitle': 'Marché',
       'marketplaceSubtitle':
           "Achetez des jetons au prix fixé par le vendeur - non négociable. La vente est réservée pour l'instant.",
       'noListingsYet': 'Aucune annonce en vente pour le moment.',
-      'unitPriceLine': '{price} Ar/jeton · {provider}',
-      'chipsAvailable': '{count} disponibles',
       'newListing': 'Nouvelle annonce',
       'buy': 'Acheter',
+      'unitPriceLine': '{price} Ar/jeton · {provider}',
+      'chipsAvailable': '{count} disponibles',
       'cancelListingTitle': 'Annuler cette annonce ?',
-      'cancelListingContent': 'Vos jetons seront remboursés sur votre portefeuille.',
+      'cancelListingContent':
+          'Vos jetons seront remboursés sur votre portefeuille.',
       'cancelListingButton': "Annuler l'annonce",
       'couldNotLoadListings': 'Impossible de charger les annonces : {error}',
       'couldNotCancelListing': "Impossible d'annuler l'annonce : {error}",
@@ -518,15 +565,18 @@ class AppLocalizations {
   };
 }
 
-class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
+class _AppLocalizationsDelegate
+    extends LocalizationsDelegate<AppLocalizations> {
   const _AppLocalizationsDelegate();
 
   @override
-  bool isSupported(Locale locale) =>
-      AppLocalizations.supportedLocales.any((l) => l.languageCode == locale.languageCode);
+  bool isSupported(Locale locale) => AppLocalizations.supportedLocales.any(
+    (l) => l.languageCode == locale.languageCode,
+  );
 
   @override
-  Future<AppLocalizations> load(Locale locale) async => AppLocalizations(locale);
+  Future<AppLocalizations> load(Locale locale) async =>
+      AppLocalizations(locale);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
