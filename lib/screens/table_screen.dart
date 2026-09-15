@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../api/api_client.dart';
+import '../game_sounds.dart';
 import '../l10n/app_localizations.dart';
 import '../theme.dart';
 
@@ -47,6 +48,14 @@ class _TableScreenState extends State<TableScreen> {
   String? _turnWindowKey;
   DateTime? _turnWindowStart;
 
+  final GameSounds _sounds = GameSounds();
+
+  // Previous-frame values, used to turn a polled snapshot into "something just happened" events
+  // worth a sound - the API reports state, not transitions.
+  int _previousPot = 0;
+  String? _previousPhase;
+  Map<String, dynamic>? _previousOutcome;
+
   @override
   void initState() {
     super.initState();
@@ -54,18 +63,23 @@ class _TableScreenState extends State<TableScreen> {
     _refresh(showSpinner: true);
     _pollTimer = Timer.periodic(const Duration(seconds: 2), (_) => _refresh());
     _tickTimer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (mounted) setState(() {});
+      if (mounted) {
+        setState(() {});
+      }
     });
+    _sounds.prepare();
   }
 
   @override
   void dispose() {
     _pollTimer?.cancel();
     _tickTimer?.cancel();
+    unawaited(_sounds.dispose());
     super.dispose();
   }
 
-  Map<String, dynamic>? get _currentDeal => _game?['currentDeal'] as Map<String, dynamic>?;
+  Map<String, dynamic>? get _currentDeal =>
+      _game?['currentDeal'] as Map<String, dynamic>?;
   String get _dealId => _game?['currentDealId']?.toString() ?? '';
   String get _phase => _currentDeal?['phase']?.toString() ?? '';
   String? get _activePlayerId => _currentDeal?['activePlayerId']?.toString();
@@ -73,8 +87,13 @@ class _TableScreenState extends State<TableScreen> {
   List<dynamic> get _players => _game?['players'] as List<dynamic>? ?? [];
   bool get _isClosed => _game?['closed'] == true;
   bool get _isMyTurn {
-    final me = _players.firstWhere((p) => p['username'] == widget.username, orElse: () => null);
-    return me != null && _activePlayerId != null && _activePlayerId == me['playerId']?.toString();
+    final me = _players.firstWhere(
+      (p) => p['username'] == widget.username,
+      orElse: () => null,
+    );
+    return me != null &&
+        _activePlayerId != null &&
+        _activePlayerId == me['playerId']?.toString();
   }
 
   /// Whether the current user is a seated player of this game (has bought in at some point and
@@ -114,11 +133,46 @@ class _TableScreenState extends State<TableScreen> {
         _isStale = false;
         _lastUpdated = DateTime.now();
       });
+
+      final previousPot = _previousPot;
+      final previousPhase = _previousPhase;
+      final previousOutcome = _previousOutcome;
+
+      final deal = game['currentDeal'] as Map<String, dynamic>?;
+      final currentPot = (deal?['pot'] as num?)?.toInt() ?? 0;
+      final currentPhase = deal?['phase']?.toString();
+      final currentOutcome = deal?['outcome'] as Map<String, dynamic>?;
+      _previousPot = currentPot;
+      _previousPhase = currentPhase;
+      _previousOutcome = currentOutcome;
+
+      if (currentPhase != null &&
+          currentPhase != previousPhase &&
+          _isDealingPhase(currentPhase)) {
+        _sounds.deal();
+      }
+      if (currentPot > previousPot) {
+        _sounds.chips();
+      }
+      if (currentOutcome != null && previousOutcome == null) {
+        _isUserWinner(currentOutcome, widget.username)
+            ? _sounds.chips()
+            : _sounds.click();
+      }
     } catch (_) {
       if (mounted) setState(() => _isStale = true);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  bool _isDealingPhase(String phase) {
+    return phase == 'FLOP' || phase == 'TURN' || phase == 'RIVER';
+  }
+
+  bool _isUserWinner(Map<String, dynamic> outcome, String username) {
+    final winners = outcome['winners'] as List<dynamic>? ?? [];
+    return winners.any((w) => w['username'] == username);
   }
 
   Future<void> _startHand() async {
@@ -141,7 +195,11 @@ class _TableScreenState extends State<TableScreen> {
     if (_dealId.isEmpty) return;
     setState(() => _isLoading = true);
     try {
-      await _apiClient.takeAction(dealId: _dealId, actionType: actionType, amount: amount);
+      await _apiClient.takeAction(
+        dealId: _dealId,
+        actionType: actionType,
+        amount: amount,
+      );
       setState(() => _selectedActionType = null);
       await _refresh();
     } catch (e) {
@@ -163,10 +221,16 @@ class _TableScreenState extends State<TableScreen> {
 
   Future<void> _submitDraw() async {
     if (_dealId.isEmpty) return;
-    final discard = _selectedDiscardIndices.map((i) => _myCards[i].toString()).toList();
+    final discard = _selectedDiscardIndices
+        .map((i) => _myCards[i].toString())
+        .toList();
     setState(() => _isLoading = true);
     try {
-      await _apiClient.takeAction(dealId: _dealId, actionType: 'DRAW', discard: discard);
+      await _apiClient.takeAction(
+        dealId: _dealId,
+        actionType: 'DRAW',
+        discard: discard,
+      );
       setState(() => _selectedDiscardIndices.clear());
       await _refresh();
     } catch (e) {
@@ -180,7 +244,9 @@ class _TableScreenState extends State<TableScreen> {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-          content: Text(message(AppLocalizations.of(context))), backgroundColor: KarataColors.red),
+        content: Text(message(AppLocalizations.of(context))),
+        backgroundColor: KarataColors.red,
+      ),
     );
   }
 
@@ -188,7 +254,9 @@ class _TableScreenState extends State<TableScreen> {
     // On web this is a real clickable link (the app has proper per-page paths - see
     // main.dart's routing); a native build has no meaningful "origin" to build one from,
     // so it falls back to the bare table ID, which the join-table screen also accepts.
-    final invite = kIsWeb ? '${Uri.base.origin}/table/${widget.gameId}' : widget.gameId;
+    final invite = kIsWeb
+        ? '${Uri.base.origin}/table/${widget.gameId}'
+        : widget.gameId;
     await Clipboard.setData(ClipboardData(text: invite));
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -211,7 +279,10 @@ class _TableScreenState extends State<TableScreen> {
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: Text(t.closeTable, style: const TextStyle(color: KarataColors.red)),
+              child: Text(
+                t.closeTable,
+                style: const TextStyle(color: KarataColors.red),
+              ),
             ),
           ],
         );
@@ -245,7 +316,10 @@ class _TableScreenState extends State<TableScreen> {
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: Text(t.leaveTable, style: const TextStyle(color: KarataColors.red)),
+              child: Text(
+                t.leaveTable,
+                style: const TextStyle(color: KarataColors.red),
+              ),
             ),
           ],
         );
@@ -292,16 +366,21 @@ class _TableScreenState extends State<TableScreen> {
           'FIVE_CARD_DRAW' => t.variantHoleCardsFiveCardDraw,
           _ => t.variantHoleCards,
         };
-        final boardText = variant == 'FIVE_CARD_DRAW' ? t.variantDrawPhase : t.variantBoard;
+        final boardText = variant == 'FIVE_CARD_DRAW'
+            ? t.variantDrawPhase
+            : t.variantBoard;
         final rankingText = switch (variant) {
           'OMAHA' => t.variantRankingOmaha,
           'FIVE_CARD_DRAW' => t.variantRankingFiveCardDraw,
           _ => t.variantRanking,
         };
         Widget bullet(String text) => Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Text('•  $text', style: const TextStyle(fontSize: 13, height: 1.4)),
-            );
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Text(
+            '•  $text',
+            style: const TextStyle(fontSize: 13, height: 1.4),
+          ),
+        );
         return AlertDialog(
           title: Text(title),
           content: SingleChildScrollView(
@@ -309,15 +388,26 @@ class _TableScreenState extends State<TableScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
                 const SizedBox(height: 12),
                 bullet(holeCardsText),
                 bullet(boardText),
                 bullet(t.variantBetting),
                 bullet(rankingText),
                 const SizedBox(height: 8),
-                Text(t.variantSimplificationsHeading,
-                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                Text(
+                  t.variantSimplificationsHeading,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
+                ),
                 const SizedBox(height: 8),
                 bullet(t.variantNoSidePots),
                 bullet(t.variantNoButtonRotation),
@@ -359,7 +449,8 @@ class _TableScreenState extends State<TableScreen> {
     final gameName = _game?['name'] as String? ?? '';
     final pot = _currentDeal?['pot']?.toString() ?? '0';
     final communityCards =
-        _currentDeal?['communityCards'] as List<dynamic>? ?? [null, null, null, null, null];
+        _currentDeal?['communityCards'] as List<dynamic>? ??
+        [null, null, null, null, null];
     final outcome = _currentDeal?['outcome'] as Map<String, dynamic>?;
     final revealedHands = <String, Map<String, dynamic>>{
       for (final rh in (outcome?['revealedHands'] as List<dynamic>? ?? []))
@@ -369,30 +460,51 @@ class _TableScreenState extends State<TableScreen> {
     return Scaffold(
       backgroundColor: KarataColors.bg,
       appBar: AppBar(
-        title: Text(_isClosed ? '$gameName (${t.closedSuffix})' : gameName,
-            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: KarataColors.dim)),
+        title: Text(
+          _isClosed ? '$gameName (${t.closedSuffix})' : gameName,
+          style: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w500,
+            color: KarataColors.dim,
+          ),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.info_outline, size: 20),
             tooltip: t.gameVariant,
-            onPressed: _showVariantInfo,
+            onPressed: () {
+              _sounds.click();
+              _showVariantInfo();
+            },
           ),
           IconButton(
             icon: const Icon(Icons.ios_share, size: 20),
             tooltip: t.copyInvite,
-            onPressed: _copyInvite,
+            onPressed: () {
+              _sounds.click();
+              _copyInvite();
+            },
           ),
           if (!_isClosed)
             PopupMenuButton<void>(
               icon: const Icon(Icons.more_vert, size: 20),
               itemBuilder: (context) => [
                 PopupMenuItem(
-                  onTap: _leaveTable,
+                  onTap: () {
+                    _sounds.click();
+                    _leaveTable();
+                  },
                   child: Text(t.leaveTable),
                 ),
                 PopupMenuItem(
-                  onTap: _closeTable,
-                  child: Text(t.closeTable, style: const TextStyle(color: KarataColors.red)),
+                  onTap: () {
+                    _sounds.click();
+                    _closeTable();
+                  },
+                  child: Text(
+                    t.closeTable,
+                    style: const TextStyle(color: KarataColors.red),
+                  ),
                 ),
               ],
             ),
@@ -401,11 +513,19 @@ class _TableScreenState extends State<TableScreen> {
             child: Center(
               child: Row(
                 children: [
-                  Icon(Icons.circle,
-                      size: 6, color: _isStale ? KarataColors.stale : KarataColors.live),
+                  Icon(
+                    Icons.circle,
+                    size: 6,
+                    color: _isStale ? KarataColors.stale : KarataColors.live,
+                  ),
                   const SizedBox(width: 7),
-                  Text(_liveStatusLabel(),
-                      style: const TextStyle(fontSize: 11.5, color: KarataColors.dim)),
+                  Text(
+                    _liveStatusLabel(),
+                    style: const TextStyle(
+                      fontSize: 11.5,
+                      color: KarataColors.dim,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -423,11 +543,14 @@ class _TableScreenState extends State<TableScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: _players
                       .where((p) => p['username'] != widget.username)
-                      .map((p) => _SeatWidget(
-                            player: p as Map<String, dynamic>,
-                            activePlayerId: _activePlayerId,
-                            revealedHand: revealedHands[p['playerId']?.toString()],
-                          ))
+                      .map(
+                        (p) => _SeatWidget(
+                          player: p as Map<String, dynamic>,
+                          activePlayerId: _activePlayerId,
+                          revealedHand:
+                              revealedHands[p['playerId']?.toString()],
+                        ),
+                      )
                       .toList(),
                 ),
                 Expanded(
@@ -441,16 +564,29 @@ class _TableScreenState extends State<TableScreen> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            Text(t.pot,
-                                style: const TextStyle(fontSize: 11.5, color: KarataColors.dim)),
-                            Text(pot,
-                                style: const TextStyle(
-                                    fontSize: 22, color: KarataColors.ink, fontWeight: FontWeight.w400)),
+                            Text(
+                              t.pot,
+                              style: const TextStyle(
+                                fontSize: 11.5,
+                                color: KarataColors.dim,
+                              ),
+                            ),
+                            Text(
+                              pot,
+                              style: const TextStyle(
+                                fontSize: 22,
+                                color: KarataColors.ink,
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
                           ],
                         ),
                         if (outcome != null) ...[
                           const SizedBox(height: 14),
-                          _OutcomeBanner(outcome: outcome, myUsername: widget.username),
+                          _OutcomeBanner(
+                            outcome: outcome,
+                            myUsername: widget.username,
+                          ),
                         ],
                       ],
                     ),
@@ -467,8 +603,13 @@ class _TableScreenState extends State<TableScreen> {
                 _buildSelfStatus(),
                 const SizedBox(height: 8),
                 if (_phase == 'DRAW' && _isMyTurn) ...[
-                  Text(t.tapCardsToDiscard,
-                      style: const TextStyle(fontSize: 12, color: KarataColors.dim)),
+                  Text(
+                    t.tapCardsToDiscard,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: KarataColors.dim,
+                    ),
+                  ),
                   const SizedBox(height: 6),
                 ],
                 _buildHandRow(),
@@ -487,15 +628,19 @@ class _TableScreenState extends State<TableScreen> {
 
   String _liveStatusLabel() {
     final t = AppLocalizations.of(context);
-    if (!_isStale) return t.live;
+    if (!_isStale) {
+      return t.live;
+    }
     final last = _lastUpdated;
-    if (last == null) return t.reconnecting;
+    if (last == null) {
+      return t.reconnecting;
+    }
     final secs = DateTime.now().difference(last).inSeconds;
     return t.lastUpdateAgo(secs);
   }
 
   Widget _buildTurnLine() {
-    if (_isClosed || _dealId.isEmpty || _phase == "SHOWDOWN") {
+    if (_isClosed || _dealId.isEmpty || _phase == 'SHOWDOWN') {
       return const SizedBox();
     }
     final t = AppLocalizations.of(context);
@@ -510,14 +655,21 @@ class _TableScreenState extends State<TableScreen> {
       final remaining = deadline.difference(DateTime.now()).inSeconds;
       final secs = remaining > 0 ? remaining : 0;
       final totalMs = deadline.difference(_turnWindowStart!).inMilliseconds;
-      final elapsedMs = DateTime.now().difference(_turnWindowStart!).inMilliseconds;
-      final fraction = totalMs > 0 ? (elapsedMs / totalMs).clamp(0.0, 1.0) : 1.0;
+      final elapsedMs = DateTime.now()
+          .difference(_turnWindowStart!)
+          .inMilliseconds;
+      final fraction = totalMs > 0
+          ? (elapsedMs / totalMs).clamp(0.0, 1.0)
+          : 1.0;
 
       return Row(
         children: [
           _ClockBar(fraction: fraction),
           const SizedBox(width: 8),
-          Text(t.yourTurnLeft(secs), style: const TextStyle(fontSize: 13, color: KarataColors.dim)),
+          Text(
+            t.yourTurnLeft(secs),
+            style: const TextStyle(fontSize: 13, color: KarataColors.dim),
+          ),
         ],
       );
     }
@@ -527,8 +679,10 @@ class _TableScreenState extends State<TableScreen> {
       orElse: () => null,
     );
     if (active == null) return const SizedBox();
-    return Text(t.waitingOn(active['username']?.toString() ?? ''),
-        style: const TextStyle(fontSize: 13, color: KarataColors.dim));
+    return Text(
+      t.waitingOn(active['username']?.toString() ?? ''),
+      style: const TextStyle(fontSize: 13, color: KarataColors.dim),
+    );
   }
 
   Widget _buildActionArea() {
@@ -538,12 +692,15 @@ class _TableScreenState extends State<TableScreen> {
         width: double.infinity,
         height: 48,
         child: Center(
-          child: Text(t.tableClosed,
-              style: const TextStyle(
-                  color: KarataColors.dim,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13,
-                  letterSpacing: 1.1)),
+          child: Text(
+            t.tableClosed,
+            style: const TextStyle(
+              color: KarataColors.dim,
+              fontWeight: FontWeight.bold,
+              fontSize: 13,
+              letterSpacing: 1.1,
+            ),
+          ),
         ),
       );
     }
@@ -551,7 +708,13 @@ class _TableScreenState extends State<TableScreen> {
     if (_dealId.isEmpty) {
       return SizedBox(
         width: double.infinity,
-        child: ElevatedButton(onPressed: _startHand, child: Text(t.startTheHand)),
+        child: ElevatedButton(
+          onPressed: () {
+            _sounds.click();
+            _startHand();
+          },
+          child: Text(t.startTheHand),
+        ),
       );
     }
 
@@ -573,8 +736,10 @@ class _TableScreenState extends State<TableScreen> {
           width: double.infinity,
           height: 48,
           child: Center(
-            child: Text(t.waitingForDraw,
-                style: const TextStyle(color: KarataColors.dim, fontSize: 13)),
+            child: Text(
+              t.waitingForDraw,
+              style: const TextStyle(color: KarataColors.dim, fontSize: 13),
+            ),
           ),
         );
       }
@@ -582,9 +747,11 @@ class _TableScreenState extends State<TableScreen> {
         width: double.infinity,
         child: ElevatedButton(
           onPressed: _submitDraw,
-          child: Text(_selectedDiscardIndices.isEmpty
-              ? t.standPat
-              : t.drawCards(_selectedDiscardIndices.length)),
+          child: Text(
+            _selectedDiscardIndices.isEmpty
+                ? t.standPat
+                : t.drawCards(_selectedDiscardIndices.length),
+          ),
         ),
       );
     }
@@ -594,12 +761,15 @@ class _TableScreenState extends State<TableScreen> {
     final callAmount = (you?['callAmount'] as num?)?.toInt() ?? 0;
     final minRaise = (you?['minRaise'] as num?)?.toInt() ?? 20;
     final maxRaise = (you?['maxRaise'] as num?)?.toInt() ?? 0;
-    final currentRoundBet = (_currentDeal?['currentRoundBet'] as num?)?.toInt() ?? 0;
+    final currentRoundBet =
+        (_currentDeal?['currentRoundBet'] as num?)?.toInt() ?? 0;
     final raiseType = currentRoundBet == 0 ? 'BET' : 'RAISE';
     final sizerOpen = _selectedActionType == raiseType;
     final raiseAmount = sizerOpen ? _sizerAmount : minRaise;
     final callLabel = callAmount == 0 ? t.check : t.call(callAmount);
-    final raiseLabel = currentRoundBet == 0 ? t.bet(raiseAmount) : t.raise(raiseAmount);
+    final raiseLabel = currentRoundBet == 0
+        ? t.bet(raiseAmount)
+        : t.raise(raiseAmount);
     // Both mirror real backend rejections (TexasHoldemRules.isActionLegal) - a call needs enough
     // chips to cover it in full (no side-pot/all-in-for-less support yet), and a raise/bet must
     // meet the table's minimum, which a short stack sometimes can't - gray those out instead of
@@ -613,7 +783,10 @@ class _TableScreenState extends State<TableScreen> {
           child: _ActBtn(
             label: t.fold,
             enabled: mine,
-            onPressed: () => _submitAction('FOLD'),
+            onPressed: () {
+              _sounds.click();
+              _submitAction('FOLD');
+            },
           ),
         ),
         const SizedBox(width: 9),
@@ -622,8 +795,12 @@ class _TableScreenState extends State<TableScreen> {
             label: callLabel,
             enabled: mine && canCall,
             solid: mine,
-            onPressed: () =>
-                callAmount == 0 ? _submitAction('CHECK') : _submitAction('CALL', amount: callAmount),
+            onPressed: () {
+              _sounds.click();
+              callAmount == 0
+                  ? _submitAction('CHECK')
+                  : _submitAction('CALL', amount: callAmount);
+            },
           ),
         ),
         const SizedBox(width: 9),
@@ -631,16 +808,22 @@ class _TableScreenState extends State<TableScreen> {
           child: _ActBtn(
             label: raiseLabel,
             enabled: mine && canRaise,
-            onPressed: () => sizerOpen
-                ? _submitAction(raiseType, amount: _sizerAmount)
-                : _submitAction(raiseType, amount: minRaise),
+            onPressed: () {
+              _sounds.click();
+              sizerOpen
+                  ? _submitAction(raiseType, amount: _sizerAmount)
+                  : _submitAction(raiseType, amount: minRaise);
+            },
           ),
         ),
         const SizedBox(width: 9),
         _BumpBtn(
           on: sizerOpen,
           enabled: mine && canRaise,
-          onPressed: () => _toggleSizer(raiseType),
+          onPressed: () {
+            _sounds.click();
+            _toggleSizer(raiseType);
+          },
         ),
       ],
     );
@@ -672,11 +855,18 @@ class _TableScreenState extends State<TableScreen> {
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: TextBaseline.alphabetic,
             children: [
-              Text('$_sizerAmount',
-                  style: const TextStyle(
-                      fontSize: 32, fontWeight: FontWeight.w300, color: KarataColors.ink)),
-              Text(t.minAllIn(minRaise, maxRaise),
-                  style: const TextStyle(fontSize: 11.5, color: KarataColors.dim)),
+              Text(
+                '$_sizerAmount',
+                style: const TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.w300,
+                  color: KarataColors.ink,
+                ),
+              ),
+              Text(
+                t.minAllIn(minRaise, maxRaise),
+                style: const TextStyle(fontSize: 11.5, color: KarataColors.dim),
+              ),
             ],
           ),
           const SizedBox(height: 16),
@@ -692,18 +882,30 @@ class _TableScreenState extends State<TableScreen> {
             child: Slider(
               value: clampAmount(_sizerAmount).toDouble(),
               min: minRaise.toDouble(),
-              max: maxRaise > minRaise ? maxRaise.toDouble() : minRaise.toDouble() + 1,
+              max: maxRaise > minRaise
+                  ? maxRaise.toDouble()
+                  : minRaise.toDouble() + 1,
               onChanged: (v) => setState(() => _sizerAmount = v.round()),
             ),
           ),
           Row(
             children: [
-              _quickBtn(t.min, _sizerAmount == minRaise, () => setState(() => _sizerAmount = minRaise)),
-              _quickBtn(
-                  t.halfPot, false, () => setState(() => _sizerAmount = clampAmount(pot ~/ 2))),
-              _quickBtn(t.pot, false, () => setState(() => _sizerAmount = clampAmount(pot))),
-              _quickBtn(t.allIn, _sizerAmount == maxRaise,
-                  () => setState(() => _sizerAmount = maxRaise)),
+              _quickBtn(t.min, _sizerAmount == minRaise, () {
+                _sounds.click();
+                setState(() => _sizerAmount = minRaise);
+              }),
+              _quickBtn(t.halfPot, false, () {
+                _sounds.click();
+                setState(() => _sizerAmount = clampAmount(pot ~/ 2));
+              }),
+              _quickBtn(t.pot, false, () {
+                _sounds.click();
+                setState(() => _sizerAmount = clampAmount(pot));
+              }),
+              _quickBtn(t.allIn, _sizerAmount == maxRaise, () {
+                _sounds.click();
+                setState(() => _sizerAmount = maxRaise);
+              }),
             ],
           ),
         ],
@@ -732,11 +934,17 @@ class _TableScreenState extends State<TableScreen> {
   Widget _buildSelfStatus() {
     final t = AppLocalizations.of(context);
     final playing = _isPlaying;
-    final me = _players.firstWhere((p) => p['username'] == widget.username, orElse: () => null)
-        as Map<String, dynamic>?;
+    final me =
+        _players.firstWhere(
+              (p) => p['username'] == widget.username,
+              orElse: () => null,
+            )
+            as Map<String, dynamic>?;
     final myChips = me?['chips']?.toString();
     final myLastActionRaw = me?['lastAction']?.toString();
-    final myLastAction = myLastActionRaw != null ? _formatLastAction(t, myLastActionRaw) : null;
+    final myLastAction = myLastActionRaw != null
+        ? _formatLastAction(t, myLastActionRaw)
+        : null;
 
     return Row(
       children: [
@@ -746,21 +954,32 @@ class _TableScreenState extends State<TableScreen> {
             color: playing ? KarataColors.chipBg : const Color(0xFF2E2C34),
             borderRadius: BorderRadius.circular(999),
           ),
-          child: Text(playing ? t.playing : t.spectating,
-              style: TextStyle(
-                  fontSize: 10.5,
-                  fontWeight: FontWeight.w600,
-                  color: playing ? KarataColors.chipInk : KarataColors.dim)),
+          child: Text(
+            playing ? t.playing : t.spectating,
+            style: TextStyle(
+              fontSize: 10.5,
+              fontWeight: FontWeight.w600,
+              color: playing ? KarataColors.chipInk : KarataColors.dim,
+            ),
+          ),
         ),
         if (myChips != null) ...[
           const SizedBox(width: 10),
-          Text(myChips,
-              style: const TextStyle(
-                  fontSize: 13, color: KarataColors.ink, fontWeight: FontWeight.w500)),
+          Text(
+            myChips,
+            style: const TextStyle(
+              fontSize: 13,
+              color: KarataColors.ink,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ],
         const Spacer(),
         if (myLastAction != null)
-          _LastActionBadge(rawAction: myLastActionRaw!, displayText: myLastAction),
+          _LastActionBadge(
+            rawAction: myLastActionRaw!,
+            displayText: myLastAction,
+          ),
       ],
     );
   }
@@ -774,19 +993,28 @@ class _TableScreenState extends State<TableScreen> {
         children: [
           Expanded(
             child: _myCards.isEmpty
-                ? Row(children: const [_MutedHoleCard(), SizedBox(width: 0), _MutedHoleCard()])
+                ? Row(
+                    children: const [
+                      _MutedHoleCard(),
+                      SizedBox(width: 0),
+                      _MutedHoleCard(),
+                    ],
+                  )
                 : Stack(
                     children: [
                       for (var i = 0; i < _myCards.length; i++)
                         Positioned(
                           left: i * 76.0,
                           child: GestureDetector(
-                            onTap: canSelectDiscards ? () => _toggleDiscard(i) : null,
+                            onTap: canSelectDiscards
+                                ? () => _toggleDiscard(i)
+                                : null,
                             child: Opacity(
                               opacity:
-                                  canSelectDiscards && _selectedDiscardIndices.contains(i)
-                                      ? 0.35
-                                      : 1.0,
+                                  canSelectDiscards &&
+                                      _selectedDiscardIndices.contains(i)
+                                  ? 0.35
+                                  : 1.0,
                               child: PokerCardWidget(
                                 cardCode: _myCards[i]?.toString(),
                                 width: 92,
@@ -840,7 +1068,11 @@ class _SeatWidget extends StatelessWidget {
   final String? activePlayerId;
   final Map<String, dynamic>? revealedHand;
 
-  const _SeatWidget({required this.player, required this.activePlayerId, this.revealedHand});
+  const _SeatWidget({
+    required this.player,
+    required this.activePlayerId,
+    this.revealedHand,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -851,14 +1083,18 @@ class _SeatWidget extends StatelessWidget {
     final status = player['status']?.toString() ?? 'ACTIVE';
     final blind = player['blind']?.toString();
     final lastActionRaw = player['lastAction']?.toString();
-    final lastAction = lastActionRaw != null ? _formatLastAction(t, lastActionRaw) : null;
-    final contribution = (player['contributionThisRound'] as num?)?.toInt() ?? 0;
+    final lastAction = lastActionRaw != null
+        ? _formatLastAction(t, lastActionRaw)
+        : null;
+    final contribution =
+        (player['contributionThisRound'] as num?)?.toInt() ?? 0;
     final isActive = activePlayerId != null && activePlayerId == playerId;
     final isFolded = status == 'FOLDED';
     final isAllIn = status == 'ALL_IN';
-    final String usernameSafe = player['username']?.toString() ?? 'Player';
-final bool isBot = player['isBot'] == true;
-final initial = isBot ? 'BOT' : (usernameSafe.isNotEmpty ? usernameSafe[0].toUpperCase() : '?');
+    final bool isBot = player['isBot'] == true;
+    final initial = isBot
+        ? 'BOT'
+        : (username.isNotEmpty ? username[0].toUpperCase() : '?');
     final holeCards = revealedHand?['holeCards'] as List<dynamic>?;
     final handRank = revealedHand?['handRank'] as String?;
 
@@ -871,7 +1107,10 @@ final initial = isBot ? 'BOT' : (usernameSafe.isNotEmpty ? usernameSafe[0].toUpp
             if (lastAction != null)
               Padding(
                 padding: const EdgeInsets.only(bottom: 5),
-                child: _LastActionBadge(rawAction: lastActionRaw!, displayText: lastAction),
+                child: _LastActionBadge(
+                  rawAction: lastActionRaw!,
+                  displayText: lastAction,
+                ),
               ),
             SizedBox(
               width: 64,
@@ -884,14 +1123,23 @@ final initial = isBot ? 'BOT' : (usernameSafe.isNotEmpty ? usernameSafe[0].toUpp
                       width: 46,
                       height: 46,
                       decoration: BoxDecoration(
-                        color: isBot ? const Color(0xFF1A1A1A) : const Color(0xFF221F28),
+                        color: isBot
+                            ? const Color(0xFF1A1A1A)
+                            : const Color(0xFF221F28),
                         shape: BoxShape.circle,
-                        border: isActive ? Border.all(color: KarataColors.ink, width: 2) : null,
+                        border: isActive
+                            ? Border.all(color: KarataColors.ink, width: 2)
+                            : null,
                       ),
                       alignment: Alignment.center,
-                      child: Text(initial,
-                          style: const TextStyle(
-                              fontSize: 18, color: KarataColors.ink, fontWeight: FontWeight.w500)),
+                      child: Text(
+                        initial,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          color: KarataColors.ink,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
                     ),
                   ),
                   if (blind != null || isAllIn)
@@ -902,16 +1150,23 @@ final initial = isBot ? 'BOT' : (usernameSafe.isNotEmpty ? usernameSafe[0].toUpp
                         height: 16,
                         padding: const EdgeInsets.symmetric(horizontal: 5),
                         decoration: BoxDecoration(
-                          color: isAllIn ? KarataColors.allInBg : const Color(0xFF2E2C34),
+                          color: isAllIn
+                              ? KarataColors.allInBg
+                              : const Color(0xFF2E2C34),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         alignment: Alignment.center,
                         child: Text(
-                          isAllIn ? t.allInTag : (blind == 'SMALL' ? t.sb : t.bb),
+                          isAllIn
+                              ? t.allInTag
+                              : (blind == 'SMALL' ? t.sb : t.bb),
                           style: TextStyle(
-                              fontSize: 9,
-                              fontWeight: FontWeight.w600,
-                              color: isAllIn ? KarataColors.allInInk : KarataColors.ink),
+                            fontSize: 9,
+                            fontWeight: FontWeight.w600,
+                            color: isAllIn
+                                ? KarataColors.allInInk
+                                : KarataColors.ink,
+                          ),
                         ),
                       ),
                     ),
@@ -920,13 +1175,19 @@ final initial = isBot ? 'BOT' : (usernameSafe.isNotEmpty ? usernameSafe[0].toUpp
             ),
             const SizedBox(height: 7),
             Text(
-              usernameSafe + (isBot ? ' (BOT)' : ''),
+              username + (isBot ? ' (BOT)' : ''),
               textAlign: TextAlign.center,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 11, color: KarataColors.dim)),
-            Text(chips,
-                style: const TextStyle(
-                    fontSize: 15, color: KarataColors.ink, fontWeight: FontWeight.w500)),
+              style: const TextStyle(fontSize: 11, color: KarataColors.dim),
+            ),
+            Text(
+              chips,
+              style: const TextStyle(
+                fontSize: 15,
+                color: KarataColors.ink,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
             if (contribution > 0)
               Container(
                 margin: const EdgeInsets.only(top: 8),
@@ -937,9 +1198,14 @@ final initial = isBot ? 'BOT' : (usernameSafe.isNotEmpty ? usernameSafe[0].toUpp
                   borderRadius: BorderRadius.circular(11),
                 ),
                 alignment: Alignment.center,
-                child: Text('$contribution',
-                    style: const TextStyle(
-                        color: KarataColors.chipInk, fontSize: 10.5, fontWeight: FontWeight.w600)),
+                child: Text(
+                  '$contribution',
+                  style: const TextStyle(
+                    color: KarataColors.chipInk,
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
             // Cards flip face-up at each seat that reached a real showdown (won or lost) once
             // the hand concludes - a folded player has no entry here and stays hidden, per usual
@@ -971,11 +1237,16 @@ final initial = isBot ? 'BOT' : (usernameSafe.isNotEmpty ? usernameSafe[0].toUpp
               if (handRank != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 4),
-                  child: Text(handRank,
-                      textAlign: TextAlign.center,
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
-                      style: const TextStyle(fontSize: 8.5, color: KarataColors.dim)),
+                  child: Text(
+                    handRank,
+                    textAlign: TextAlign.center,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                    style: const TextStyle(
+                      fontSize: 8.5,
+                      color: KarataColors.dim,
+                    ),
+                  ),
                 ),
             ],
           ],
@@ -1001,17 +1272,24 @@ class _LastActionBadge extends StatelessWidget {
       tween: Tween(begin: 1.4, end: 1.0),
       duration: const Duration(milliseconds: 380),
       curve: Curves.easeOutBack,
-      builder: (context, scale, child) => Transform.scale(scale: scale, child: child),
+      builder: (context, scale, child) =>
+          Transform.scale(scale: scale, child: child),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-        decoration: BoxDecoration(color: KarataColors.live, borderRadius: BorderRadius.circular(999)),
-        child: Text(displayText,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-                fontSize: 9.5,
-                fontWeight: FontWeight.w700,
-                color: KarataColors.cardInk,
-                height: 1)),
+        decoration: BoxDecoration(
+          color: KarataColors.live,
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: Text(
+          displayText,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            fontSize: 9.5,
+            fontWeight: FontWeight.w700,
+            color: KarataColors.cardInk,
+            height: 1,
+          ),
+        ),
       ),
     );
   }
@@ -1063,14 +1341,24 @@ class _ActBtn extends StatelessWidget {
         onPressed: enabled ? onPressed : null,
         style: OutlinedButton.styleFrom(
           backgroundColor: solid ? KarataColors.pill : Colors.transparent,
-          side: BorderSide(color: solid ? Colors.transparent : KarataColors.pillLine),
+          side: BorderSide(
+            color: solid ? Colors.transparent : KarataColors.pillLine,
+          ),
           foregroundColor: KarataColors.ink,
           disabledForegroundColor: KarataColors.ink.withValues(alpha: 0.3),
-          disabledBackgroundColor: solid ? KarataColors.pill.withValues(alpha: 0.3) : null,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+          disabledBackgroundColor: solid
+              ? KarataColors.pill.withValues(alpha: 0.3)
+              : null,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(999),
+          ),
         ),
-        child: Text(label,
-            style: const TextStyle(fontSize: 14.5), overflow: TextOverflow.ellipsis, maxLines: 1),
+        child: Text(
+          label,
+          style: const TextStyle(fontSize: 14.5),
+          overflow: TextOverflow.ellipsis,
+          maxLines: 1,
+        ),
       ),
     );
   }
@@ -1081,7 +1369,11 @@ class _BumpBtn extends StatelessWidget {
   final bool enabled;
   final VoidCallback onPressed;
 
-  const _BumpBtn({required this.on, required this.enabled, required this.onPressed});
+  const _BumpBtn({
+    required this.on,
+    required this.enabled,
+    required this.onPressed,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1093,7 +1385,9 @@ class _BumpBtn extends StatelessWidget {
         style: OutlinedButton.styleFrom(
           padding: EdgeInsets.zero,
           backgroundColor: on ? KarataColors.pill : Colors.transparent,
-          side: BorderSide(color: on ? Colors.transparent : KarataColors.pillLine),
+          side: BorderSide(
+            color: on ? Colors.transparent : KarataColors.pillLine,
+          ),
           foregroundColor: KarataColors.ink,
           disabledForegroundColor: KarataColors.ink.withValues(alpha: 0.3),
           shape: const CircleBorder(),
@@ -1143,9 +1437,11 @@ class _MadeHandBox extends StatelessWidget {
         borderRadius: BorderRadius.circular(15),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 10),
-      child: Text(AppLocalizations.of(context).handStrengthAvailableSoon,
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 12.5, color: KarataColors.dim)),
+      child: Text(
+        AppLocalizations.of(context).handStrengthAvailableSoon,
+        textAlign: TextAlign.center,
+        style: const TextStyle(fontSize: 12.5, color: KarataColors.dim),
+      ),
     );
   }
 }
@@ -1178,19 +1474,32 @@ class _OutcomeBanner extends StatelessWidget {
     final winners = outcome['winners'] as List<dynamic>? ?? [];
     if (winners.isEmpty) return const SizedBox();
     final names = winners
-        .map((w) => w['username'] == myUsername ? t.you : w['username'].toString())
+        .map(
+          (w) => w['username'] == myUsername ? t.you : w['username'].toString(),
+        )
         .join(' & ');
-    final total = winners.fold<int>(0, (sum, w) => sum + ((w['amount'] as num?)?.toInt() ?? 0));
+    final total = winners.fold<int>(
+      0,
+      (sum, w) => sum + ((w['amount'] as num?)?.toInt() ?? 0),
+    );
     final rank = (winners.first as Map<String, dynamic>)['handRank'] as String?;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        Text(t.won(names, total),
-            style: const TextStyle(
-                color: KarataColors.ink, fontSize: 14.5, fontWeight: FontWeight.w500)),
+        Text(
+          t.won(names, total),
+          style: const TextStyle(
+            color: KarataColors.ink,
+            fontSize: 14.5,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
         if (rank != null) ...[
           const SizedBox(height: 4),
-          Text(rank, style: const TextStyle(color: KarataColors.dim, fontSize: 12.5)),
+          Text(
+            rank,
+            style: const TextStyle(color: KarataColors.dim, fontSize: 12.5),
+          ),
         ],
       ],
     );
@@ -1227,7 +1536,10 @@ class PokerCardWidget extends StatelessWidget {
           borderRadius: radius,
           border: Border.all(color: KarataColors.bg, width: 2),
         ),
-        child: ClipRRect(borderRadius: radius, child: CustomPaint(painter: _CardBackPainter())),
+        child: ClipRRect(
+          borderRadius: radius,
+          child: CustomPaint(painter: _CardBackPainter()),
+        ),
       );
     }
 
@@ -1239,7 +1551,9 @@ class PokerCardWidget extends StatelessWidget {
     const suitSymbols = {'c': '♣', 'd': '♦', 'h': '♥', 's': '♠'};
     const redSuits = {'d', 'h'};
     final suitSymbol = suitSymbols[suitChar] ?? '?';
-    final suitColor = redSuits.contains(suitChar) ? KarataColors.red : KarataColors.cardInk;
+    final suitColor = redSuits.contains(suitChar)
+        ? KarataColors.red
+        : KarataColors.cardInk;
 
     return Container(
       width: width,
@@ -1253,13 +1567,23 @@ class PokerCardWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(rank,
-              style: TextStyle(
-                  color: suitColor,
-                  fontSize: rank.length > 1 ? rankFontSize * 0.8 : rankFontSize,
-                  height: 1,
-                  fontWeight: FontWeight.w500)),
-          Text(suitSymbol, style: TextStyle(color: suitColor, fontSize: suitFontSize, height: 1)),
+          Text(
+            rank,
+            style: TextStyle(
+              color: suitColor,
+              fontSize: rank.length > 1 ? rankFontSize * 0.8 : rankFontSize,
+              height: 1,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          Text(
+            suitSymbol,
+            style: TextStyle(
+              color: suitColor,
+              fontSize: suitFontSize,
+              height: 1,
+            ),
+          ),
         ],
       ),
     );
@@ -1275,7 +1599,11 @@ class _CardBackPainter extends CustomPainter {
     const gap = 9.0;
     final diag = size.width + size.height;
     for (double x = -size.height; x < diag; x += gap) {
-      canvas.drawLine(Offset(x, 0), Offset(x + size.height, size.height), paint);
+      canvas.drawLine(
+        Offset(x, 0),
+        Offset(x + size.height, size.height),
+        paint,
+      );
     }
   }
 
