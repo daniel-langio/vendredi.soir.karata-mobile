@@ -27,6 +27,29 @@ class _NewTableScreenState extends State<NewTableScreen> {
   final _buyInController = TextEditingController(text: '200');
   String _variant = 'TEXAS_HOLDEM';
   bool _isLoading = false;
+  bool _isOperator = false;
+  bool _makePublic = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkOperator();
+  }
+
+  /// Whether to offer the public-table switch is the server's answer, not a username the client
+  /// recognises - a player who flipped it anyway would just be refused by POST /games/public.
+  Future<void> _checkOperator() async {
+    try {
+      final isOperator = await ApiClient(
+        baseUrl: widget.serverUrl,
+        token: widget.token,
+      ).isOperator();
+      if (!mounted) return;
+      setState(() => _isOperator = isOperator);
+    } catch (_) {
+      // Non-critical - the switch just stays hidden if we can't reach the server.
+    }
+  }
 
   @override
   void dispose() {
@@ -62,15 +85,28 @@ class _NewTableScreenState extends State<NewTableScreen> {
     setState(() => _isLoading = true);
     try {
       final client = ApiClient(baseUrl: widget.serverUrl, token: widget.token);
-      final game = await client.createGame(
-        name,
-        sb,
-        bb,
-        defaultBuyIn: buyIn,
-        variant: _variant,
-      );
+      final publicTable = _isOperator && _makePublic;
+      final game = publicTable
+          ? await client.createPublicGame(
+              name,
+              sb,
+              bb,
+              defaultBuyIn: buyIn,
+              variant: _variant,
+            )
+          : await client.createGame(
+              name,
+              sb,
+              bb,
+              defaultBuyIn: buyIn,
+              variant: _variant,
+            );
       final gameId = game['gameId'] as String;
-      await client.buyIn(gameId, buyIn);
+      // A public table is the house's and the operator is not one of its players, so the buy-in
+      // here is the tier everyone else will pay rather than a seat being taken.
+      if (!publicTable) {
+        await client.buyIn(gameId, buyIn);
+      }
       if (mounted) {
         Navigator.of(context).pushReplacementNamed(
           '/table/$gameId',
@@ -225,6 +261,24 @@ class _NewTableScreenState extends State<NewTableScreen> {
               style: const TextStyle(color: KarataColors.ink),
               decoration: InputDecoration(labelText: t.chips),
             ),
+            if (_isOperator) ...[
+              const SizedBox(height: 8),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                value: _makePublic,
+                onChanged: _isLoading
+                    ? null
+                    : (value) => setState(() => _makePublic = value),
+                title: Text(
+                  t.makePublic,
+                  style: const TextStyle(fontSize: 14, color: KarataColors.ink),
+                ),
+                subtitle: Text(
+                  t.makePublicHint,
+                  style: const TextStyle(fontSize: 12, color: KarataColors.dim),
+                ),
+              ),
+            ],
             const SizedBox(height: 14),
             Text(
               t.newTableFooter,
@@ -246,7 +300,11 @@ class _NewTableScreenState extends State<NewTableScreen> {
                         color: KarataColors.ink,
                       ),
                     )
-                  : Text(t.createAndSitDown),
+                  : Text(
+                      _isOperator && _makePublic
+                          ? t.createTable
+                          : t.createAndSitDown,
+                    ),
             ),
           ],
         ),

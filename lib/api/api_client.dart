@@ -161,6 +161,36 @@ class ApiClient {
     }
   }
 
+  /// POST /games/public
+  /// Operator-only (see GET /account -> operator). The table is hosted by the house rather than
+  /// by the caller, and unlike an ordinary table a buy-in tier is required.
+  Future<Map<String, dynamic>> createPublicGame(
+    String name,
+    int smallBlind,
+    int bigBlind, {
+    required int defaultBuyIn,
+    String? variant,
+  }) async {
+    final body = <String, dynamic>{
+      'name': name,
+      'blinds': {'small': smallBlind, 'big': bigBlind},
+      'defaultBuyIn': defaultBuyIn,
+    };
+    if (variant != null) body['variant'] = variant;
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/games/public'),
+      headers: _headers,
+      body: jsonEncode(body),
+    );
+
+    if (response.statusCode == 201) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      _throwDetailedError(response);
+    }
+  }
+
   /// GET /games/public
   /// The house lobbies listed on the home screen. Seeded server-side and never closable, so this
   /// list is stable - what changes is how many players each one reports.
@@ -275,6 +305,23 @@ class ApiClient {
   /// The account's stored phone number, if any - purely a form-default convenience, never
   /// authoritative (the number that matters for matching is whatever's entered on a given
   /// listing/purchase).
+  /// GET /account -> operator
+  /// Whether this account acts as the house: may open public tables and sell on the marketplace.
+  /// Asked of the server rather than inferred from the username, so the privileged name lives in
+  /// one place.
+  Future<bool> isOperator() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/account'),
+      headers: _headers,
+    );
+    if (response.statusCode == 200) {
+      final body = jsonDecode(response.body) as Map<String, dynamic>;
+      return body['operator'] == true;
+    } else {
+      _throwDetailedError(response);
+    }
+  }
+
   Future<String?> getAccountPhoneNumber() async {
     final response = await http.get(
       Uri.parse('$baseUrl/account'),

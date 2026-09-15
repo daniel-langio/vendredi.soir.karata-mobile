@@ -79,6 +79,8 @@ class AppLocalizations {
   String get walletBalance => _s('walletBalance');
 
   // NewTableScreen
+  String get makePublic => _s('makePublic');
+  String get makePublicHint => _s('makePublicHint');
   String get newTableTitle => _s('newTableTitle');
   String get newTableSubtitle => _s('newTableSubtitle');
   String get name => _s('name');
@@ -280,6 +282,10 @@ class AppLocalizations {
       'joinWithLink': 'Join with a link',
       'yourTables': 'Your tables',
       'syncedToYourAccount': 'synced to your account',
+      'makePublic': 'Make this table public',
+      'makePublicHint':
+          'Listed on everyone\'s home screen and hosted by the house - you will not be seated, '
+          'and it cannot be paused or closed.',
       'publicTables': 'Public tables',
       'anyoneCanSitDown': 'anyone can sit down',
       'noPublicTables': 'No public tables are open right now.',
@@ -479,6 +485,10 @@ class AppLocalizations {
       'joinWithLink': 'Rejoindre avec un lien',
       'yourTables': 'Vos tables',
       'syncedToYourAccount': 'synchronisées avec votre compte',
+      'makePublic': 'Rendre cette table publique',
+      'makePublicHint':
+          'Affichée sur l\'accueil de tous et hébergée par la maison - vous n\'y serez pas assis, '
+          'et elle ne peut être ni mise en pause ni fermée.',
       'publicTables': 'Tables publiques',
       'anyoneCanSitDown': 'ouvertes à tous',
       'noPublicTables': 'Aucune table publique n\'est ouverte pour le moment.',
