@@ -219,6 +219,28 @@ class AppLocalizations {
   String couldNotBuyListing(String error) =>
       _fmt('couldNotBuyListing', {'error': error});
 
+  // Redeem (marketplace cashout stands)
+  String get tabBuy => _s('tabBuy');
+  String get tabRedeem => _s('tabRedeem');
+  String get noStandsYet => _s('noStandsYet');
+  String get standClosed => _s('standClosed');
+  String get standClosedTitle => _s('standClosedTitle');
+  String get standContactLabel => _s('standContactLabel');
+  String get standReasonLabel => _s('standReasonLabel');
+  String couldNotLoadStands(String error) =>
+      _fmt('couldNotLoadStands', {'error': error});
+
+  // CreateStandScreen
+  String get newStand => _s('newStand');
+  String get newStandSubtitle => _s('newStandSubtitle');
+  String get standTitleField => _s('standTitleField');
+  String get standContactField => _s('standContactField');
+  String get standEnabledField => _s('standEnabledField');
+  String get standClosedReasonField => _s('standClosedReasonField');
+  String get createStand => _s('createStand');
+  String couldNotCreateStand(String error) =>
+      _fmt('couldNotCreateStand', {'error': error});
+
   static const Map<String, Map<String, String>> _strings = {
     'en': {
       'cancel': 'Cancel',
@@ -387,6 +409,23 @@ class AppLocalizations {
       'chipsCredited': 'Chips credited to your wallet!',
       'listingNoLongerAvailable': 'This listing is no longer available.',
       'couldNotBuyListing': 'Could not submit payment: {error}',
+      'tabBuy': 'Buy',
+      'tabRedeem': 'Redeem',
+      'noStandsYet': 'No cashout stands yet.',
+      'standClosed': 'Closed',
+      'standClosedTitle': 'This stand is closed',
+      'standContactLabel': 'Contact',
+      'standReasonLabel': 'Why',
+      'couldNotLoadStands': 'Could not load cashout stands: {error}',
+      'newStand': 'New stand',
+      'newStandSubtitle':
+          'A cashout desk players can see. Leave it closed until you can actually pay people out.',
+      'standTitleField': 'Stand name',
+      'standContactField': 'Contact shown to players',
+      'standEnabledField': 'Open for cashout',
+      'standClosedReasonField': 'Why it is closed',
+      'createStand': 'Create stand',
+      'couldNotCreateStand': 'Could not create stand: {error}',
     },
     'fr': {
       'cancel': 'Annuler',
@@ -561,6 +600,23 @@ class AppLocalizations {
       'chipsCredited': 'Jetons crédités sur votre portefeuille !',
       'listingNoLongerAvailable': "Cette annonce n'est plus disponible.",
       'couldNotBuyListing': "Impossible d'envoyer le paiement : {error}",
+      'tabBuy': 'Acheter',
+      'tabRedeem': 'Encaisser',
+      'noStandsYet': 'Aucun guichet de retrait pour le moment.',
+      'standClosed': 'Fermé',
+      'standClosedTitle': 'Ce guichet est fermé',
+      'standContactLabel': 'Contact',
+      'standReasonLabel': 'Motif',
+      'couldNotLoadStands': 'Impossible de charger les guichets : {error}',
+      'newStand': 'Nouveau guichet',
+      'newStandSubtitle':
+          'Un guichet de retrait visible par les joueurs. Laissez-le fermé tant que vous ne pouvez pas réellement payer.',
+      'standTitleField': 'Nom du guichet',
+      'standContactField': 'Contact affiché aux joueurs',
+      'standEnabledField': 'Ouvert aux retraits',
+      'standClosedReasonField': 'Motif de la fermeture',
+      'createStand': 'Créer le guichet',
+      'couldNotCreateStand': 'Impossible de créer le guichet : {error}',
     },
   };
 }

@@ -8,9 +8,9 @@ class ApiClient {
   ApiClient({required this.baseUrl, this.token = ''});
 
   Map<String, String> get _headers => {
-        'Content-Type': 'application/json',
-        if (token.isNotEmpty) 'Authorization': 'Bearer $token',
-      };
+    'Content-Type': 'application/json',
+    if (token.isNotEmpty) 'Authorization': 'Bearer $token',
+  };
 
   /// POST /auth/register
   Future<String> register(String username, String password) async {
@@ -20,7 +20,8 @@ class ApiClient {
       body: jsonEncode({'username': username, 'password': password}),
     );
     if (response.statusCode == 201) {
-      return (jsonDecode(response.body) as Map<String, dynamic>)['token'] as String;
+      return (jsonDecode(response.body) as Map<String, dynamic>)['token']
+          as String;
     }
     _throwDetailedError(response);
   }
@@ -33,7 +34,8 @@ class ApiClient {
       body: jsonEncode({'username': username, 'password': password}),
     );
     if (response.statusCode == 200) {
-      return (jsonDecode(response.body) as Map<String, dynamic>)['token'] as String;
+      return (jsonDecode(response.body) as Map<String, dynamic>)['token']
+          as String;
     }
     _throwDetailedError(response);
   }
@@ -50,10 +52,7 @@ class ApiClient {
   }) async {
     final body = <String, dynamic>{
       'name': name,
-      'blinds': {
-        'small': smallBlind,
-        'big': bigBlind,
-      },
+      'blinds': {'small': smallBlind, 'big': bigBlind},
     };
     if (defaultBuyIn != null) body['defaultBuyIn'] = defaultBuyIn;
     if (variant != null) body['variant'] = variant;
@@ -93,9 +92,7 @@ class ApiClient {
     final response = await http.post(
       Uri.parse('$baseUrl/games/$gameId/players'),
       headers: _headers,
-      body: jsonEncode({
-        'buyInAmount': buyInAmount,
-      }),
+      body: jsonEncode({'buyInAmount': buyInAmount}),
     );
 
     if (response.statusCode == 204) {
@@ -217,7 +214,10 @@ class ApiClient {
   /// authoritative (the number that matters for matching is whatever's entered on a given
   /// listing/purchase).
   Future<String?> getAccountPhoneNumber() async {
-    final response = await http.get(Uri.parse('$baseUrl/account'), headers: _headers);
+    final response = await http.get(
+      Uri.parse('$baseUrl/account'),
+      headers: _headers,
+    );
     if (response.statusCode == 200) {
       final body = jsonDecode(response.body) as Map<String, dynamic>;
       return body['phoneNumber'] as String?;
@@ -240,12 +240,16 @@ class ApiClient {
 
   // The marketplace lives at the API root (sibling to /poker), not under it - baseUrl already
   // has /poker baked in (see WelcomeScreen.defaultServerUrl), so strip it back off here.
-  String get _rootUrl =>
-      baseUrl.endsWith('/poker') ? baseUrl.substring(0, baseUrl.length - '/poker'.length) : baseUrl;
+  String get _rootUrl => baseUrl.endsWith('/poker')
+      ? baseUrl.substring(0, baseUrl.length - '/poker'.length)
+      : baseUrl;
 
   /// GET /marketplace/listings
   Future<List<Map<String, dynamic>>> listMarketplaceListings() async {
-    final response = await http.get(Uri.parse('$_rootUrl/marketplace/listings'), headers: _headers);
+    final response = await http.get(
+      Uri.parse('$_rootUrl/marketplace/listings'),
+      headers: _headers,
+    );
     if (response.statusCode == 200) {
       return (jsonDecode(response.body) as List).cast<Map<String, dynamic>>();
     } else {
@@ -278,9 +282,54 @@ class ApiClient {
     }
   }
 
+  /// GET /marketplace/stands
+  /// Redemption stands - the cashout side of the marketplace. Every stand is returned, open or
+  /// closed; a closed one carries the reason a player is shown instead of a redeem form.
+  Future<List<Map<String, dynamic>>> listRedemptionStands() async {
+    final response = await http.get(
+      Uri.parse('$_rootUrl/marketplace/stands'),
+      headers: _headers,
+    );
+    if (response.statusCode == 200) {
+      return (jsonDecode(response.body) as List).cast<Map<String, dynamic>>();
+    } else {
+      _throwDetailedError(response);
+    }
+  }
+
+  /// POST /marketplace/stands
+  /// closedReason is required by the server whenever enabled is false.
+  Future<Map<String, dynamic>> createRedemptionStand({
+    required String title,
+    required String provider,
+    required String contact,
+    required bool enabled,
+    String? closedReason,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$_rootUrl/marketplace/stands'),
+      headers: _headers,
+      body: jsonEncode({
+        'title': title,
+        'provider': provider,
+        'contact': contact,
+        'enabled': enabled,
+        'closedReason': closedReason,
+      }),
+    );
+    if (response.statusCode == 201) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      _throwDetailedError(response);
+    }
+  }
+
   /// DELETE /marketplace/listings/{id}
   Future<void> cancelListing(String id) async {
-    final response = await http.delete(Uri.parse('$_rootUrl/marketplace/listings/$id'), headers: _headers);
+    final response = await http.delete(
+      Uri.parse('$_rootUrl/marketplace/listings/$id'),
+      headers: _headers,
+    );
     if (response.statusCode != 200) {
       _throwDetailedError(response);
     }
@@ -288,7 +337,10 @@ class ApiClient {
 
   /// GET /marketplace/listings/{id}
   Future<Map<String, dynamic>> getListing(String id) async {
-    final response = await http.get(Uri.parse('$_rootUrl/marketplace/listings/$id'), headers: _headers);
+    final response = await http.get(
+      Uri.parse('$_rootUrl/marketplace/listings/$id'),
+      headers: _headers,
+    );
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
     } else {
@@ -324,7 +376,10 @@ class ApiClient {
   /// Re-checks payment status server-side as a side effect - poll this while waiting for a
   /// purchase to verify.
   Future<Map<String, dynamic>> getPurchase(String id) async {
-    final response = await http.get(Uri.parse('$_rootUrl/marketplace/purchases/$id'), headers: _headers);
+    final response = await http.get(
+      Uri.parse('$_rootUrl/marketplace/purchases/$id'),
+      headers: _headers,
+    );
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
     } else {
@@ -344,7 +399,9 @@ class ApiClient {
       }
       throw ApiException(
         code: 'HTTP_${response.statusCode}',
-        message: response.body.isNotEmpty ? response.body : 'Request failed with status ${response.statusCode}',
+        message: response.body.isNotEmpty
+            ? response.body
+            : 'Request failed with status ${response.statusCode}',
       );
     }
   }

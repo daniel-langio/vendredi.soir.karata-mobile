@@ -1,8 +1,11 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'l10n/app_localizations.dart';
 import 'locale_controller.dart';
+import 'url_strategy_stub.dart'
+    if (dart.library.js_interop) 'url_strategy_web.dart';
 import 'screens/welcome_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/login_screen.dart';
@@ -12,10 +15,12 @@ import 'screens/join_table_screen.dart';
 import 'screens/table_screen.dart';
 import 'screens/marketplace_screen.dart';
 import 'screens/create_listing_screen.dart';
+import 'screens/create_stand_screen.dart';
 import 'screens/listing_purchase_screen.dart';
 import 'theme.dart';
 
 void main() {
+  configureUrlStrategy();
   LocaleController.instance.load();
   runApp(const MyApp());
 }
@@ -40,6 +45,20 @@ class MyApp extends StatelessWidget {
             GlobalWidgetsLocalizations.delegate,
           ],
           onGenerateRoute: _onGenerateRoute,
+          // This UI was designed as a phone screen. On a wide browser window it just looked like
+          // that same phone layout stretched edge to edge, so cap it and centre it there; a native
+          // build is already phone-shaped and wants the full window.
+          builder: kIsWeb
+              ? (context, child) => ColoredBox(
+                  color: KarataColors.bg,
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 430),
+                      child: child,
+                    ),
+                  ),
+                )
+              : null,
         );
       },
     );
@@ -48,20 +67,26 @@ class MyApp extends StatelessWidget {
 
 /// Session data a screen needs, either handed down via route arguments during
 /// normal in-app navigation, or reloaded from shared_preferences when the
-/// route is entered directly (a deep link, or after the app was killed and
-/// restarted on this route).
+/// route is entered directly (a deep link, a browser refresh, or the app
+/// being killed and restarted on this route).
 class _Session {
   final String serverUrl;
   final String token;
   final String username;
-  const _Session({required this.serverUrl, required this.token, required this.username});
+  const _Session({
+    required this.serverUrl,
+    required this.token,
+    required this.username,
+  });
 
   static _Session? fromArguments(Object? arguments) {
     if (arguments is! Map) return null;
     final serverUrl = arguments['serverUrl'];
     final token = arguments['token'];
     final username = arguments['username'];
-    if (serverUrl is! String || token is! String || username is! String) return null;
+    if (serverUrl is! String || token is! String || username is! String) {
+      return null;
+    }
     return _Session(serverUrl: serverUrl, token: token, username: username);
   }
 }
@@ -76,35 +101,70 @@ Route<dynamic>? _onGenerateRoute(RouteSettings settings) {
     page = const RootScreen();
   } else if (segments.length == 1 && segments[0] == 'register') {
     final args = settings.arguments as Map?;
-    page = RegisterScreen(serverUrl: (args?['serverUrl'] as String?) ?? defaultServerUrl());
+    page = RegisterScreen(
+      serverUrl: (args?['serverUrl'] as String?) ?? defaultServerUrl(),
+    );
   } else if (segments.length == 1 && segments[0] == 'login') {
     final args = settings.arguments as Map?;
-    page = LoginScreen(serverUrl: (args?['serverUrl'] as String?) ?? defaultServerUrl());
+    page = LoginScreen(
+      serverUrl: (args?['serverUrl'] as String?) ?? defaultServerUrl(),
+    );
   } else if (segments.length == 1 && segments[0] == 'menu') {
     page = session == null
         ? const RootScreen()
-        : MenuScreen(serverUrl: session.serverUrl, token: session.token, username: session.username);
+        : MenuScreen(
+            serverUrl: session.serverUrl,
+            token: session.token,
+            username: session.username,
+          );
   } else if (segments.length == 1 && segments[0] == 'new-table') {
     page = session == null
         ? const RootScreen()
         : NewTableScreen(
-            serverUrl: session.serverUrl, token: session.token, username: session.username);
+            serverUrl: session.serverUrl,
+            token: session.token,
+            username: session.username,
+          );
   } else if (segments.length == 1 && segments[0] == 'join-table') {
     page = session == null
         ? const RootScreen()
         : JoinTableScreen(
-            serverUrl: session.serverUrl, token: session.token, username: session.username);
+            serverUrl: session.serverUrl,
+            token: session.token,
+            username: session.username,
+          );
   } else if (segments.length == 1 && segments[0] == 'marketplace') {
     page = session == null
         ? const RootScreen()
         : MarketplaceScreen(
-            serverUrl: session.serverUrl, token: session.token, username: session.username);
-  } else if (segments.length == 2 && segments[0] == 'marketplace' && segments[1] == 'new') {
+            serverUrl: session.serverUrl,
+            token: session.token,
+            username: session.username,
+          );
+  } else if (segments.length == 2 &&
+      segments[0] == 'marketplace' &&
+      segments[1] == 'new') {
     page = session == null
         ? const RootScreen()
         : CreateListingScreen(
-            serverUrl: session.serverUrl, token: session.token, username: session.username);
-  } else if (segments.length == 2 && segments[0] == 'marketplace' && segments[1] == 'listing') {
+            serverUrl: session.serverUrl,
+            token: session.token,
+            username: session.username,
+          );
+  } else if (segments.length == 3 &&
+      segments[0] == 'marketplace' &&
+      segments[1] == 'stand' &&
+      segments[2] == 'new') {
+    page = session == null
+        ? const RootScreen()
+        : CreateStandScreen(
+            serverUrl: session.serverUrl,
+            token: session.token,
+            username: session.username,
+          );
+  } else if (segments.length == 2 &&
+      segments[0] == 'marketplace' &&
+      segments[1] == 'listing') {
     final args = settings.arguments as Map?;
     final listing = args?['listing'] as Map<String, dynamic>?;
     page = session == null || listing == null
@@ -132,9 +192,10 @@ Route<dynamic>? _onGenerateRoute(RouteSettings settings) {
   return MaterialPageRoute(settings: settings, builder: (context) => page);
 }
 
-/// Loads a saved session before entering a table reached directly (a deep
-/// link, or the app restarting on this route) rather than via in-app
-/// navigation, where the session would already be in the route's arguments.
+/// Loads a saved session before entering a table reached directly (a deep link
+/// someone was sent, a browser refresh, or the app restarting on this route)
+/// rather than via in-app navigation, where the session would already be in
+/// the route's arguments.
 class _TableRouteLoader extends StatefulWidget {
   final String gameId;
   const _TableRouteLoader({required this.gameId});
@@ -157,10 +218,18 @@ class _TableRouteLoaderState extends State<_TableRouteLoader> {
     final username = prefs.getString('username');
     if (!mounted) return;
 
-    if (serverUrl != null && serverUrl.isNotEmpty && token != null && token.isNotEmpty && username != null) {
+    if (serverUrl != null &&
+        serverUrl.isNotEmpty &&
+        token != null &&
+        token.isNotEmpty &&
+        username != null) {
       Navigator.of(context).pushReplacementNamed(
         '/table/${widget.gameId}',
-        arguments: {'serverUrl': serverUrl, 'token': token, 'username': username},
+        arguments: {
+          'serverUrl': serverUrl,
+          'token': token,
+          'username': username,
+        },
       );
     } else {
       Navigator.of(context).pushReplacementNamed('/');
@@ -199,12 +268,20 @@ class _RootScreenState extends State<RootScreen> {
 
     if (!mounted) return;
 
-    if (serverUrl != null && serverUrl.isNotEmpty && token != null && token.isNotEmpty && username != null) {
+    if (serverUrl != null &&
+        serverUrl.isNotEmpty &&
+        token != null &&
+        token.isNotEmpty &&
+        username != null) {
       setState(() => _hasSession = true);
       Navigator.of(context).pushNamedAndRemoveUntil(
         '/menu',
         (route) => false,
-        arguments: {'serverUrl': serverUrl, 'token': token, 'username': username},
+        arguments: {
+          'serverUrl': serverUrl,
+          'token': token,
+          'username': username,
+        },
       );
     } else {
       setState(() => _checked = true);
