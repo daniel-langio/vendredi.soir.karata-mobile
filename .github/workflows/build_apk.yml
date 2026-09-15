@@ -92,11 +92,16 @@ jobs:
           cp build/app/outputs/flutter-apk/app-release.apk "build/app/outputs/flutter-apk/release/${APK_NAME}"
           echo "apk_name=${APK_NAME}" >> "$GITHUB_OUTPUT"
 
+      # Short retention on purpose: a pushed build's APK is also attached to its GitHub release
+      # and sent to Firebase, so this copy only really matters for PR builds, which cut no
+      # release. Keeping them the default 90 days filled the account's Actions storage quota and
+      # started failing uploads with a 403 at finalize.
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.rename.outputs.apk_name }}
           path: build/app/outputs/flutter-apk/release/${{ steps.rename.outputs.apk_name }}
+          retention-days: 7
 
       # Only real pushes (not PRs) get distributed to testers - a PR build isn't necessarily
       # meant for testers yet, and this keeps every distributed release traceable to a branch.
