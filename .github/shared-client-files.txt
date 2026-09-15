@@ -1,0 +1,9 @@
+# Files that must stay byte-identical between the web client (vendredi.soir.karata, web-ui/)
+# and the Android client (vendredi.soir.karata-mobile). Paths are relative to each repo's
+# Flutter project root, which is web-ui/ in this repo and the repo root in the mobile one.
+#
+# Only list files with no platform-specific content. main.dart, welcome_screen.dart and the
+# l10n bundle legitimately differ (URL strategy, width cap, debug backend picker) and must
+# stay off this list.
+lib/game_sounds.dart
+lib/screens/table_screen.dart
