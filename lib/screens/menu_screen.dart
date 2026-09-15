@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../api/api_client.dart';
@@ -6,15 +5,28 @@ import '../l10n/app_localizations.dart';
 import '../locale_controller.dart';
 import '../theme.dart';
 
-class RecentTable {
+/// One row in either home-screen list. Both `/games/mine` and `/games/public` return the full game
+/// representation, which already carries the seated players - so the player count shown here costs
+/// no extra field on the API and no second request.
+class TableSummary {
   final String gameId;
   final String name;
+  final int? defaultBuyIn;
+  final int seated;
 
-  RecentTable({required this.gameId, required this.name});
+  const TableSummary({
+    required this.gameId,
+    required this.name,
+    required this.defaultBuyIn,
+    required this.seated,
+  });
 
-  Map<String, dynamic> toJson() => {'gameId': gameId, 'name': name};
-  factory RecentTable.fromJson(Map<String, dynamic> j) =>
-      RecentTable(gameId: j['gameId'] as String, name: j['name'] as String);
+  factory TableSummary.fromJson(Map<String, dynamic> j) => TableSummary(
+    gameId: j['gameId'] as String,
+    name: j['name'] as String? ?? 'Table',
+    defaultBuyIn: (j['defaultBuyIn'] as num?)?.toInt(),
+    seated: (j['players'] as List<dynamic>? ?? const []).length,
+  );
 }
 
 class MenuScreen extends StatefulWidget {
@@ -35,14 +47,17 @@ class MenuScreen extends StatefulWidget {
 
 class _MenuScreenState extends State<MenuScreen> {
   late final ApiClient _apiClient;
-  List<RecentTable> _recent = [];
+  List<TableSummary> _mine = [];
+  List<TableSummary> _public = [];
+  bool _loadingTables = true;
+  String? _tablesError;
   int? _walletChips;
 
   @override
   void initState() {
     super.initState();
     _apiClient = ApiClient(baseUrl: widget.serverUrl, token: widget.token);
-    _loadRecent();
+    _loadTables();
     _loadWallet();
   }
 
@@ -56,31 +71,31 @@ class _MenuScreenState extends State<MenuScreen> {
     }
   }
 
-  Future<void> _loadRecent() async {
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getStringList('recent_tables') ?? [];
-    final all = raw.map((s) => RecentTable.fromJson(jsonDecode(s) as Map<String, dynamic>)).toList();
-
-    // Closed tables are permanent - drop them from the list rather than just hiding them, so we
-    // don't keep re-checking a table that can never reopen on every future menu visit.
-    final stillOpen = <RecentTable>[];
-    for (final t in all) {
-      try {
-        final game = await _apiClient.getGame(t.gameId);
-        if (game['closed'] != true) stillOpen.add(t);
-      } catch (_) {
-        // Couldn't confirm status (e.g. offline) - keep it rather than risk hiding a live table.
-        stillOpen.add(t);
-      }
+  /// Both lists come from the server now, not from a device-local record of tables visited: the
+  /// server knows every table you host or sit at, so the list survives a reinstall or a new phone.
+  Future<void> _loadTables() async {
+    setState(() {
+      _loadingTables = true;
+      _tablesError = null;
+    });
+    try {
+      final results = await Future.wait([
+        _apiClient.listMyTables(),
+        _apiClient.listPublicTables(),
+      ]);
+      if (!mounted) return;
+      setState(() {
+        _mine = results[0].map(TableSummary.fromJson).toList();
+        _public = results[1].map(TableSummary.fromJson).toList();
+        _loadingTables = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _tablesError = '$e';
+        _loadingTables = false;
+      });
     }
-
-    if (stillOpen.length != all.length) {
-      await prefs.setStringList(
-          'recent_tables', stillOpen.map((t) => jsonEncode(t.toJson())).toList());
-    }
-
-    if (!mounted) return;
-    setState(() => _recent = stillOpen);
   }
 
   Future<void> _logOut() async {
@@ -92,30 +107,41 @@ class _MenuScreenState extends State<MenuScreen> {
     }
   }
 
-  Map<String, dynamic> get _sessionArgs =>
-      {'serverUrl': widget.serverUrl, 'token': widget.token, 'username': widget.username};
+  Map<String, dynamic> get _sessionArgs => {
+    'serverUrl': widget.serverUrl,
+    'token': widget.token,
+    'username': widget.username,
+  };
 
   void _openTable(String gameId) {
-    Navigator.of(context).pushNamed('/table/$gameId', arguments: _sessionArgs).then((_) {
-      _loadRecent();
+    Navigator.of(
+      context,
+    ).pushNamed('/table/$gameId', arguments: _sessionArgs).then((_) {
+      _loadTables();
       _loadWallet();
     });
   }
 
   Future<void> _createTable() async {
-    await Navigator.of(context).pushNamed('/new-table', arguments: _sessionArgs);
-    _loadRecent();
+    await Navigator.of(
+      context,
+    ).pushNamed('/new-table', arguments: _sessionArgs);
+    _loadTables();
     _loadWallet();
   }
 
   Future<void> _joinTable() async {
-    await Navigator.of(context).pushNamed('/join-table', arguments: _sessionArgs);
-    _loadRecent();
+    await Navigator.of(
+      context,
+    ).pushNamed('/join-table', arguments: _sessionArgs);
+    _loadTables();
     _loadWallet();
   }
 
   Future<void> _openMarketplace() async {
-    await Navigator.of(context).pushNamed('/marketplace', arguments: _sessionArgs);
+    await Navigator.of(
+      context,
+    ).pushNamed('/marketplace', arguments: _sessionArgs);
     _loadWallet();
   }
 
@@ -135,7 +161,11 @@ class _MenuScreenState extends State<MenuScreen> {
               const PopupMenuItem(value: Locale('fr'), child: Text('Français')),
             ],
           ),
-          IconButton(icon: const Icon(Icons.logout), onPressed: _logOut, tooltip: t.logOut),
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: _logOut,
+            tooltip: t.logOut,
+          ),
         ],
       ),
       body: SafeArea(
@@ -159,10 +189,18 @@ class _MenuScreenState extends State<MenuScreen> {
                         Text(
                           widget.username,
                           style: const TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.w500, color: KarataColors.ink),
+                            fontSize: 20,
+                            fontWeight: FontWeight.w500,
+                            color: KarataColors.ink,
+                          ),
                         ),
-                        Text(t.signInHint,
-                            style: const TextStyle(fontSize: 12.5, color: KarataColors.dim)),
+                        Text(
+                          t.signInHint,
+                          style: const TextStyle(
+                            fontSize: 12.5,
+                            color: KarataColors.dim,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -173,7 +211,10 @@ class _MenuScreenState extends State<MenuScreen> {
                         borderRadius: BorderRadius.circular(999),
                         onTap: _openMarketplace,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 10,
+                          ),
                           decoration: BoxDecoration(
                             color: KarataColors.chipBg,
                             borderRadius: BorderRadius.circular(999),
@@ -181,8 +222,11 @@ class _MenuScreenState extends State<MenuScreen> {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.monetization_on_rounded,
-                                  color: KarataColors.chipInk, size: 24),
+                              const Icon(
+                                Icons.monetization_on_rounded,
+                                color: KarataColors.chipInk,
+                                size: 24,
+                              ),
                               const SizedBox(width: 8),
                               Text(
                                 '$_walletChips',
@@ -202,7 +246,10 @@ class _MenuScreenState extends State<MenuScreen> {
               const SizedBox(height: 28),
               ElevatedButton.icon(
                 onPressed: _createTable,
-                icon: const Text('♠', style: TextStyle(color: KarataColors.dim)),
+                icon: const Text(
+                  '♠',
+                  style: TextStyle(color: KarataColors.dim),
+                ),
                 label: Text(t.createTable),
               ),
               const SizedBox(height: 11),
@@ -212,44 +259,26 @@ class _MenuScreenState extends State<MenuScreen> {
                 label: Text(t.joinWithLink),
               ),
               const SizedBox(height: 32),
-              Row(
-                children: [
-                  Text(t.yourTables,
-                      style: const TextStyle(
-                          fontSize: 14, fontWeight: FontWeight.w600, color: KarataColors.ink)),
-                  const SizedBox(width: 8),
-                  Text(t.keptOnThisDevice,
-                      style: const TextStyle(fontSize: 12.5, color: KarataColors.dim)),
-                ],
-              ),
-              const SizedBox(height: 4),
               Expanded(
-                child: _recent.isEmpty
-                    ? Center(
-                        child: Text(
-                          t.noTablesYet,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(color: KarataColors.dim),
+                child: _loadingTables && _mine.isEmpty && _public.isEmpty
+                    ? const Center(child: CircularProgressIndicator())
+                    : RefreshIndicator(
+                        onRefresh: _loadTables,
+                        child: ListView(
+                          children: [
+                            if (_tablesError != null)
+                              _note(t.couldNotLoadTables(_tablesError!)),
+                            _sectionHeader(t.yourTables, t.syncedToYourAccount),
+                            if (_mine.isEmpty && _tablesError == null)
+                              _note(t.noTablesYet),
+                            ..._mine.map(_tableTile),
+                            const SizedBox(height: 28),
+                            _sectionHeader(t.publicTables, t.anyoneCanSitDown),
+                            if (_public.isEmpty && _tablesError == null)
+                              _note(t.noPublicTables),
+                            ..._public.map(_tableTile),
+                          ],
                         ),
-                      )
-                    : ListView.separated(
-                        itemCount: _recent.length,
-                        separatorBuilder: (context, index) =>
-                            const Divider(height: 1, color: Color(0xFF1A181E)),
-                        itemBuilder: (context, index) {
-                          final rt = _recent[index];
-                          return ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            leading: const Icon(Icons.circle, size: 7, color: KarataColors.live),
-                            title: Text(rt.name,
-                                style: const TextStyle(color: KarataColors.ink, fontSize: 16.5)),
-                            trailing: TextButton(
-                              onPressed: () => _openTable(rt.gameId),
-                              child: Text(t.open),
-                            ),
-                            onTap: () => _openTable(rt.gameId),
-                          );
-                        },
                       ),
               ),
             ],
@@ -258,16 +287,70 @@ class _MenuScreenState extends State<MenuScreen> {
       ),
     );
   }
-}
 
-Future<void> saveRecentTable(String gameId, String name) async {
-  final prefs = await SharedPreferences.getInstance();
-  final raw = prefs.getStringList('recent_tables') ?? [];
-  final list = raw
-      .map((s) => RecentTable.fromJson(jsonDecode(s) as Map<String, dynamic>))
-      .where((t) => t.gameId != gameId)
-      .toList();
-  list.insert(0, RecentTable(gameId: gameId, name: name));
-  await prefs.setStringList(
-      'recent_tables', list.map((t) => jsonEncode(t.toJson())).toList());
+  Widget _sectionHeader(String title, String hint) => Padding(
+    padding: const EdgeInsets.only(bottom: 4),
+    child: Row(
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: KarataColors.ink,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            hint,
+            style: const TextStyle(fontSize: 12.5, color: KarataColors.dim),
+          ),
+        ),
+      ],
+    ),
+  );
+
+  Widget _note(String message) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 16),
+    child: Text(
+      message,
+      textAlign: TextAlign.center,
+      style: const TextStyle(color: KarataColors.dim),
+    ),
+  );
+
+  Widget _tableTile(TableSummary table) {
+    final t = AppLocalizations.of(context);
+    final String seated;
+    if (table.seated == 0) {
+      seated = t.seatedCountNone;
+    } else if (table.seated == 1) {
+      seated = t.seatedCountOne;
+    } else {
+      seated = t.seatedCount('${table.seated}');
+    }
+    final details = [
+      if (table.defaultBuyIn != null) t.buyInOf('${table.defaultBuyIn}'),
+      seated,
+    ].join(' · ');
+
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      leading: const Icon(Icons.circle, size: 7, color: KarataColors.live),
+      title: Text(
+        table.name,
+        style: const TextStyle(color: KarataColors.ink, fontSize: 16.5),
+      ),
+      subtitle: Text(
+        details,
+        style: const TextStyle(color: KarataColors.dim, fontSize: 12.5),
+      ),
+      trailing: TextButton(
+        onPressed: () => _openTable(table.gameId),
+        child: Text(t.open),
+      ),
+      onTap: () => _openTable(table.gameId),
+    );
+  }
 }
