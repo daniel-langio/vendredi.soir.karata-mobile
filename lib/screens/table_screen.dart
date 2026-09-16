@@ -387,6 +387,59 @@ class _TableScreenState extends State<TableScreen> {
     }
   }
 
+  Future<void> _addBot() async {
+    String? selected; // null = let the server choose
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          final t = AppLocalizations.of(context);
+          Widget option(String? value, String label) => ListTile(
+            contentPadding: EdgeInsets.zero,
+            title: Text(label),
+            trailing: selected == value
+                ? const Icon(Icons.check, color: KarataColors.live)
+                : null,
+            onTap: () => setDialogState(() => selected = value),
+          );
+          return AlertDialog(
+            title: Text(t.addBotTitle),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                option(null, t.botStrategyServerChoice),
+                option('CAUTIOUS', t.botStrategyCautious),
+                option('BALANCED', t.botStrategyBalanced),
+                option('AGGRESSIVE', t.botStrategyAggressive),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: Text(t.cancel),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: Text(t.addBot),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+    if (confirmed != true) return;
+
+    setState(() => _isLoading = true);
+    try {
+      await _apiClient.addBot(widget.gameId, strategy: selected);
+      await _refresh();
+    } catch (e) {
+      _showError((t) => t.couldNotAddBot('$e'));
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
   Widget _pausedBanner(AppLocalizations t) => Container(
     margin: const EdgeInsets.only(bottom: 8),
     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -583,6 +636,14 @@ class _TableScreenState extends State<TableScreen> {
                       _setPaused(!_isPaused);
                     },
                     child: Text(_isPaused ? t.resumeTable : t.pauseTable),
+                  ),
+                if (_isHost)
+                  PopupMenuItem(
+                    onTap: () {
+                      _sounds.click();
+                      _addBot();
+                    },
+                    child: Text(t.addBot),
                   ),
                 if (_canClose)
                   PopupMenuItem(
