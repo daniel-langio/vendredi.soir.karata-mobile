@@ -269,6 +269,19 @@ class ApiClient {
     }
   }
 
+  /// POST /games/{gameId}/bots
+  /// Host-only. strategy is one of CAUTIOUS/AGGRESSIVE/BALANCED, or null to let the server pick.
+  Future<void> addBot(String gameId, {String? strategy}) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/games/$gameId/bots'),
+      headers: _headers,
+      body: strategy != null ? jsonEncode({'strategy': strategy}) : null,
+    );
+    if (response.statusCode != 204) {
+      _throwDetailedError(response);
+    }
+  }
+
   /// GET /wallet
   /// Fetch the caller's persistent chip wallet balance (separate from any single table's
   /// in-progress stack).

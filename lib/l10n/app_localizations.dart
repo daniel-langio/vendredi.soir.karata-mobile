@@ -150,6 +150,14 @@ class AppLocalizations {
   String get tablePausedExplainer => _s('tablePausedExplainer');
   String couldNotPauseTable(String error) =>
       _fmt('couldNotPauseTable', {'error': error});
+  String get addBot => _s('addBot');
+  String get addBotTitle => _s('addBotTitle');
+  String get botStrategyServerChoice => _s('botStrategyServerChoice');
+  String get botStrategyCautious => _s('botStrategyCautious');
+  String get botStrategyBalanced => _s('botStrategyBalanced');
+  String get botStrategyAggressive => _s('botStrategyAggressive');
+  String couldNotAddBot(String error) =>
+      _fmt('couldNotAddBot', {'error': error});
   String get closedSuffix => _s('closedSuffix');
   String couldNotCloseTable(String error) =>
       _fmt('couldNotCloseTable', {'error': error});
@@ -365,6 +373,13 @@ class AppLocalizations {
       'tablePausedExplainer':
           'No deals or actions until the host resumes. Your chips stay where they are.',
       'couldNotPauseTable': 'Could not change the pause state: {error}',
+      'addBot': 'Add a bot',
+      'addBotTitle': 'Add a bot',
+      'botStrategyServerChoice': 'Let the house choose',
+      'botStrategyCautious': 'Cautious',
+      'botStrategyBalanced': 'Balanced',
+      'botStrategyAggressive': 'Aggressive',
+      'couldNotAddBot': 'Could not add a bot: {error}',
       'closedSuffix': 'closed',
       'couldNotCloseTable': 'Could not close table: {error}',
       'leaveTableTitle': 'Leave this table?',
@@ -590,6 +605,13 @@ class AppLocalizations {
       'tablePausedExplainer':
           'Aucune donne ni action tant que l\'hôte n\'a pas repris. Vos jetons restent en place.',
       'couldNotPauseTable': 'Impossible de changer l\'état de pause : {error}',
+      'addBot': 'Ajouter un bot',
+      'addBotTitle': 'Ajouter un bot',
+      'botStrategyServerChoice': 'Laisser la maison choisir',
+      'botStrategyCautious': 'Prudent',
+      'botStrategyBalanced': 'Équilibré',
+      'botStrategyAggressive': 'Agressif',
+      'couldNotAddBot': "Impossible d'ajouter un bot : {error}",
       'closedSuffix': 'fermée',
       'couldNotCloseTable': 'Impossible de fermer la table : {error}',
       'leaveTableTitle': 'Quitter cette table ?',
