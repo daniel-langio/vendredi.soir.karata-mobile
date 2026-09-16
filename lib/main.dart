@@ -3,13 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'l10n/app_localizations.dart';
+import 'chip_display.dart';
 import 'locale_controller.dart';
+import 'sound_settings.dart';
 import 'url_strategy_stub.dart'
     if (dart.library.js_interop) 'url_strategy_web.dart';
 import 'screens/welcome_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/menu_screen.dart';
+import 'screens/settings_screen.dart';
 import 'screens/new_table_screen.dart';
 import 'screens/join_table_screen.dart';
 import 'screens/table_screen.dart';
@@ -22,6 +25,8 @@ import 'theme.dart';
 void main() {
   configureUrlStrategy();
   LocaleController.instance.load();
+  SoundSettings.instance.load();
+  ChipDisplay.instance.load();
   runApp(const MyApp());
 }
 
@@ -113,6 +118,14 @@ Route<dynamic>? _onGenerateRoute(RouteSettings settings) {
     page = session == null
         ? const RootScreen()
         : MenuScreen(
+            serverUrl: session.serverUrl,
+            token: session.token,
+            username: session.username,
+          );
+  } else if (segments.length == 1 && segments[0] == 'settings') {
+    page = session == null
+        ? const RootScreen()
+        : SettingsScreen(
             serverUrl: session.serverUrl,
             token: session.token,
             username: session.username,

@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../api/api_client.dart';
+import '../chip_display.dart';
 import '../l10n/app_localizations.dart';
-import '../locale_controller.dart';
 import '../theme.dart';
 
 /// One row in either home-screen list. Both `/games/mine` and `/games/public` return the full game
@@ -98,13 +97,8 @@ class _MenuScreenState extends State<MenuScreen> {
     }
   }
 
-  Future<void> _logOut() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('jwt_token');
-    await prefs.remove('username');
-    if (mounted) {
-      Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
-    }
+  Future<void> _openSettings() async {
+    await Navigator.of(context).pushNamed('/settings', arguments: _sessionArgs);
   }
 
   Map<String, dynamic> get _sessionArgs => {
@@ -151,20 +145,10 @@ class _MenuScreenState extends State<MenuScreen> {
     return Scaffold(
       appBar: AppBar(
         actions: [
-          PopupMenuButton<Locale?>(
-            icon: const Icon(Icons.language),
-            tooltip: t.language,
-            onSelected: (locale) => LocaleController.instance.setLocale(locale),
-            itemBuilder: (context) => [
-              PopupMenuItem(value: null, child: Text(t.systemDefault)),
-              const PopupMenuItem(value: Locale('en'), child: Text('English')),
-              const PopupMenuItem(value: Locale('fr'), child: Text('Français')),
-            ],
-          ),
           IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: _logOut,
-            tooltip: t.logOut,
+            icon: const Icon(Icons.settings),
+            onPressed: _openSettings,
+            tooltip: t.settings,
           ),
         ],
       ),
@@ -228,12 +212,18 @@ class _MenuScreenState extends State<MenuScreen> {
                                 size: 24,
                               ),
                               const SizedBox(width: 8),
-                              Text(
-                                '$_walletChips',
-                                style: const TextStyle(
-                                  fontSize: 30,
-                                  fontWeight: FontWeight.bold,
-                                  color: KarataColors.chipInk,
+                              ValueListenableBuilder<ChipDisplaySettings>(
+                                valueListenable: ChipDisplay.instance,
+                                builder: (context, chipSettings, _) => Text(
+                                  ChipDisplay.formatWith(
+                                    chipSettings,
+                                    _walletChips,
+                                  ),
+                                  style: const TextStyle(
+                                    fontSize: 30,
+                                    fontWeight: FontWeight.bold,
+                                    color: KarataColors.chipInk,
+                                  ),
                                 ),
                               ),
                             ],

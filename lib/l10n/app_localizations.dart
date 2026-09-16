@@ -78,6 +78,29 @@ class AppLocalizations {
   String get systemDefault => _s('systemDefault');
   String get walletBalance => _s('walletBalance');
 
+  // SettingsScreen
+  String get settings => _s('settings');
+  String get settingsGeneral => _s('settingsGeneral');
+  String get settingsAccount => _s('settingsAccount');
+  String get settingsTable => _s('settingsTable');
+  String get chipsAsMoney => _s('chipsAsMoney');
+  String get chipsAsMoneySubtitle => _s('chipsAsMoneySubtitle');
+  String get arPerChip => _s('arPerChip');
+  String get arPerChipInvalid => _s('arPerChipInvalid');
+  String chipsAsMoneyExample(String chips, String money) =>
+      _fmt('chipsAsMoneyExample', {'chips': chips, 'money': money});
+  String get tableSounds => _s('tableSounds');
+  String get tableSoundsSubtitle => _s('tableSoundsSubtitle');
+  String get paymentPhoneNumber => _s('paymentPhoneNumber');
+  String get paymentPhoneNumberSubtitle => _s('paymentPhoneNumberSubtitle');
+  String get phoneNumberNotSet => _s('phoneNumberNotSet');
+  String get savePhoneNumber => _s('savePhoneNumber');
+  String get phoneNumberSaved => _s('phoneNumberSaved');
+  String couldNotLoadPhoneNumber(String error) =>
+      _fmt('couldNotLoadPhoneNumber', {'error': error});
+  String couldNotSavePhoneNumber(String error) =>
+      _fmt('couldNotSavePhoneNumber', {'error': error});
+
   // NewTableScreen
   String get makePublic => _s('makePublic');
   String get makePublicHint => _s('makePublicHint');
@@ -461,6 +484,26 @@ class AppLocalizations {
       'standClosedReasonField': 'Why it is closed',
       'createStand': 'Create stand',
       'couldNotCreateStand': 'Could not create stand: {error}',
+      'settings': 'Settings',
+      'settingsGeneral': 'General',
+      'settingsAccount': 'Account',
+      'settingsTable': 'Table',
+      'chipsAsMoney': 'Show chips as money',
+      'chipsAsMoneySubtitle':
+          'Show every chip count in Ariary instead. This is your own valuation, not an official rate.',
+      'arPerChip': 'Ariary per chip',
+      'arPerChipInvalid': 'Enter a whole number of Ariary, 1 or more',
+      'chipsAsMoneyExample': '{chips} chips shows as {money}',
+      'tableSounds': 'Table sounds',
+      'tableSoundsSubtitle': 'Card, chip and button sounds during a hand.',
+      'paymentPhoneNumber': 'Payment phone number',
+      'paymentPhoneNumberSubtitle':
+          'Used to pay for chips you buy and to receive payment for chips you sell.',
+      'phoneNumberNotSet': 'Not set yet',
+      'savePhoneNumber': 'Save number',
+      'phoneNumberSaved': 'Phone number saved',
+      'couldNotLoadPhoneNumber': 'Could not load your phone number: {error}',
+      'couldNotSavePhoneNumber': 'Could not save your phone number: {error}',
     },
     'fr': {
       'cancel': 'Annuler',
@@ -670,6 +713,28 @@ class AppLocalizations {
       'standClosedReasonField': 'Motif de la fermeture',
       'createStand': 'Créer le guichet',
       'couldNotCreateStand': 'Impossible de créer le guichet : {error}',
+      'settings': 'Paramètres',
+      'settingsGeneral': 'Général',
+      'settingsAccount': 'Compte',
+      'settingsTable': 'Table',
+      'chipsAsMoney': 'Afficher les jetons en argent',
+      'chipsAsMoneySubtitle':
+          "Affiche chaque montant de jetons en ariary. C'est votre propre estimation, pas un taux officiel.",
+      'arPerChip': 'Ariary par jeton',
+      'arPerChipInvalid': "Saisissez un nombre entier d'ariary, au moins 1",
+      'chipsAsMoneyExample': "{chips} jetons s'affichent comme {money}",
+      'tableSounds': 'Sons de la table',
+      'tableSoundsSubtitle':
+          'Sons des cartes, des jetons et des boutons pendant une main.',
+      'paymentPhoneNumber': 'Numéro de téléphone de paiement',
+      'paymentPhoneNumberSubtitle':
+          'Sert à payer les jetons que vous achetez et à recevoir le paiement de ceux que vous vendez.',
+      'phoneNumberNotSet': 'Pas encore renseigné',
+      'savePhoneNumber': 'Enregistrer le numéro',
+      'phoneNumberSaved': 'Numéro enregistré',
+      'couldNotLoadPhoneNumber': 'Impossible de charger votre numéro : {error}',
+      'couldNotSavePhoneNumber':
+          "Impossible d'enregistrer votre numéro : {error}",
     },
   };
 }
