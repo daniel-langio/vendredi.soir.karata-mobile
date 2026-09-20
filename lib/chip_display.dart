@@ -3,10 +3,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 /// How chip counts are rendered across the app: as raw chips, or converted to Ariary.
 ///
-/// Nothing in the system defines an official chip price - a marketplace listing carries its own
-/// seller-chosen `unitPriceAr` and nothing else does - so [arPerChip] is the player's own
-/// valuation, typed in the settings screen. It is deliberately not fetched from the server: it is
-/// a reading aid, not a quote, and must keep working with no listings and no network.
+/// The server does have a real global chip price now (`GET /economy/price` - see EconomyScreen),
+/// but [arPerChip] here is still the player's own valuation, typed in the settings screen, kept
+/// deliberately independent of it: it is a reading aid, not a quote, and must keep working with
+/// no network. A player can always set it to match the real price by hand if they want the two to
+/// agree.
 @immutable
 class ChipDisplaySettings {
   const ChipDisplaySettings({this.asMoney = false, this.arPerChip = 1});

@@ -132,10 +132,8 @@ class _MenuScreenState extends State<MenuScreen> {
     _loadWallet();
   }
 
-  Future<void> _openMarketplace() async {
-    await Navigator.of(
-      context,
-    ).pushNamed('/marketplace', arguments: _sessionArgs);
+  Future<void> _openEconomy() async {
+    await Navigator.of(context).pushNamed('/economy', arguments: _sessionArgs);
     _loadWallet();
   }
 
@@ -193,7 +191,7 @@ class _MenuScreenState extends State<MenuScreen> {
                       message: t.walletBalance,
                       child: InkWell(
                         borderRadius: BorderRadius.circular(999),
-                        onTap: _openMarketplace,
+                        onTap: _openEconomy,
                         child: Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 16,
@@ -395,9 +393,8 @@ class _MenuScreenState extends State<MenuScreen> {
       subtitle: subtitle,
       buyInLabel: buyInLabel,
       suit: _publicTableSuits[index % _publicTableSuits.length],
-      accent:
-          KarataColors
-              .publicTableAccents[index % KarataColors.publicTableAccents.length],
+      accent: KarataColors
+          .publicTableAccents[index % KarataColors.publicTableAccents.length],
       onTap: () => _openTable(table.gameId),
     );
   }
@@ -497,9 +494,7 @@ class PublicTableCard extends StatelessWidget {
                         Text(
                           subtitle,
                           style: TextStyle(
-                            color: KarataColors.cardInk.withValues(
-                              alpha: 0.62,
-                            ),
+                            color: KarataColors.cardInk.withValues(alpha: 0.62),
                             fontSize: 12.5,
                           ),
                         ),

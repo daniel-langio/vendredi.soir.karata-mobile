@@ -11,7 +11,7 @@ import '../theme.dart';
 
 /// Everything that used to be scattered across app bars, or had no home at all: language, table
 /// sounds, how chip amounts are rendered, and the payment phone number - which until now could
-/// only be changed as a side effect of starting a marketplace listing.
+/// only be changed as a side effect of buying or redeeming chips.
 ///
 /// Deliberately absent: the server URL. That control is per-platform (a debug backend picker on
 /// mobile, a plain field on web) and this file is shared between both clients, so it stays on the

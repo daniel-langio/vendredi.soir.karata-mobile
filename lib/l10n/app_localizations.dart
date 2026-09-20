@@ -228,35 +228,21 @@ class AppLocalizations {
   String get variantSimplifiedMinRaise => _s('variantSimplifiedMinRaise');
   String get close => _s('close');
 
-  // MarketplaceScreen
-  String get marketplaceTitle => _s('marketplaceTitle');
-  String get marketplaceSubtitle => _s('marketplaceSubtitle');
-  String get noListingsYet => _s('noListingsYet');
-  String get newListing => _s('newListing');
-  String get buy => _s('buy');
-  String unitPriceLine(String price, String provider) =>
-      _fmt('unitPriceLine', {'price': price, 'provider': provider});
-  String chipsAvailable(String count) =>
-      _fmt('chipsAvailable', {'count': count});
-  String get cancelListingTitle => _s('cancelListingTitle');
-  String get cancelListingContent => _s('cancelListingContent');
-  String get cancelListingButton => _s('cancelListingButton');
-  String couldNotLoadListings(String error) =>
-      _fmt('couldNotLoadListings', {'error': error});
-  String couldNotCancelListing(String error) =>
-      _fmt('couldNotCancelListing', {'error': error});
+  // EconomyScreen
+  String get economyTitle => _s('economyTitle');
+  String get economySubtitle => _s('economySubtitle');
+  String buyPriceLine(String price) => _fmt('buyPriceLine', {'price': price});
+  String sellPriceLine(String price) => _fmt('sellPriceLine', {'price': price});
+  String get buyChips => _s('buyChips');
+  String get redeemChips => _s('redeemChips');
+  String get pendingRedemptions => _s('pendingRedemptions');
+  String get economySettings => _s('economySettings');
+  String couldNotLoadPrice(String error) =>
+      _fmt('couldNotLoadPrice', {'error': error});
 
-  // CreateListingScreen
-  String get newListingSubtitle => _s('newListingSubtitle');
-  String get priceAr => _s('priceAr');
-  String get receivingPhoneNumber => _s('receivingPhoneNumber');
-  String get paymentProvider => _s('paymentProvider');
-  String get createListing => _s('createListing');
-  String couldNotCreateListing(String error) =>
-      _fmt('couldNotCreateListing', {'error': error});
-
-  // ListingPurchaseScreen
+  // ChipPurchaseScreen
   String get quantity => _s('quantity');
+  String get paymentProvider => _s('paymentProvider');
   String payInstructions(String amount, String phone) =>
       _fmt('payInstructions', {'amount': amount, 'phone': phone});
   String get yourPhoneNumber => _s('yourPhoneNumber');
@@ -265,31 +251,46 @@ class AppLocalizations {
   String get submitPayment => _s('submitPayment');
   String get waitingForConfirmation => _s('waitingForConfirmation');
   String get chipsCredited => _s('chipsCredited');
-  String get listingNoLongerAvailable => _s('listingNoLongerAvailable');
-  String couldNotBuyListing(String error) =>
-      _fmt('couldNotBuyListing', {'error': error});
+  String couldNotBuyChips(String error) =>
+      _fmt('couldNotBuyChips', {'error': error});
 
-  // Redeem (marketplace cashout stands)
-  String get tabBuy => _s('tabBuy');
-  String get tabRedeem => _s('tabRedeem');
-  String get noStandsYet => _s('noStandsYet');
-  String get standClosed => _s('standClosed');
-  String get standClosedTitle => _s('standClosedTitle');
-  String get standContactLabel => _s('standContactLabel');
-  String get standReasonLabel => _s('standReasonLabel');
-  String couldNotLoadStands(String error) =>
-      _fmt('couldNotLoadStands', {'error': error});
+  // ChipRedemptionScreen
+  String get payoutPhoneNumber => _s('payoutPhoneNumber');
+  String redeemTotalLine(String amount) =>
+      _fmt('redeemTotalLine', {'amount': amount});
+  String get submitRedemption => _s('submitRedemption');
+  String get waitingForPayout => _s('waitingForPayout');
+  String get redemptionPaidOut => _s('redemptionPaidOut');
+  String get redemptionCancelled => _s('redemptionCancelled');
+  String couldNotRedeemChips(String error) =>
+      _fmt('couldNotRedeemChips', {'error': error});
 
-  // CreateStandScreen
-  String get newStand => _s('newStand');
-  String get newStandSubtitle => _s('newStandSubtitle');
-  String get standTitleField => _s('standTitleField');
-  String get standContactField => _s('standContactField');
-  String get standEnabledField => _s('standEnabledField');
-  String get standClosedReasonField => _s('standClosedReasonField');
-  String get createStand => _s('createStand');
-  String couldNotCreateStand(String error) =>
-      _fmt('couldNotCreateStand', {'error': error});
+  // EconomyConfigScreen
+  String get chipPriceField => _s('chipPriceField');
+  String get savePrice => _s('savePrice');
+  String get priceUpdated => _s('priceUpdated');
+  String couldNotUpdatePrice(String error) =>
+      _fmt('couldNotUpdatePrice', {'error': error});
+  String get sellSpreadPercentField => _s('sellSpreadPercentField');
+  String get rakePercentField => _s('rakePercentField');
+  String get rakeMinField => _s('rakeMinField');
+  String get houseReceivingPhoneNumberField =>
+      _s('houseReceivingPhoneNumberField');
+  String get saveConfig => _s('saveConfig');
+  String get configUpdated => _s('configUpdated');
+  String couldNotUpdateConfig(String error) =>
+      _fmt('couldNotUpdateConfig', {'error': error});
+
+  // PendingRedemptionsScreen
+  String get pendingRedemptionsSubtitle => _s('pendingRedemptionsSubtitle');
+  String get noPendingRedemptions => _s('noPendingRedemptions');
+  String couldNotLoadPendingRedemptions(String error) =>
+      _fmt('couldNotLoadPendingRedemptions', {'error': error});
+  String get cancelRedemptionTitle => _s('cancelRedemptionTitle');
+  String get cancelRedemptionContent => _s('cancelRedemptionContent');
+  String get cancelRedemptionButton => _s('cancelRedemptionButton');
+  String couldNotCancelRedemption(String error) =>
+      _fmt('couldNotCancelRedemption', {'error': error});
 
   static const Map<String, Map<String, String>> _strings = {
     'en': {
@@ -453,27 +454,18 @@ class AppLocalizations {
       'variantSimplifiedMinRaise':
           'Minimum raise is simplified (double the current bet), not the standard last-raise-size rule',
       'close': 'Close',
-      'marketplaceTitle': 'Marketplace',
-      'marketplaceSubtitle':
-          'Buy chips at a price the seller set - no negotiating. Selling is invite-only for now.',
-      'noListingsYet': 'No listings for sale right now.',
-      'newListing': 'New listing',
-      'buy': 'Buy',
-      'unitPriceLine': '{price} Ar/chip · {provider}',
-      'chipsAvailable': '{count} available',
-      'cancelListingTitle': 'Cancel this listing?',
-      'cancelListingContent': 'Your chips will be refunded to your wallet.',
-      'cancelListingButton': 'Cancel listing',
-      'couldNotLoadListings': 'Could not load listings: {error}',
-      'couldNotCancelListing': 'Could not cancel listing: {error}',
-      'newListingSubtitle':
-          'Your chips are set aside the moment you create this listing, until it sells or you cancel it.',
-      'priceAr': 'Price per chip (Ar)',
-      'receivingPhoneNumber': 'Receiving phone number',
-      'paymentProvider': 'Payment provider',
-      'createListing': 'Create listing',
-      'couldNotCreateListing': 'Could not create listing: {error}',
+      'economyTitle': 'Chip Exchange',
+      'economySubtitle':
+          'One global rate for everyone. Buy chips or redeem them for cash.',
+      'buyPriceLine': 'Redeem rate: {price} Ar per chip',
+      'sellPriceLine': 'Buy rate: {price} Ar per chip',
+      'buyChips': 'Buy chips',
+      'redeemChips': 'Redeem chips',
+      'pendingRedemptions': 'Pending redemptions',
+      'economySettings': 'Economy settings',
+      'couldNotLoadPrice': 'Could not load the chip price: {error}',
       'quantity': 'Quantity',
+      'paymentProvider': 'Payment provider',
       'payInstructions':
           'Pay {amount} Ar to {phone} using your mobile money app, then enter the phone number you paid from and the reference (Trans Id / Ref) from your confirmation SMS below.',
       'yourPhoneNumber': 'Your phone number',
@@ -482,25 +474,34 @@ class AppLocalizations {
       'submitPayment': "I've paid",
       'waitingForConfirmation': 'Waiting for the payment to be confirmed...',
       'chipsCredited': 'Chips credited to your wallet!',
-      'listingNoLongerAvailable': 'This listing is no longer available.',
-      'couldNotBuyListing': 'Could not submit payment: {error}',
-      'tabBuy': 'Buy',
-      'tabRedeem': 'Redeem',
-      'noStandsYet': 'No cashout stands yet.',
-      'standClosed': 'Closed',
-      'standClosedTitle': 'This stand is closed',
-      'standContactLabel': 'Contact',
-      'standReasonLabel': 'Why',
-      'couldNotLoadStands': 'Could not load cashout stands: {error}',
-      'newStand': 'New stand',
-      'newStandSubtitle':
-          'A cashout desk players can see. Leave it closed until you can actually pay people out.',
-      'standTitleField': 'Stand name',
-      'standContactField': 'Contact shown to players',
-      'standEnabledField': 'Open for cashout',
-      'standClosedReasonField': 'Why it is closed',
-      'createStand': 'Create stand',
-      'couldNotCreateStand': 'Could not create stand: {error}',
+      'couldNotBuyChips': 'Could not submit payment: {error}',
+      'payoutPhoneNumber': 'Payout phone number',
+      'redeemTotalLine': 'You will receive {amount} Ar',
+      'submitRedemption': 'Redeem chips',
+      'waitingForPayout': 'Waiting for the payout to be confirmed...',
+      'redemptionPaidOut': 'Redemption paid out!',
+      'redemptionCancelled': 'Redemption cancelled - your chips were refunded.',
+      'couldNotRedeemChips': 'Could not submit redemption: {error}',
+      'chipPriceField': 'Chip price (Ar per chip)',
+      'savePrice': 'Save price',
+      'priceUpdated': 'Price updated',
+      'couldNotUpdatePrice': 'Could not update the price: {error}',
+      'sellSpreadPercentField': 'Sell spread (%)',
+      'rakePercentField': 'Table rake (%)',
+      'rakeMinField': 'Table rake minimum',
+      'houseReceivingPhoneNumberField': 'House receiving phone number',
+      'saveConfig': 'Save config',
+      'configUpdated': 'Config updated',
+      'couldNotUpdateConfig': 'Could not update the config: {error}',
+      'pendingRedemptionsSubtitle':
+          'Chips already burned, payout still owed - send these manually.',
+      'noPendingRedemptions': 'No pending redemptions.',
+      'couldNotLoadPendingRedemptions':
+          'Could not load pending redemptions: {error}',
+      'cancelRedemptionTitle': 'Cancel this redemption?',
+      'cancelRedemptionContent': "The player's chips will be refunded.",
+      'cancelRedemptionButton': 'Cancel redemption',
+      'couldNotCancelRedemption': 'Could not cancel redemption: {error}',
       'settings': 'Settings',
       'settingsGeneral': 'General',
       'settingsAccount': 'Account',
@@ -688,28 +689,18 @@ class AppLocalizations {
       'variantSimplifiedMinRaise':
           'Relance minimale simplifiée (le double de la mise actuelle), pas la règle standard de la taille de la dernière relance',
       'close': 'Fermer',
-      'marketplaceTitle': 'Marché',
-      'marketplaceSubtitle':
-          "Achetez des jetons au prix fixé par le vendeur - non négociable. La vente est réservée pour l'instant.",
-      'noListingsYet': 'Aucune annonce en vente pour le moment.',
-      'newListing': 'Nouvelle annonce',
-      'buy': 'Acheter',
-      'unitPriceLine': '{price} Ar/jeton · {provider}',
-      'chipsAvailable': '{count} disponibles',
-      'cancelListingTitle': 'Annuler cette annonce ?',
-      'cancelListingContent':
-          'Vos jetons seront remboursés sur votre portefeuille.',
-      'cancelListingButton': "Annuler l'annonce",
-      'couldNotLoadListings': 'Impossible de charger les annonces : {error}',
-      'couldNotCancelListing': "Impossible d'annuler l'annonce : {error}",
-      'newListingSubtitle':
-          'Vos jetons sont mis de côté dès la création de cette annonce, jusqu\'à sa vente ou son annulation.',
-      'priceAr': 'Prix par jeton (Ar)',
-      'receivingPhoneNumber': 'Numéro de téléphone de réception',
-      'paymentProvider': 'Opérateur de paiement',
-      'createListing': "Créer l'annonce",
-      'couldNotCreateListing': "Impossible de créer l'annonce : {error}",
+      'economyTitle': 'Change de jetons',
+      'economySubtitle':
+          'Un taux global pour tout le monde. Achetez des jetons ou encaissez-les.',
+      'buyPriceLine': "Taux d'encaissement : {price} Ar par jeton",
+      'sellPriceLine': "Taux d'achat : {price} Ar par jeton",
+      'buyChips': 'Acheter des jetons',
+      'redeemChips': 'Encaisser des jetons',
+      'pendingRedemptions': 'Encaissements en attente',
+      'economySettings': "Paramètres de l'économie",
+      'couldNotLoadPrice': 'Impossible de charger le prix du jeton : {error}',
       'quantity': 'Quantité',
+      'paymentProvider': 'Opérateur de paiement',
       'payInstructions':
           "Payez {amount} Ar au {phone} via votre application mobile money, puis saisissez le numéro depuis lequel vous avez payé et la référence (Trans Id / Ref) reçue par SMS ci-dessous.",
       'yourPhoneNumber': 'Votre numéro de téléphone',
@@ -718,25 +709,37 @@ class AppLocalizations {
       'submitPayment': "J'ai payé",
       'waitingForConfirmation': 'En attente de la confirmation du paiement...',
       'chipsCredited': 'Jetons crédités sur votre portefeuille !',
-      'listingNoLongerAvailable': "Cette annonce n'est plus disponible.",
-      'couldNotBuyListing': "Impossible d'envoyer le paiement : {error}",
-      'tabBuy': 'Acheter',
-      'tabRedeem': 'Encaisser',
-      'noStandsYet': 'Aucun guichet de retrait pour le moment.',
-      'standClosed': 'Fermé',
-      'standClosedTitle': 'Ce guichet est fermé',
-      'standContactLabel': 'Contact',
-      'standReasonLabel': 'Motif',
-      'couldNotLoadStands': 'Impossible de charger les guichets : {error}',
-      'newStand': 'Nouveau guichet',
-      'newStandSubtitle':
-          'Un guichet de retrait visible par les joueurs. Laissez-le fermé tant que vous ne pouvez pas réellement payer.',
-      'standTitleField': 'Nom du guichet',
-      'standContactField': 'Contact affiché aux joueurs',
-      'standEnabledField': 'Ouvert aux retraits',
-      'standClosedReasonField': 'Motif de la fermeture',
-      'createStand': 'Créer le guichet',
-      'couldNotCreateStand': 'Impossible de créer le guichet : {error}',
+      'couldNotBuyChips': "Impossible d'envoyer le paiement : {error}",
+      'payoutPhoneNumber': 'Numéro de téléphone de réception',
+      'redeemTotalLine': 'Vous recevrez {amount} Ar',
+      'submitRedemption': 'Encaisser',
+      'waitingForPayout': 'En attente de la confirmation du paiement...',
+      'redemptionPaidOut': 'Encaissement payé !',
+      'redemptionCancelled':
+          'Encaissement annulé - vos jetons ont été remboursés.',
+      'couldNotRedeemChips':
+          "Impossible d'envoyer la demande d'encaissement : {error}",
+      'chipPriceField': 'Prix du jeton (Ar par jeton)',
+      'savePrice': 'Enregistrer le prix',
+      'priceUpdated': 'Prix mis à jour',
+      'couldNotUpdatePrice': 'Impossible de mettre à jour le prix : {error}',
+      'sellSpreadPercentField': "Marge à l'achat (%)",
+      'rakePercentField': 'Commission de table (%)',
+      'rakeMinField': 'Commission de table minimale',
+      'houseReceivingPhoneNumberField': 'Numéro de réception de la maison',
+      'saveConfig': 'Enregistrer la config',
+      'configUpdated': 'Config mise à jour',
+      'couldNotUpdateConfig': 'Impossible de mettre à jour la config : {error}',
+      'pendingRedemptionsSubtitle':
+          'Jetons déjà brûlés, paiement encore dû - à envoyer manuellement.',
+      'noPendingRedemptions': 'Aucun encaissement en attente.',
+      'couldNotLoadPendingRedemptions':
+          'Impossible de charger les encaissements en attente : {error}',
+      'cancelRedemptionTitle': 'Annuler cet encaissement ?',
+      'cancelRedemptionContent': 'Les jetons du joueur seront remboursés.',
+      'cancelRedemptionButton': "Annuler l'encaissement",
+      'couldNotCancelRedemption':
+          "Impossible d'annuler l'encaissement : {error}",
       'settings': 'Paramètres',
       'settingsGeneral': 'Général',
       'settingsAccount': 'Compte',

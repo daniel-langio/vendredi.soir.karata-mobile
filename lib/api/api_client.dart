@@ -317,11 +317,11 @@ class ApiClient {
   /// GET /account
   /// The account's stored phone number, if any - purely a form-default convenience, never
   /// authoritative (the number that matters for matching is whatever's entered on a given
-  /// listing/purchase).
+  /// purchase/redemption).
   /// GET /account -> operator
-  /// Whether this account acts as the house: may open public tables and sell on the marketplace.
-  /// Asked of the server rather than inferred from the username, so the privileged name lives in
-  /// one place.
+  /// Whether this account acts as the house: may open public tables and move the global chip
+  /// price/economy config. Asked of the server rather than inferred from the username, so the
+  /// privileged name lives in one place.
   Future<bool> isOperator() async {
     final response = await http.get(
       Uri.parse('$baseUrl/account'),
@@ -360,41 +360,72 @@ class ApiClient {
     }
   }
 
-  // The marketplace lives at the API root (sibling to /poker), not under it - baseUrl already
-  // has /poker baked in (see WelcomeScreen.defaultServerUrl), so strip it back off here.
+  // The economy endpoints live at the API root (sibling to /poker), not under it - baseUrl
+  // already has /poker baked in (see WelcomeScreen.defaultServerUrl), so strip it back off here.
   String get _rootUrl => baseUrl.endsWith('/poker')
       ? baseUrl.substring(0, baseUrl.length - '/poker'.length)
       : baseUrl;
 
-  /// GET /marketplace/listings
-  Future<List<Map<String, dynamic>>> listMarketplaceListings() async {
+  /// GET /economy/price
+  /// {arPerChip, sellPricePerChip, effectiveAt} - arPerChip is what redeem pays per chip,
+  /// sellPricePerChip (already marked up by the spread) is what a purchase costs per chip.
+  Future<Map<String, dynamic>> getChipPrice() async {
     final response = await http.get(
-      Uri.parse('$_rootUrl/marketplace/listings'),
+      Uri.parse('$_rootUrl/economy/price'),
       headers: _headers,
     );
     if (response.statusCode == 200) {
-      return (jsonDecode(response.body) as List).cast<Map<String, dynamic>>();
+      return jsonDecode(response.body) as Map<String, dynamic>;
     } else {
       _throwDetailedError(response);
     }
   }
 
-  /// POST /marketplace/listings
-  /// unitPriceAr is per chip - buyers then choose their own quantity when buying.
-  Future<Map<String, dynamic>> createListing({
-    required int chipsAmount,
-    required int unitPriceAr,
-    required String receivingPhoneNumber,
-    required String provider,
+  /// POST /economy/price
+  /// Operator-only.
+  Future<Map<String, dynamic>> setChipPrice(int arPerChip) async {
+    final response = await http.post(
+      Uri.parse('$_rootUrl/economy/price'),
+      headers: _headers,
+      body: jsonEncode({'arPerChip': arPerChip}),
+    );
+    if (response.statusCode == 201) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      _throwDetailedError(response);
+    }
+  }
+
+  /// GET /economy/config
+  Future<Map<String, dynamic>> getEconomyConfig() async {
+    final response = await http.get(
+      Uri.parse('$_rootUrl/economy/config'),
+      headers: _headers,
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      _throwDetailedError(response);
+    }
+  }
+
+  /// POST /economy/config
+  /// Operator-only. Every field is required - this appends a whole new config row, not a partial
+  /// patch of the current one.
+  Future<Map<String, dynamic>> setEconomyConfig({
+    required int sellSpreadPercent,
+    required int rakePercent,
+    required int rakeMin,
+    required String houseReceivingPhoneNumber,
   }) async {
     final response = await http.post(
-      Uri.parse('$_rootUrl/marketplace/listings'),
+      Uri.parse('$_rootUrl/economy/config'),
       headers: _headers,
       body: jsonEncode({
-        'chipsAmount': chipsAmount,
-        'unitPriceAr': unitPriceAr,
-        'receivingPhoneNumber': receivingPhoneNumber,
-        'provider': provider,
+        'sellSpreadPercent': sellSpreadPercent,
+        'rakePercent': rakePercent,
+        'rakeMin': rakeMin,
+        'houseReceivingPhoneNumber': houseReceivingPhoneNumber,
       }),
     );
     if (response.statusCode == 201) {
@@ -404,86 +435,22 @@ class ApiClient {
     }
   }
 
-  /// GET /marketplace/stands
-  /// Redemption stands - the cashout side of the marketplace. Every stand is returned, open or
-  /// closed; a closed one carries the reason a player is shown instead of a redeem form.
-  Future<List<Map<String, dynamic>>> listRedemptionStands() async {
-    final response = await http.get(
-      Uri.parse('$_rootUrl/marketplace/stands'),
-      headers: _headers,
-    );
-    if (response.statusCode == 200) {
-      return (jsonDecode(response.body) as List).cast<Map<String, dynamic>>();
-    } else {
-      _throwDetailedError(response);
-    }
-  }
-
-  /// POST /marketplace/stands
-  /// closedReason is required by the server whenever enabled is false.
-  Future<Map<String, dynamic>> createRedemptionStand({
-    required String title,
-    required String provider,
-    required String contact,
-    required bool enabled,
-    String? closedReason,
-  }) async {
-    final response = await http.post(
-      Uri.parse('$_rootUrl/marketplace/stands'),
-      headers: _headers,
-      body: jsonEncode({
-        'title': title,
-        'provider': provider,
-        'contact': contact,
-        'enabled': enabled,
-        'closedReason': closedReason,
-      }),
-    );
-    if (response.statusCode == 201) {
-      return jsonDecode(response.body) as Map<String, dynamic>;
-    } else {
-      _throwDetailedError(response);
-    }
-  }
-
-  /// DELETE /marketplace/listings/{id}
-  Future<void> cancelListing(String id) async {
-    final response = await http.delete(
-      Uri.parse('$_rootUrl/marketplace/listings/$id'),
-      headers: _headers,
-    );
-    if (response.statusCode != 200) {
-      _throwDetailedError(response);
-    }
-  }
-
-  /// GET /marketplace/listings/{id}
-  Future<Map<String, dynamic>> getListing(String id) async {
-    final response = await http.get(
-      Uri.parse('$_rootUrl/marketplace/listings/$id'),
-      headers: _headers,
-    );
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body) as Map<String, dynamic>;
-    } else {
-      _throwDetailedError(response);
-    }
-  }
-
-  /// POST /marketplace/listings/{id}/purchases
-  /// Returns the created purchase (not the listing) - poll it via getPurchase.
-  Future<Map<String, dynamic>> buyListing({
-    required String id,
+  /// POST /economy/purchases
+  /// Mints chips once ifay verifies the payment - returns the created purchase, poll it via
+  /// getChipPurchase.
+  Future<Map<String, dynamic>> buyChips({
     required int quantity,
     required String buyerPhoneNumber,
+    required String provider,
     required String pspRef,
   }) async {
     final response = await http.post(
-      Uri.parse('$_rootUrl/marketplace/listings/$id/purchases'),
+      Uri.parse('$_rootUrl/economy/purchases'),
       headers: _headers,
       body: jsonEncode({
         'quantity': quantity,
         'buyerPhoneNumber': buyerPhoneNumber,
+        'provider': provider,
         'pspRef': pspRef,
       }),
     );
@@ -494,12 +461,79 @@ class ApiClient {
     }
   }
 
-  /// GET /marketplace/purchases/{id}
+  /// GET /economy/purchases/{id}
   /// Re-checks payment status server-side as a side effect - poll this while waiting for a
   /// purchase to verify.
-  Future<Map<String, dynamic>> getPurchase(String id) async {
+  Future<Map<String, dynamic>> getChipPurchase(String id) async {
     final response = await http.get(
-      Uri.parse('$_rootUrl/marketplace/purchases/$id'),
+      Uri.parse('$_rootUrl/economy/purchases/$id'),
+      headers: _headers,
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      _throwDetailedError(response);
+    }
+  }
+
+  /// POST /economy/redemptions
+  /// Burns the chips immediately (escrow) and registers the payout intent with ifay - returns the
+  /// created redemption, poll it via getChipRedemption.
+  Future<Map<String, dynamic>> redeemChips({
+    required int quantity,
+    required String payoutPhoneNumber,
+    required String provider,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$_rootUrl/economy/redemptions'),
+      headers: _headers,
+      body: jsonEncode({
+        'quantity': quantity,
+        'payoutPhoneNumber': payoutPhoneNumber,
+        'provider': provider,
+      }),
+    );
+    if (response.statusCode == 201) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      _throwDetailedError(response);
+    }
+  }
+
+  /// GET /economy/redemptions/{id}
+  /// Re-checks payout status server-side as a side effect - poll this while waiting for it.
+  Future<Map<String, dynamic>> getChipRedemption(String id) async {
+    final response = await http.get(
+      Uri.parse('$_rootUrl/economy/redemptions/$id'),
+      headers: _headers,
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      _throwDetailedError(response);
+    }
+  }
+
+  /// GET /economy/redemptions/pending
+  /// Operator-only: every redemption still waiting on a manual payout - phone, amount, provider
+  /// and the pspRef to quote when sending it.
+  Future<List<Map<String, dynamic>>> listPendingRedemptions() async {
+    final response = await http.get(
+      Uri.parse('$_rootUrl/economy/redemptions/pending'),
+      headers: _headers,
+    );
+    if (response.statusCode == 200) {
+      return (jsonDecode(response.body) as List).cast<Map<String, dynamic>>();
+    } else {
+      _throwDetailedError(response);
+    }
+  }
+
+  /// DELETE /economy/redemptions/{id}
+  /// Operator-only: refunds the escrowed chips for a payout that never got confirmed.
+  Future<Map<String, dynamic>> cancelRedemption(String id) async {
+    final response = await http.delete(
+      Uri.parse('$_rootUrl/economy/redemptions/$id'),
       headers: _headers,
     );
     if (response.statusCode == 200) {

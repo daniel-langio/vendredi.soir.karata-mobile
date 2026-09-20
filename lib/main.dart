@@ -16,10 +16,11 @@ import 'screens/settings_screen.dart';
 import 'screens/new_table_screen.dart';
 import 'screens/join_table_screen.dart';
 import 'screens/table_screen.dart';
-import 'screens/marketplace_screen.dart';
-import 'screens/create_listing_screen.dart';
-import 'screens/create_stand_screen.dart';
-import 'screens/listing_purchase_screen.dart';
+import 'screens/economy_screen.dart';
+import 'screens/chip_purchase_screen.dart';
+import 'screens/chip_redemption_screen.dart';
+import 'screens/economy_config_screen.dart';
+import 'screens/pending_redemptions_screen.dart';
 import 'theme.dart';
 
 void main() {
@@ -146,47 +147,53 @@ Route<dynamic>? _onGenerateRoute(RouteSettings settings) {
             token: session.token,
             username: session.username,
           );
-  } else if (segments.length == 1 && segments[0] == 'marketplace') {
+  } else if (segments.length == 1 && segments[0] == 'economy') {
     page = session == null
         ? const RootScreen()
-        : MarketplaceScreen(
+        : EconomyScreen(
             serverUrl: session.serverUrl,
             token: session.token,
             username: session.username,
           );
   } else if (segments.length == 2 &&
-      segments[0] == 'marketplace' &&
-      segments[1] == 'new') {
+      segments[0] == 'economy' &&
+      segments[1] == 'buy') {
     page = session == null
         ? const RootScreen()
-        : CreateListingScreen(
-            serverUrl: session.serverUrl,
-            token: session.token,
-            username: session.username,
-          );
-  } else if (segments.length == 3 &&
-      segments[0] == 'marketplace' &&
-      segments[1] == 'stand' &&
-      segments[2] == 'new') {
-    page = session == null
-        ? const RootScreen()
-        : CreateStandScreen(
+        : ChipPurchaseScreen(
             serverUrl: session.serverUrl,
             token: session.token,
             username: session.username,
           );
   } else if (segments.length == 2 &&
-      segments[0] == 'marketplace' &&
-      segments[1] == 'listing') {
-    final args = settings.arguments as Map?;
-    final listing = args?['listing'] as Map<String, dynamic>?;
-    page = session == null || listing == null
+      segments[0] == 'economy' &&
+      segments[1] == 'redeem') {
+    page = session == null
         ? const RootScreen()
-        : ListingPurchaseScreen(
+        : ChipRedemptionScreen(
             serverUrl: session.serverUrl,
             token: session.token,
             username: session.username,
-            listing: listing,
+          );
+  } else if (segments.length == 2 &&
+      segments[0] == 'economy' &&
+      segments[1] == 'config') {
+    page = session == null
+        ? const RootScreen()
+        : EconomyConfigScreen(
+            serverUrl: session.serverUrl,
+            token: session.token,
+            username: session.username,
+          );
+  } else if (segments.length == 2 &&
+      segments[0] == 'economy' &&
+      segments[1] == 'pending') {
+    page = session == null
+        ? const RootScreen()
+        : PendingRedemptionsScreen(
+            serverUrl: session.serverUrl,
+            token: session.token,
+            username: session.username,
           );
   } else if (segments.length == 2 && segments[0] == 'table') {
     final gameId = segments[1];
