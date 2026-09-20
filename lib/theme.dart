@@ -18,6 +18,14 @@ class KarataColors {
   static const stale = Color(0xFF5A5860);
   static const allInBg = Color(0xFF3A2028);
   static const allInInk = Color(0xFFF0A4B1);
+
+  /// Background colors for the large public-table cards on the menu screen, cycled by index.
+  static const publicTableAccents = [
+    Color(0xFFB9AEEA),
+    Color(0xFFD9C9A6),
+    Color(0xFFE98A5B),
+    Color(0xFFC7D66A),
+  ];
 }
 
 ThemeData karataTheme() {

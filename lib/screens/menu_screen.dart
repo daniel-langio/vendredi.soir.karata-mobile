@@ -266,7 +266,7 @@ class _MenuScreenState extends State<MenuScreen> {
                             _sectionHeader(t.publicTables, t.anyoneCanSitDown),
                             if (_public.isEmpty && _tablesError == null)
                               _note(t.noPublicTables),
-                            ..._public.map(_tableTile),
+                            _publicTableCards(),
                           ],
                         ),
                       ),
@@ -341,6 +341,169 @@ class _MenuScreenState extends State<MenuScreen> {
         child: Text(t.open),
       ),
       onTap: () => _openTable(table.gameId),
+    );
+  }
+
+  static const _publicTableSuits = ['♠', '♥', '♦', '♣'];
+
+  Widget _publicTableCards() {
+    final cards = <Widget>[];
+    for (var i = 0; i < _public.length; i++) {
+      if (i > 0) cards.add(const SizedBox(height: 14));
+      cards.add(_publicTableCard(_public[i], i));
+    }
+    return Column(children: cards);
+  }
+
+  Widget _publicTableCard(TableSummary table, int index) {
+    final t = AppLocalizations.of(context);
+    final String seated;
+    if (table.seated == 0) {
+      seated = t.seatedCountNone;
+    } else if (table.seated == 1) {
+      seated = t.seatedCountOne;
+    } else {
+      seated = t.seatedCount('${table.seated}');
+    }
+    final subtitle = [
+      if (table.defaultBuyIn != null) t.buyInOf('${table.defaultBuyIn}'),
+      seated,
+    ].join(' · ');
+    final buyInLabel = table.defaultBuyIn != null
+        ? '${table.defaultBuyIn}'
+        : '—';
+
+    return PublicTableCard(
+      name: table.name,
+      subtitle: subtitle,
+      buyInLabel: buyInLabel,
+      suit: _publicTableSuits[index % _publicTableSuits.length],
+      accent:
+          KarataColors
+              .publicTableAccents[index % KarataColors.publicTableAccents.length],
+      onTap: () => _openTable(table.gameId),
+    );
+  }
+}
+
+/// A public table shown as a large colored card: suit glyph and an "open" affordance up top,
+/// name/occupancy and buy-in on the bottom row. Colors cycle across [KarataColors.publicTableAccents]
+/// so adjacent cards read as distinct at a glance.
+class PublicTableCard extends StatelessWidget {
+  final String name;
+  final String subtitle;
+  final String buyInLabel;
+  final String suit;
+  final Color accent;
+  final VoidCallback onTap;
+
+  const PublicTableCard({
+    super.key,
+    required this.name,
+    required this.subtitle,
+    required this.buyInLabel,
+    required this.suit,
+    required this.accent,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: accent,
+      borderRadius: BorderRadius.circular(28),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(28),
+        onTap: onTap,
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 132),
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.14),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Text(
+                      suit,
+                      style: const TextStyle(
+                        color: KarataColors.cardInk,
+                        fontSize: 19,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  Container(
+                    width: 32,
+                    height: 32,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.north_east,
+                      color: KarataColors.cardInk,
+                      size: 15,
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: KarataColors.cardInk,
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            height: 1.1,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          subtitle,
+                          style: TextStyle(
+                            color: KarataColors.cardInk.withValues(
+                              alpha: 0.62,
+                            ),
+                            fontSize: 12.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    buyInLabel,
+                    style: TextStyle(
+                      color: KarataColors.cardInk,
+                      fontSize: buyInLabel.length > 3 ? 26 : 32,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
