@@ -920,10 +920,12 @@ class _TableScreenState extends State<TableScreen> {
     final raiseType = currentRoundBet == 0 ? 'BET' : 'RAISE';
     final sizerOpen = _selectedActionType == raiseType;
     final raiseAmount = sizerOpen ? _sizerAmount : minRaise;
-    final callLabel = callAmount == 0 ? t.check : t.call(callAmount);
+    final callLabel = callAmount == 0
+        ? t.check
+        : t.call(ChipDisplay.instance.format(callAmount));
     final raiseLabel = currentRoundBet == 0
-        ? t.bet(raiseAmount)
-        : t.raise(raiseAmount);
+        ? t.bet(ChipDisplay.instance.format(raiseAmount))
+        : t.raise(ChipDisplay.instance.format(raiseAmount));
     // Both mirror real backend rejections (TexasHoldemRules.isActionLegal) - a call needs enough
     // chips to cover it in full (no side-pot/all-in-for-less support yet), and a raise/bet must
     // meet the table's minimum, which a short stack sometimes can't - gray those out instead of
@@ -1010,7 +1012,7 @@ class _TableScreenState extends State<TableScreen> {
             textBaseline: TextBaseline.alphabetic,
             children: [
               Text(
-                '$_sizerAmount',
+                ChipDisplay.instance.format(_sizerAmount),
                 style: const TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.w300,
@@ -1018,7 +1020,10 @@ class _TableScreenState extends State<TableScreen> {
                 ),
               ),
               Text(
-                t.minAllIn(minRaise, maxRaise),
+                t.minAllIn(
+                  ChipDisplay.instance.format(minRaise),
+                  ChipDisplay.instance.format(maxRaise),
+                ),
                 style: const TextStyle(fontSize: 11.5, color: KarataColors.dim),
               ),
             ],
@@ -1206,15 +1211,15 @@ String _formatLastAction(AppLocalizations t, String raw) {
     case 'CHECK':
       return t.check;
     case 'CALL':
-      return t.call(amount);
+      return t.call(ChipDisplay.instance.format(amount));
     case 'BET':
-      return t.bet(amount);
+      return t.bet(ChipDisplay.instance.format(amount));
     case 'RAISE':
-      return t.raise(amount);
+      return t.raise(ChipDisplay.instance.format(amount));
     case 'SMALL':
-      return '${t.sb} $amount';
+      return '${t.sb} ${ChipDisplay.instance.format(amount)}';
     case 'BIG':
-      return '${t.bb} $amount';
+      return '${t.bb} ${ChipDisplay.instance.format(amount)}';
     default:
       return raw;
   }
@@ -1644,7 +1649,7 @@ class _OutcomeBanner extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         Text(
-          t.won(names, total),
+          t.won(names, ChipDisplay.instance.format(total)),
           style: const TextStyle(
             color: KarataColors.ink,
             fontSize: 14.5,

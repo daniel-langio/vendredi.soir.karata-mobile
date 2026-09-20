@@ -254,20 +254,31 @@ class _MenuScreenState extends State<MenuScreen> {
                     ? const Center(child: CircularProgressIndicator())
                     : RefreshIndicator(
                         onRefresh: _loadTables,
-                        child: ListView(
-                          children: [
-                            if (_tablesError != null)
-                              _note(t.couldNotLoadTables(_tablesError!)),
-                            _sectionHeader(t.yourTables, t.syncedToYourAccount),
-                            if (_mine.isEmpty && _tablesError == null)
-                              _note(t.noTablesYet),
-                            ..._mine.map(_tableTile),
-                            const SizedBox(height: 28),
-                            _sectionHeader(t.publicTables, t.anyoneCanSitDown),
-                            if (_public.isEmpty && _tablesError == null)
-                              _note(t.noPublicTables),
-                            _publicTableCards(),
-                          ],
+                        child: ValueListenableBuilder<ChipDisplaySettings>(
+                          valueListenable: ChipDisplay.instance,
+                          builder: (context, chipSettings, _) => ListView(
+                            children: [
+                              if (_tablesError != null)
+                                _note(t.couldNotLoadTables(_tablesError!)),
+                              _sectionHeader(
+                                t.yourTables,
+                                t.syncedToYourAccount,
+                              ),
+                              if (_mine.isEmpty && _tablesError == null)
+                                _note(t.noTablesYet),
+                              ..._mine.map(
+                                (table) => _tableTile(table, chipSettings),
+                              ),
+                              const SizedBox(height: 28),
+                              _sectionHeader(
+                                t.publicTables,
+                                t.anyoneCanSitDown,
+                              ),
+                              if (_public.isEmpty && _tablesError == null)
+                                _note(t.noPublicTables),
+                              _publicTableCards(chipSettings),
+                            ],
+                          ),
                         ),
                       ),
               ),
@@ -310,7 +321,7 @@ class _MenuScreenState extends State<MenuScreen> {
     ),
   );
 
-  Widget _tableTile(TableSummary table) {
+  Widget _tableTile(TableSummary table, ChipDisplaySettings chipSettings) {
     final t = AppLocalizations.of(context);
     final String seated;
     if (table.seated == 0) {
@@ -321,7 +332,8 @@ class _MenuScreenState extends State<MenuScreen> {
       seated = t.seatedCount('${table.seated}');
     }
     final details = [
-      if (table.defaultBuyIn != null) t.buyInOf('${table.defaultBuyIn}'),
+      if (table.defaultBuyIn != null)
+        t.buyInOf(ChipDisplay.formatWith(chipSettings, table.defaultBuyIn)),
       seated,
     ].join(' · ');
 
@@ -346,16 +358,20 @@ class _MenuScreenState extends State<MenuScreen> {
 
   static const _publicTableSuits = ['♠', '♥', '♦', '♣'];
 
-  Widget _publicTableCards() {
+  Widget _publicTableCards(ChipDisplaySettings chipSettings) {
     final cards = <Widget>[];
     for (var i = 0; i < _public.length; i++) {
       if (i > 0) cards.add(const SizedBox(height: 14));
-      cards.add(_publicTableCard(_public[i], i));
+      cards.add(_publicTableCard(_public[i], i, chipSettings));
     }
     return Column(children: cards);
   }
 
-  Widget _publicTableCard(TableSummary table, int index) {
+  Widget _publicTableCard(
+    TableSummary table,
+    int index,
+    ChipDisplaySettings chipSettings,
+  ) {
     final t = AppLocalizations.of(context);
     final String seated;
     if (table.seated == 0) {
@@ -366,11 +382,12 @@ class _MenuScreenState extends State<MenuScreen> {
       seated = t.seatedCount('${table.seated}');
     }
     final subtitle = [
-      if (table.defaultBuyIn != null) t.buyInOf('${table.defaultBuyIn}'),
+      if (table.defaultBuyIn != null)
+        t.buyInOf(ChipDisplay.formatWith(chipSettings, table.defaultBuyIn)),
       seated,
     ].join(' · ');
     final buyInLabel = table.defaultBuyIn != null
-        ? '${table.defaultBuyIn}'
+        ? ChipDisplay.formatWith(chipSettings, table.defaultBuyIn)
         : '—';
 
     return PublicTableCard(

@@ -182,18 +182,20 @@ class AppLocalizations {
   String get nextHand => _s('nextHand');
   String get fold => _s('fold');
   String get check => _s('check');
-  String call(int amount) => _fmt('call', {'amount': '$amount'});
-  String bet(int amount) => _fmt('bet', {'amount': '$amount'});
-  String raise(int amount) => _fmt('raise', {'amount': '$amount'});
-  String minAllIn(int min, int max) =>
-      _fmt('minAllIn', {'min': '$min', 'max': '$max'});
+  // Amounts arrive pre-formatted (via ChipDisplay) rather than as raw ints, the same convention
+  // as buyInOf - so a caller controls whether the reader sees a chip count or its money reading.
+  String call(String amount) => _fmt('call', {'amount': amount});
+  String bet(String amount) => _fmt('bet', {'amount': amount});
+  String raise(String amount) => _fmt('raise', {'amount': amount});
+  String minAllIn(String min, String max) =>
+      _fmt('minAllIn', {'min': min, 'max': max});
   String get min => _s('min');
   String get halfPot => _s('halfPot');
   String get pot => _s('pot');
   String get allIn => _s('allIn');
   String get handStrengthAvailableSoon => _s('handStrengthAvailableSoon');
-  String won(String names, int amount) =>
-      _fmt('won', {'names': names, 'amount': '$amount'});
+  String won(String names, String amount) =>
+      _fmt('won', {'names': names, 'amount': amount});
   String get sb => _s('sb');
   String get bb => _s('bb');
   String get allInTag => _s('allInTag');
