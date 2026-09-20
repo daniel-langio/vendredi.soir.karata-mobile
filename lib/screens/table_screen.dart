@@ -212,6 +212,54 @@ class _TableScreenState extends State<TableScreen> {
     }
   }
 
+  /// Reuses the buyIn call the join-by-link flow already relies on. Joining mid-hand doesn't seat
+  /// the player into the hand already in progress - the backend only deals in whoever was already
+  /// seated when the hand started - so this is safe to offer at any point, not just at showdown.
+  Future<void> _sitDown() async {
+    final t = AppLocalizations.of(context);
+    final buyInController = TextEditingController(
+      text: '${_game?['defaultBuyIn'] ?? 200}',
+    );
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(t.sitDown),
+        content: TextField(
+          controller: buyInController,
+          keyboardType: TextInputType.number,
+          decoration: InputDecoration(labelText: t.chips),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(t.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(t.sitDown),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    final buyIn = int.tryParse(buyInController.text.trim());
+    if (buyIn == null || buyIn <= 0) {
+      _showError((t) => t.enterValidBuyIn);
+      return;
+    }
+
+    setState(() => _isLoading = true);
+    try {
+      await _apiClient.buyIn(widget.gameId, buyIn);
+      await _refresh();
+    } catch (e) {
+      _showError((t) => t.couldNotSitDown('$e'));
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
   Future<void> _submitAction(String actionType, {int? amount}) async {
     if (_dealId.isEmpty) return;
     setState(() => _isLoading = true);
@@ -859,6 +907,30 @@ class _TableScreenState extends State<TableScreen> {
       );
     }
 
+    if (!_isPlaying) {
+      // A spectator - never bought in, or left earlier - always gets a way to sit down, whatever
+      // the hand's phase. Joining mid-hand only takes effect for the *next* hand (see _sitDown),
+      // so say so whenever one is actually in progress rather than leaving it unexplained.
+      final handInProgress = _dealId.isNotEmpty && _phase != 'SHOWDOWN';
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (handInProgress) ...[
+            Text(
+              t.willJoinNextHand,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: KarataColors.dim, fontSize: 12.5),
+            ),
+            const SizedBox(height: 10),
+          ],
+          ElevatedButton(
+            onPressed: _isLoading ? null : _sitDown,
+            child: Text(t.sitDown),
+          ),
+        ],
+      );
+    }
+
     if (_dealId.isEmpty) {
       return SizedBox(
         width: double.infinity,
@@ -873,14 +945,9 @@ class _TableScreenState extends State<TableScreen> {
     }
 
     if (_phase == 'SHOWDOWN') {
-      // A spectator (never bought in, or left and that hand has since ended) can watch but not
-      // deal themselves into the next hand - the button becomes an inert label instead.
       return SizedBox(
         width: double.infinity,
-        child: ElevatedButton(
-          onPressed: _isPlaying ? _startHand : null,
-          child: Text(_isPlaying ? t.nextHand : t.spectating),
-        ),
+        child: ElevatedButton(onPressed: _startHand, child: Text(t.nextHand)),
       );
     }
 

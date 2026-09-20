@@ -134,6 +134,7 @@ class AppLocalizations {
       _fmt('couldNotSitDown', {'error': error});
 
   // TableScreen
+  String get willJoinNextHand => _s('willJoinNextHand');
   String couldNotStartHand(String error) =>
       _fmt('couldNotStartHand', {'error': error});
   String actionFailed(String action, String error) =>
@@ -361,6 +362,7 @@ class AppLocalizations {
       'tableNotFound': 'Table not found: {error}',
       'enterValidBuyIn': 'Enter a valid buy-in',
       'couldNotSitDown': 'Could not sit down: {error}',
+      'willJoinNextHand': "You'll be dealt in once this hand ends",
       'couldNotStartHand': 'Could not start hand: {error}',
       'actionFailed': '{action} failed: {error}',
       'inviteCopied': 'Invite copied — send it to whoever you want to invite',
@@ -590,6 +592,7 @@ class AppLocalizations {
       'tableNotFound': 'Table introuvable : {error}',
       'enterValidBuyIn': "Saisissez une mise d'entrée valide",
       'couldNotSitDown': "Impossible de s'installer : {error}",
+      'willJoinNextHand': 'Vous serez servi une fois cette main terminée',
       'couldNotStartHand': 'Impossible de démarrer la main : {error}',
       'actionFailed': '{action} a échoué : {error}',
       'inviteCopied':
