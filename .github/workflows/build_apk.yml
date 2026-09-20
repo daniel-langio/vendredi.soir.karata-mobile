@@ -81,8 +81,28 @@ jobs:
           echo "build_number=${BUILD_NUMBER}" >> "$GITHUB_OUTPUT"
           echo "version_name=${VERSION_NAME}" >> "$GITHUB_OUTPUT"
 
+      # Only real pushes decode the release keystore - PR builds (including from forks, which
+      # never see repo secrets anyway) fall back to debug signing in build.gradle.kts, and a
+      # PR build's signature never needs to match a distributed release's.
+      - name: Decode release keystore
+        if: github.event_name == 'push'
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/karata-release.jks
+          cat > android/key.properties <<EOF
+          storeFile=karata-release.jks
+          storePassword=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}
+          keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}
+          EOF
+
       - name: Build APK
         run: flutter build apk --release --build-number=${{ steps.version.outputs.build_number }}
+
+      # The decoded keystore and its passwords must not outlive this job - nothing past this
+      # point needs them, and self-hosted/reused runners must not carry them to the next job.
+      - name: Remove release keystore
+        if: always()
+        run: rm -f android/app/karata-release.jks android/key.properties
 
       - name: Rename APK for easy sideloading
         id: rename
