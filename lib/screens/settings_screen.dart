@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../api/api_client.dart';
@@ -35,7 +34,6 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   late final ApiClient _apiClient;
   final _phoneController = TextEditingController();
-  final _rateController = TextEditingController();
 
   bool _loadingPhone = true;
   bool _savingPhone = false;
@@ -46,14 +44,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void initState() {
     super.initState();
     _apiClient = ApiClient(baseUrl: widget.serverUrl, token: widget.token);
-    _rateController.text = ChipDisplay.instance.value.arPerChip.toString();
     _loadPhoneNumber();
+    ChipDisplay.instance.refreshRateFromServer(_apiClient);
   }
 
   @override
   void dispose() {
     _phoneController.dispose();
-    _rateController.dispose();
     super.dispose();
   }
 
@@ -106,15 +103,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ).couldNotSavePhoneNumber(e.toString());
       });
     }
-  }
-
-  void _onRateChanged(String raw) {
-    final parsed = int.tryParse(raw.trim());
-    if (parsed == null || parsed < ChipDisplay.minArPerChip) {
-      setState(() {}); // Re-render so the invalid-rate hint appears.
-      return;
-    }
-    ChipDisplay.instance.setArPerChip(parsed);
   }
 
   @override
@@ -196,8 +184,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return ValueListenableBuilder<ChipDisplaySettings>(
       valueListenable: ChipDisplay.instance,
       builder: (context, settings, _) {
-        final typed = int.tryParse(_rateController.text.trim());
-        final rateValid = typed != null && typed >= ChipDisplay.minArPerChip;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -211,19 +197,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             if (settings.asMoney) ...[
               const SizedBox(height: 8),
-              TextField(
-                controller: _rateController,
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                onChanged: _onRateChanged,
-                decoration: InputDecoration(
-                  labelText: t.arPerChip,
-                  errorText: rateValid ? null : t.arPerChipInvalid,
-                ),
-              ),
-              const SizedBox(height: 8),
-              // A worked example, because "1 chip = 50 Ar" only becomes concrete once you see what
-              // a real stack turns into at the table.
+              // A worked example, because the live rate only becomes concrete once you see what a
+              // real stack turns into at the table.
               Text(
                 t.chipsAsMoneyExample(
                   '100',

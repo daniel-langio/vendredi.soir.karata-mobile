@@ -58,6 +58,7 @@ class _MenuScreenState extends State<MenuScreen> {
     _apiClient = ApiClient(baseUrl: widget.serverUrl, token: widget.token);
     _loadTables();
     _loadWallet();
+    ChipDisplay.instance.refreshRateFromServer(_apiClient);
   }
 
   Future<void> _loadWallet() async {

@@ -85,8 +85,6 @@ class AppLocalizations {
   String get settingsTable => _s('settingsTable');
   String get chipsAsMoney => _s('chipsAsMoney');
   String get chipsAsMoneySubtitle => _s('chipsAsMoneySubtitle');
-  String get arPerChip => _s('arPerChip');
-  String get arPerChipInvalid => _s('arPerChipInvalid');
   String chipsAsMoneyExample(String chips, String money) =>
       _fmt('chipsAsMoneyExample', {'chips': chips, 'money': money});
   String get tableSounds => _s('tableSounds');
@@ -509,8 +507,6 @@ class AppLocalizations {
       'chipsAsMoney': 'Show chips as money',
       'chipsAsMoneySubtitle':
           'Show every chip count in Ariary instead. This is your own valuation, not an official rate.',
-      'arPerChip': 'Ariary per chip',
-      'arPerChipInvalid': 'Enter a whole number of Ariary, 1 or more',
       'chipsAsMoneyExample': '{chips} chips shows as {money}',
       'tableSounds': 'Table sounds',
       'tableSoundsSubtitle': 'Card, chip and button sounds during a hand.',
@@ -747,8 +743,6 @@ class AppLocalizations {
       'chipsAsMoney': 'Afficher les jetons en argent',
       'chipsAsMoneySubtitle':
           "Affiche chaque montant de jetons en ariary. C'est votre propre estimation, pas un taux officiel.",
-      'arPerChip': 'Ariary par jeton',
-      'arPerChipInvalid': "Saisissez un nombre entier d'ariary, au moins 1",
       'chipsAsMoneyExample': "{chips} jetons s'affichent comme {money}",
       'tableSounds': 'Sons de la table',
       'tableSoundsSubtitle':

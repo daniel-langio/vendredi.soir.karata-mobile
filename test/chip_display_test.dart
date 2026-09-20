@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:poker_client/api/api_client.dart';
 import 'package:poker_client/chip_display.dart';
 
 void main() {
@@ -42,20 +43,12 @@ void main() {
   });
 
   group('persistence', () {
-    test('the mode and the rate both survive a reload', () async {
+    test('the money-display mode survives a reload', () async {
       await ChipDisplay.instance.setAsMoney(true);
-      await ChipDisplay.instance.setArPerChip(250);
 
       await ChipDisplay.instance.load();
 
       expect(ChipDisplay.instance.value.asMoney, isTrue);
-      expect(ChipDisplay.instance.value.arPerChip, 250);
-      expect(ChipDisplay.instance.format(4), '1 000 Ar');
-    });
-
-    test('a rate below one is clamped rather than stored', () async {
-      await ChipDisplay.instance.setArPerChip(0);
-      expect(ChipDisplay.instance.value.arPerChip, ChipDisplay.minArPerChip);
     });
 
     test('defaults are chips, so an upgrading player sees no change', () async {
@@ -63,5 +56,20 @@ void main() {
       expect(ChipDisplay.instance.value.asMoney, isFalse);
       expect(ChipDisplay.instance.value.arPerChip, 1);
     });
+  });
+
+  group('refreshRateFromServer', () {
+    test(
+      'an unreachable server leaves whatever rate is already in memory',
+      () async {
+        final apiClient = ApiClient(
+          baseUrl: 'https://unreachable.invalid/poker',
+        );
+
+        await ChipDisplay.instance.refreshRateFromServer(apiClient);
+
+        expect(ChipDisplay.instance.value.arPerChip, 1);
+      },
+    );
   });
 }

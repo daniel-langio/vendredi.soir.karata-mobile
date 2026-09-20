@@ -1,13 +1,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'api/api_client.dart';
 
 /// How chip counts are rendered across the app: as raw chips, or converted to Ariary.
 ///
-/// The server does have a real global chip price now (`GET /economy/price` - see EconomyScreen),
-/// but [arPerChip] here is still the player's own valuation, typed in the settings screen, kept
-/// deliberately independent of it: it is a reading aid, not a quote, and must keep working with
-/// no network. A player can always set it to match the real price by hand if they want the two to
-/// agree.
+/// [arPerChip] tracks the real global chip price (`GET /economy/price` - see EconomyScreen), kept
+/// in memory only and refreshed via [refreshRateFromServer] whenever a screen that already has an
+/// [ApiClient] on hand (MenuScreen, SettingsScreen) calls it. It is not persisted and not
+/// player-editable - unlike the toggle, a stale or made-up rate would misrepresent real money.
 @immutable
 class ChipDisplaySettings {
   const ChipDisplaySettings({this.asMoney = false, this.arPerChip = 1});
@@ -15,7 +15,7 @@ class ChipDisplaySettings {
   /// Render chips as money rather than as a bare chip count.
   final bool asMoney;
 
-  /// Ariary one chip is worth. Whole Ariary, matching `ChipListing.unitPriceAr` on the server.
+  /// Ariary one chip is worth, per the server's current global price.
   final int arPerChip;
 
   ChipDisplaySettings copyWith({bool? asMoney, int? arPerChip}) =>
@@ -30,21 +30,13 @@ class ChipDisplay extends ValueNotifier<ChipDisplaySettings> {
   static final ChipDisplay instance = ChipDisplay._();
 
   static const _asMoneyKey = 'chips_as_money';
-  static const _arPerChipKey = 'ar_per_chip';
-
-  /// Smallest rate worth offering: the server prices chips in whole Ariary, so anything below one
-  /// would round every small pot to the same number.
-  static const minArPerChip = 1;
-  static const maxArPerChip = 1000000;
 
   /// Fire-and-forget from main(), the way LocaleController.load is - every chip label is wrapped in a
-  /// ValueListenableBuilder, so they re-render once this resolves.
+  /// ValueListenableBuilder, so they re-render once this resolves. Only the toggle is loaded here -
+  /// the rate needs a logged-in session's ApiClient, see [refreshRateFromServer].
   Future<void> load() async {
     final prefs = await SharedPreferences.getInstance();
-    value = ChipDisplaySettings(
-      asMoney: prefs.getBool(_asMoneyKey) ?? false,
-      arPerChip: prefs.getInt(_arPerChipKey) ?? 1,
-    );
+    value = value.copyWith(asMoney: prefs.getBool(_asMoneyKey) ?? false);
   }
 
   Future<void> setAsMoney(bool asMoney) async {
@@ -53,11 +45,16 @@ class ChipDisplay extends ValueNotifier<ChipDisplaySettings> {
     await prefs.setBool(_asMoneyKey, asMoney);
   }
 
-  Future<void> setArPerChip(int arPerChip) async {
-    final clamped = arPerChip.clamp(minArPerChip, maxArPerChip);
-    value = value.copyWith(arPerChip: clamped);
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_arPerChipKey, clamped);
+  /// Best-effort refresh of the Ar-per-chip rate from the real global price. Silent on failure -
+  /// this is a display multiplier, not something the player acts on, so an unreachable server just
+  /// means the previous rate (or the 1:1 default) stays in place rather than surfacing an error.
+  Future<void> refreshRateFromServer(ApiClient apiClient) async {
+    try {
+      final price = await apiClient.getChipPrice();
+      value = value.copyWith(arPerChip: (price['arPerChip'] as num).toInt());
+    } catch (_) {
+      // Keep whatever rate is already in memory.
+    }
   }
 
   /// Formats a chip count for display under the current setting. With money off this is the plain

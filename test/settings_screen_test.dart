@@ -44,39 +44,24 @@ void main() {
     );
   });
 
-  testWidgets('the rate field appears only once money display is on', (
-    tester,
-  ) async {
-    await pumpSettings(tester);
+  testWidgets(
+    'the worked example appears only once money display is on, with no editable rate field',
+    (tester) async {
+      await pumpSettings(tester);
 
-    expect(
-      find.text('Ariary per chip'),
-      findsNothing,
-      reason: 'a rate is meaningless while amounts are shown as chips',
-    );
+      expect(find.textContaining('shows as'), findsNothing);
 
-    await tester.tap(
-      find.widgetWithText(SwitchListTile, 'Show chips as money'),
-    );
-    await tester.pumpAndSettle();
+      await tester.tap(
+        find.widgetWithText(SwitchListTile, 'Show chips as money'),
+      );
+      await tester.pumpAndSettle();
 
-    expect(find.text('Ariary per chip'), findsOneWidget);
-    expect(ChipDisplay.instance.value.asMoney, isTrue);
-  });
-
-  testWidgets('typing a rate updates the worked example', (tester) async {
-    await ChipDisplay.instance.setAsMoney(true);
-    await pumpSettings(tester);
-
-    await tester.enterText(
-      find.widgetWithText(TextField, 'Ariary per chip'),
-      '50',
-    );
-    await tester.pumpAndSettle();
-
-    expect(ChipDisplay.instance.value.arPerChip, 50);
-    expect(find.textContaining('5 000 Ar'), findsOneWidget);
-  });
+      // The rate itself comes from the server, not a field the player fills in - unreachable here
+      // (every request gets a 400), so it falls back to the 1:1 default.
+      expect(find.textContaining('100 chips shows as 100 Ar'), findsOneWidget);
+      expect(ChipDisplay.instance.value.asMoney, isTrue);
+    },
+  );
 
   testWidgets('muting sound persists so the next table starts silent', (
     tester,
