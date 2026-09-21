@@ -13,11 +13,23 @@ class ApiClient {
   };
 
   /// POST /auth/register
-  Future<String> register(String username, String password) async {
+  /// promoCode, when given, is applied atomically with registration server-side - an invalid,
+  /// expired, already-used, or exhausted code fails the whole registration rather than silently
+  /// skipping the bonus.
+  Future<String> register(
+    String username,
+    String password, {
+    String? promoCode,
+  }) async {
+    final body = <String, dynamic>{'username': username, 'password': password};
+    if (promoCode != null && promoCode.isNotEmpty) {
+      body['promoCode'] = promoCode;
+    }
+
     final response = await http.post(
       Uri.parse('$baseUrl/auth/register'),
       headers: _headers,
-      body: jsonEncode({'username': username, 'password': password}),
+      body: jsonEncode(body),
     );
     if (response.statusCode == 201) {
       return (jsonDecode(response.body) as Map<String, dynamic>)['token']

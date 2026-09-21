@@ -105,19 +105,31 @@ Route<dynamic>? _onGenerateRoute(RouteSettings settings) {
   Widget page;
   if (segments.isEmpty) {
     page = const RootScreen();
-  } else if (segments.length == 1 && segments[0] == 'register') {
+  } else if (segments.length == 1 &&
+      (segments[0] == 'register' || segments[0] == 'signup')) {
     final args = settings.arguments as Map?;
-    page = RegisterScreen(
-      serverUrl: (args?['serverUrl'] as String?) ?? defaultServerUrl(),
+    final serverUrl = (args?['serverUrl'] as String?) ?? defaultServerUrl();
+    final redirectTarget = uri.queryParameters['redirect'];
+    page = _AuthScreenGate(
+      redirectTarget: redirectTarget,
+      buildForm: (context) => RegisterScreen(
+        serverUrl: serverUrl,
+        promoCode: uri.queryParameters['promocode'],
+        redirectTarget: redirectTarget,
+      ),
     );
   } else if (segments.length == 1 && segments[0] == 'login') {
     final args = settings.arguments as Map?;
-    page = LoginScreen(
-      serverUrl: (args?['serverUrl'] as String?) ?? defaultServerUrl(),
+    final serverUrl = (args?['serverUrl'] as String?) ?? defaultServerUrl();
+    final redirectTarget = uri.queryParameters['redirect'];
+    page = _AuthScreenGate(
+      redirectTarget: redirectTarget,
+      buildForm: (context) =>
+          LoginScreen(serverUrl: serverUrl, redirectTarget: redirectTarget),
     );
   } else if (segments.length == 1 && segments[0] == 'menu') {
     page = session == null
-        ? const RootScreen()
+        ? _RequireSession(routeName: settings.name ?? uri.path)
         : MenuScreen(
             serverUrl: session.serverUrl,
             token: session.token,
@@ -125,7 +137,7 @@ Route<dynamic>? _onGenerateRoute(RouteSettings settings) {
           );
   } else if (segments.length == 1 && segments[0] == 'settings') {
     page = session == null
-        ? const RootScreen()
+        ? _RequireSession(routeName: settings.name ?? uri.path)
         : SettingsScreen(
             serverUrl: session.serverUrl,
             token: session.token,
@@ -133,7 +145,7 @@ Route<dynamic>? _onGenerateRoute(RouteSettings settings) {
           );
   } else if (segments.length == 1 && segments[0] == 'new-table') {
     page = session == null
-        ? const RootScreen()
+        ? _RequireSession(routeName: settings.name ?? uri.path)
         : NewTableScreen(
             serverUrl: session.serverUrl,
             token: session.token,
@@ -141,7 +153,7 @@ Route<dynamic>? _onGenerateRoute(RouteSettings settings) {
           );
   } else if (segments.length == 1 && segments[0] == 'join-table') {
     page = session == null
-        ? const RootScreen()
+        ? _RequireSession(routeName: settings.name ?? uri.path)
         : JoinTableScreen(
             serverUrl: session.serverUrl,
             token: session.token,
@@ -149,7 +161,7 @@ Route<dynamic>? _onGenerateRoute(RouteSettings settings) {
           );
   } else if (segments.length == 1 && segments[0] == 'economy') {
     page = session == null
-        ? const RootScreen()
+        ? _RequireSession(routeName: settings.name ?? uri.path)
         : EconomyScreen(
             serverUrl: session.serverUrl,
             token: session.token,
@@ -159,7 +171,7 @@ Route<dynamic>? _onGenerateRoute(RouteSettings settings) {
       segments[0] == 'economy' &&
       segments[1] == 'buy') {
     page = session == null
-        ? const RootScreen()
+        ? _RequireSession(routeName: settings.name ?? uri.path)
         : ChipPurchaseScreen(
             serverUrl: session.serverUrl,
             token: session.token,
@@ -169,7 +181,7 @@ Route<dynamic>? _onGenerateRoute(RouteSettings settings) {
       segments[0] == 'economy' &&
       segments[1] == 'redeem') {
     page = session == null
-        ? const RootScreen()
+        ? _RequireSession(routeName: settings.name ?? uri.path)
         : ChipRedemptionScreen(
             serverUrl: session.serverUrl,
             token: session.token,
@@ -179,7 +191,7 @@ Route<dynamic>? _onGenerateRoute(RouteSettings settings) {
       segments[0] == 'economy' &&
       segments[1] == 'config') {
     page = session == null
-        ? const RootScreen()
+        ? _RequireSession(routeName: settings.name ?? uri.path)
         : EconomyConfigScreen(
             serverUrl: session.serverUrl,
             token: session.token,
@@ -189,7 +201,7 @@ Route<dynamic>? _onGenerateRoute(RouteSettings settings) {
       segments[0] == 'economy' &&
       segments[1] == 'pending') {
     page = session == null
-        ? const RootScreen()
+        ? _RequireSession(routeName: settings.name ?? uri.path)
         : PendingRedemptionsScreen(
             serverUrl: session.serverUrl,
             token: session.token,
@@ -198,7 +210,7 @@ Route<dynamic>? _onGenerateRoute(RouteSettings settings) {
   } else if (segments.length == 2 && segments[0] == 'table') {
     final gameId = segments[1];
     page = session == null
-        ? _TableRouteLoader(gameId: gameId)
+        ? _RequireSession(routeName: settings.name ?? uri.path)
         : TableScreen(
             serverUrl: session.serverUrl,
             token: session.token,
@@ -212,19 +224,20 @@ Route<dynamic>? _onGenerateRoute(RouteSettings settings) {
   return MaterialPageRoute(settings: settings, builder: (context) => page);
 }
 
-/// Loads a saved session before entering a table reached directly (a deep link
-/// someone was sent, a browser refresh, or the app restarting on this route)
-/// rather than via in-app navigation, where the session would already be in
-/// the route's arguments.
-class _TableRouteLoader extends StatefulWidget {
-  final String gameId;
-  const _TableRouteLoader({required this.gameId});
+/// Loads a saved session before entering a route that needs one, reached directly (a deep link,
+/// a browser refresh, or the app restarting on that route) rather than via in-app navigation,
+/// where the session would already be in the route's arguments. Falls through to /login,
+/// carrying [routeName] as `redirect`, when no session is found - so authenticating lands the
+/// caller back where they were headed instead of always on /menu.
+class _RequireSession extends StatefulWidget {
+  final String routeName;
+  const _RequireSession({required this.routeName});
 
   @override
-  State<_TableRouteLoader> createState() => _TableRouteLoaderState();
+  State<_RequireSession> createState() => _RequireSessionState();
 }
 
-class _TableRouteLoaderState extends State<_TableRouteLoader> {
+class _RequireSessionState extends State<_RequireSession> {
   @override
   void initState() {
     super.initState();
@@ -244,7 +257,7 @@ class _TableRouteLoaderState extends State<_TableRouteLoader> {
         token.isNotEmpty &&
         username != null) {
       Navigator.of(context).pushReplacementNamed(
-        '/table/${widget.gameId}',
+        widget.routeName,
         arguments: {
           'serverUrl': serverUrl,
           'token': token,
@@ -252,13 +265,68 @@ class _TableRouteLoaderState extends State<_TableRouteLoader> {
         },
       );
     } else {
-      Navigator.of(context).pushReplacementNamed('/');
+      final redirect = Uri.encodeQueryComponent(widget.routeName);
+      Navigator.of(context).pushReplacementNamed('/login?redirect=$redirect');
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return const Scaffold(body: Center(child: CircularProgressIndicator()));
+  }
+}
+
+/// Guards /login and /register /signup: a saved session already existing means there is nothing
+/// to log into, so skip straight to [redirectTarget] (or /menu) instead of showing the form.
+class _AuthScreenGate extends StatefulWidget {
+  final String? redirectTarget;
+  final WidgetBuilder buildForm;
+  const _AuthScreenGate({required this.buildForm, this.redirectTarget});
+
+  @override
+  State<_AuthScreenGate> createState() => _AuthScreenGateState();
+}
+
+class _AuthScreenGateState extends State<_AuthScreenGate> {
+  bool _checked = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _check();
+  }
+
+  Future<void> _check() async {
+    final prefs = await SharedPreferences.getInstance();
+    final serverUrl = prefs.getString('server_url');
+    final token = prefs.getString('jwt_token');
+    final username = prefs.getString('username');
+    if (!mounted) return;
+
+    if (serverUrl != null &&
+        serverUrl.isNotEmpty &&
+        token != null &&
+        token.isNotEmpty &&
+        username != null) {
+      Navigator.of(context).pushReplacementNamed(
+        widget.redirectTarget ?? '/menu',
+        arguments: {
+          'serverUrl': serverUrl,
+          'token': token,
+          'username': username,
+        },
+      );
+    } else {
+      setState(() => _checked = true);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_checked) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+    return widget.buildForm(context);
   }
 }
 

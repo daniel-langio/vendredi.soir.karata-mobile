@@ -52,6 +52,8 @@ class AppLocalizations {
   String get passwordTooShort => _s('passwordTooShort');
   String couldNotCreateAccount(String error) =>
       _fmt('couldNotCreateAccount', {'error': error});
+  String promoCodeWillApply(String code) =>
+      _fmt('promoCodeWillApply', {'code': code});
 
   // LoginScreen
   String couldNotLogIn(String error) => _fmt('couldNotLogIn', {'error': error});
@@ -309,6 +311,8 @@ class AppLocalizations {
       'usernameTooShort': 'At least 3 characters',
       'passwordTooShort': 'At least 6 characters',
       'couldNotCreateAccount': 'Could not create account: {error}',
+      'promoCodeWillApply':
+          'Promo code {code} will be applied to your account.',
       'couldNotLogIn': 'Could not log in: {error}',
       'signInHint': 'This name is your sign-in',
       'createTable': 'Create a table',
@@ -538,6 +542,8 @@ class AppLocalizations {
       'usernameTooShort': 'Au moins 3 caractères',
       'passwordTooShort': 'Au moins 6 caractères',
       'couldNotCreateAccount': 'Impossible de créer le compte : {error}',
+      'promoCodeWillApply':
+          'Le code promo {code} sera appliqué à votre compte.',
       'couldNotLogIn': 'Impossible de se connecter : {error}',
       'signInHint': 'Ce nom est votre identifiant de connexion',
       'createTable': 'Créer une table',
