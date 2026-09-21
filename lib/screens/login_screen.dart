@@ -7,7 +7,11 @@ import '../theme.dart';
 class LoginScreen extends StatefulWidget {
   final String serverUrl;
 
-  const LoginScreen({super.key, required this.serverUrl});
+  /// Where to land after login succeeds - carried through from a protected route the caller was
+  /// redirected away from (see main.dart's _RequireSession). Defaults to '/menu'.
+  final String? redirectTarget;
+
+  const LoginScreen({super.key, required this.serverUrl, this.redirectTarget});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -45,7 +49,7 @@ class _LoginScreenState extends State<LoginScreen> {
         // Clears the whole stack (not just this screen) - reached via WelcomeScreen's
         // RootScreen, which would otherwise linger below Menu and show as a stray back button.
         Navigator.of(context).pushNamedAndRemoveUntil(
-          '/menu',
+          widget.redirectTarget ?? '/menu',
           (route) => false,
           arguments: {'serverUrl': widget.serverUrl, 'token': token, 'username': username},
         );

@@ -7,7 +7,20 @@ import '../theme.dart';
 class RegisterScreen extends StatefulWidget {
   final String serverUrl;
 
-  const RegisterScreen({super.key, required this.serverUrl});
+  /// From /signup?promocode=... (or /register?promocode=...) - applied atomically with
+  /// registration server-side, so an invalid code fails the whole submission (see _submit).
+  final String? promoCode;
+
+  /// Where to land after registration succeeds - carried through from a protected route the
+  /// caller was redirected away from (see main.dart's _RequireSession). Defaults to '/menu'.
+  final String? redirectTarget;
+
+  const RegisterScreen({
+    super.key,
+    required this.serverUrl,
+    this.promoCode,
+    this.redirectTarget,
+  });
 
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
@@ -34,7 +47,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() => _isLoading = true);
     try {
       final client = ApiClient(baseUrl: widget.serverUrl);
-      final token = await client.register(username, password);
+      final token = await client.register(username, password, promoCode: widget.promoCode);
 
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('server_url', widget.serverUrl);
@@ -45,7 +58,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         // Clears the whole stack (not just this screen) - reached via WelcomeScreen's
         // RootScreen, which would otherwise linger below Menu and show as a stray back button.
         Navigator.of(context).pushNamedAndRemoveUntil(
-          '/menu',
+          widget.redirectTarget ?? '/menu',
           (route) => false,
           arguments: {'serverUrl': widget.serverUrl, 'token': token, 'username': username},
         );
@@ -86,6 +99,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   t.registerSubtitle,
                   style: const TextStyle(fontSize: 13.5, color: KarataColors.dim, height: 1.45),
                 ),
+                if (widget.promoCode != null && widget.promoCode!.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    t.promoCodeWillApply(widget.promoCode!),
+                    style: const TextStyle(fontSize: 13, color: KarataColors.live, height: 1.4),
+                  ),
+                ],
                 const SizedBox(height: 26),
                 TextFormField(
                   controller: _usernameController,

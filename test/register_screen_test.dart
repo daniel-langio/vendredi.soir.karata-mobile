@@ -45,5 +45,28 @@ void main() {
 
       expect(find.text('At least 6 characters'), findsOneWidget);
     });
+
+    testWidgets('shows a banner naming the promo code that will be applied',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(
+        wrapForTest(const RegisterScreen(
+          serverUrl: 'https://test.poker/poker',
+          promoCode: 'EARLY-USER-2026',
+        )),
+      );
+      await tester.pump();
+
+      expect(find.textContaining('EARLY-USER-2026'), findsOneWidget);
+    });
+
+    testWidgets('shows no promo banner when no promo code was given',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(
+        wrapForTest(const RegisterScreen(serverUrl: 'https://test.poker/poker')),
+      );
+      await tester.pump();
+
+      expect(find.textContaining('will be applied'), findsNothing);
+    });
   });
 }
