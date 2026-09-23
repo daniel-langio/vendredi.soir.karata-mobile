@@ -29,6 +29,9 @@ class _NewTableScreenState extends State<NewTableScreen> {
   bool _isLoading = false;
   bool _isOperator = false;
   bool _makePublic = false;
+  bool _cashoutEnabled = true;
+  bool _enforceMinimumBuyIn = true;
+  bool _autoRebuyEnabled = false;
 
   @override
   void initState() {
@@ -93,6 +96,9 @@ class _NewTableScreenState extends State<NewTableScreen> {
               bb,
               defaultBuyIn: buyIn,
               variant: _variant,
+              cashoutEnabled: _cashoutEnabled,
+              enforceMinimumBuyIn: _enforceMinimumBuyIn,
+              autoRebuyEnabled: _autoRebuyEnabled,
             )
           : await client.createGame(
               name,
@@ -275,6 +281,53 @@ class _NewTableScreenState extends State<NewTableScreen> {
                 ),
                 subtitle: Text(
                   t.makePublicHint,
+                  style: const TextStyle(fontSize: 12, color: KarataColors.dim),
+                ),
+              ),
+            ],
+            if (_isOperator && _makePublic) ...[
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                value: !_cashoutEnabled,
+                onChanged: _isLoading
+                    ? null
+                    : (value) => setState(() => _cashoutEnabled = !value),
+                title: Text(
+                  t.virtualChips,
+                  style: const TextStyle(fontSize: 14, color: KarataColors.ink),
+                ),
+                subtitle: Text(
+                  t.virtualChipsHint,
+                  style: const TextStyle(fontSize: 12, color: KarataColors.dim),
+                ),
+              ),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                value: _enforceMinimumBuyIn,
+                onChanged: _isLoading
+                    ? null
+                    : (value) => setState(() => _enforceMinimumBuyIn = value),
+                title: Text(
+                  t.strictMinimumBuyIn,
+                  style: const TextStyle(fontSize: 14, color: KarataColors.ink),
+                ),
+                subtitle: Text(
+                  t.strictMinimumBuyInHint,
+                  style: const TextStyle(fontSize: 12, color: KarataColors.dim),
+                ),
+              ),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                value: _autoRebuyEnabled,
+                onChanged: _isLoading
+                    ? null
+                    : (value) => setState(() => _autoRebuyEnabled = value),
+                title: Text(
+                  t.autoRebuy,
+                  style: const TextStyle(fontSize: 14, color: KarataColors.ink),
+                ),
+                subtitle: Text(
+                  t.autoRebuyHint,
                   style: const TextStyle(fontSize: 12, color: KarataColors.dim),
                 ),
               ),
