@@ -15,6 +15,7 @@ import '../widgets/table/dealer_chip.dart';
 import '../widgets/table/last_action_badge.dart';
 import '../widgets/table/outcome_banner.dart';
 import '../widgets/table/poker_card.dart';
+import '../widgets/table/pop_in.dart';
 import '../widgets/table/pot_chips.dart';
 import '../widgets/table/seat.dart';
 import '../widgets/table/table_felt.dart';
@@ -818,12 +819,18 @@ class _TableScreenState extends State<TableScreen> {
                                             ),
                                           ],
                                         ),
-                                        Text(
-                                          pot,
-                                          style: const TextStyle(
-                                            fontSize: 22,
-                                            color: KarataColors.ink,
-                                            fontWeight: FontWeight.w400,
+                                        // Pops on every genuine pot change (raw amount, not the
+                                        // formatted string, so a money-display toggle in settings
+                                        // doesn't trigger a pop of its own).
+                                        PopIn(
+                                          popKey: _currentDeal?['pot'],
+                                          child: Text(
+                                            pot,
+                                            style: const TextStyle(
+                                              fontSize: 22,
+                                              color: KarataColors.ink,
+                                              fontWeight: FontWeight.w400,
+                                            ),
                                           ),
                                         ),
                                       ],
@@ -1338,12 +1345,17 @@ class _TableScreenState extends State<TableScreen> {
                                           _selectedDiscardIndices.contains(i)
                                       ? 0.35
                                       : 1.0,
-                                  child: PokerCardWidget(
-                                    cardCode: _myCards[i]?.toString(),
-                                    width: 92,
-                                    height: 124,
-                                    rankFontSize: 34,
-                                    suitFontSize: 26,
+                                  // Pops this hole card in the moment it's dealt (its code goes
+                                  // from unset to a real value); stays put after that.
+                                  child: PopIn(
+                                    popKey: _myCards[i]?.toString(),
+                                    child: PokerCardWidget(
+                                      cardCode: _myCards[i]?.toString(),
+                                      width: 92,
+                                      height: 124,
+                                      rankFontSize: 34,
+                                      suitFontSize: 26,
+                                    ),
                                   ),
                                 ),
                               ),

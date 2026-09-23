@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../chip_display.dart';
 import '../../l10n/app_localizations.dart';
 import '../../theme.dart';
+import 'pop_in.dart';
 
 class OutcomeBanner extends StatelessWidget {
   final Map<String, dynamic> outcome;
@@ -30,19 +31,25 @@ class OutcomeBanner extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-          decoration: BoxDecoration(
-            color: KarataColors.winnerGold,
-            borderRadius: BorderRadius.circular(999),
-          ),
-          child: Text(
-            t.winnerTag,
-            style: const TextStyle(
-              color: KarataColors.winnerGoldInk,
-              fontSize: 10.5,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.5,
+        // This widget only exists in the tree once a hand reaches showdown, so a constant popKey
+        // is enough - it pops in exactly once per showdown, on first mount, and won't replay on
+        // the polling rebuilds that follow while the same outcome is still showing.
+        PopIn(
+          popKey: 'winner-pill',
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+            decoration: BoxDecoration(
+              color: KarataColors.winnerGold,
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Text(
+              t.winnerTag,
+              style: const TextStyle(
+                color: KarataColors.winnerGoldInk,
+                fontSize: 10.5,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.5,
+              ),
             ),
           ),
         ),
