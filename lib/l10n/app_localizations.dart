@@ -189,6 +189,9 @@ class AppLocalizations {
   String get nextHand => _s('nextHand');
   String get fold => _s('fold');
   String get check => _s('check');
+  // Left untranslated in both locales - "action" is used as an international poker-room loanword
+  // for "it's your/their turn", same as how "check" itself gets no French translation above.
+  String get onTheClock => _s('onTheClock');
   // Amounts arrive pre-formatted (via ChipDisplay) rather than as raw ints, the same convention
   // as buyInOf - so a caller controls whether the reader sees a chip count or its money reading.
   String call(String amount) => _fmt('call', {'amount': amount});
@@ -196,13 +199,15 @@ class AppLocalizations {
   String raise(String amount) => _fmt('raise', {'amount': amount});
   String minAllIn(String min, String max) =>
       _fmt('minAllIn', {'min': min, 'max': max});
-  String get min => _s('min');
+  String get oneThirdPot => _s('oneThirdPot');
   String get halfPot => _s('halfPot');
+  String get threeQuartersPot => _s('threeQuartersPot');
   String get pot => _s('pot');
   String get allIn => _s('allIn');
   String get handStrengthAvailableSoon => _s('handStrengthAvailableSoon');
   String won(String names, String amount) =>
       _fmt('won', {'names': names, 'amount': amount});
+  String get winnerTag => _s('winnerTag');
   String get sb => _s('sb');
   String get bb => _s('bb');
   String get allInTag => _s('allInTag');
@@ -424,16 +429,19 @@ class AppLocalizations {
       'nextHand': 'Next hand',
       'fold': 'Fold',
       'check': 'Check',
+      'onTheClock': 'ACTION',
       'call': 'Call {amount}',
       'bet': 'Bet {amount}',
       'raise': 'Raise {amount}',
       'minAllIn': 'min {min} · all in {max}',
-      'min': 'Min',
+      'oneThirdPot': '⅓ pot',
       'halfPot': '½ pot',
+      'threeQuartersPot': '¾ pot',
       'pot': 'Pot',
       'allIn': 'All in',
       'handStrengthAvailableSoon': 'Hand strength\navailable soon',
       'won': '💰 {names} won {amount}',
+      'winnerTag': 'WINNER',
       'sb': 'SB',
       'bb': 'BB',
       'allInTag': 'ALL',
@@ -668,16 +676,19 @@ class AppLocalizations {
       'nextHand': 'Main suivante',
       'fold': 'Se coucher',
       'check': 'Check',
+      'onTheClock': 'ACTION',
       'call': 'Suivre {amount}',
       'bet': 'Miser {amount}',
       'raise': 'Relancer {amount}',
       'minAllIn': 'min {min} · tapis {max}',
-      'min': 'Min',
+      'oneThirdPot': '⅓ pot',
       'halfPot': '½ pot',
+      'threeQuartersPot': '¾ pot',
       'pot': 'Pot',
       'allIn': 'Tapis',
       'handStrengthAvailableSoon': 'Force de la main\nbientôt disponible',
       'won': '💰 {names} remporte {amount}',
+      'winnerTag': 'GAGNANT',
       'sb': 'PB',
       'bb': 'GB',
       'allInTag': 'TAPIS',

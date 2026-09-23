@@ -7,6 +7,15 @@ import '../chip_display.dart';
 import '../game_sounds.dart';
 import '../l10n/app_localizations.dart';
 import '../theme.dart';
+import '../widgets/table/act_button.dart';
+import '../widgets/table/board_row.dart';
+import '../widgets/table/dealer_chip.dart';
+import '../widgets/table/last_action_badge.dart';
+import '../widgets/table/outcome_banner.dart';
+import '../widgets/table/poker_card.dart';
+import '../widgets/table/pot_chips.dart';
+import '../widgets/table/seat.dart';
+import '../widgets/table/table_felt.dart';
 
 class TableScreen extends StatefulWidget {
   final String serverUrl;
@@ -741,59 +750,102 @@ class _TableScreenState extends State<TableScreen> {
                 // the refusal surfaces as a bare error snackbar, reading as a bug rather than as
                 // the host having deliberately stopped play.
                 if (_isPaused && !_isClosed) _pausedBanner(t),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: _players
-                      .where((p) => p['username'] != widget.username)
-                      .map(
-                        (p) => _SeatWidget(
-                          player: p as Map<String, dynamic>,
-                          activePlayerId: _activePlayerId,
-                          revealedHand:
-                              revealedHands[p['playerId']?.toString()],
-                        ),
-                      )
-                      .toList(),
-                ),
+                // The felt is a pure background decoration sized to this Expanded region; the
+                // seats/board/hero-cards Column on top of it lays out exactly as it did before.
                 Expanded(
-                  child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        _BoardRow(cards: communityCards),
-                        const SizedBox(height: 12),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
+                  child: Stack(
+                    children: [
+                      const Positioned.fill(child: TableFelt()),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 14,
+                          horizontal: 10,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            Text(
-                              t.pot,
-                              style: const TextStyle(
-                                fontSize: 11.5,
-                                color: KarataColors.dim,
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: _players
+                                  .where(
+                                    (p) => p['username'] != widget.username,
+                                  )
+                                  .map(
+                                    (p) => SeatWidget(
+                                      player: p as Map<String, dynamic>,
+                                      activePlayerId: _activePlayerId,
+                                      revealedHand:
+                                          revealedHands[p['playerId']
+                                              ?.toString()],
+                                    ),
+                                  )
+                                  .toList(),
+                            ),
+                            Expanded(
+                              child: Center(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    BoardRow(cards: communityCards),
+                                    const SizedBox(height: 12),
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.end,
+                                      children: [
+                                        Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const PotChips(),
+                                            const SizedBox(width: 6),
+                                            Text(
+                                              t.pot,
+                                              style: const TextStyle(
+                                                fontSize: 11.5,
+                                                color: KarataColors.dim,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        Text(
+                                          pot,
+                                          style: const TextStyle(
+                                            fontSize: 22,
+                                            color: KarataColors.ink,
+                                            fontWeight: FontWeight.w400,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    if (outcome != null) ...[
+                                      const SizedBox(height: 14),
+                                      OutcomeBanner(
+                                        outcome: outcome,
+                                        myUsername: widget.username,
+                                      ),
+                                    ],
+                                  ],
+                                ),
                               ),
                             ),
-                            Text(
-                              pot,
-                              style: const TextStyle(
-                                fontSize: 22,
-                                color: KarataColors.ink,
-                                fontWeight: FontWeight.w400,
+                            if (_phase == 'DRAW' && _isMyTurn) ...[
+                              Text(
+                                t.tapCardsToDiscard,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: KarataColors.dim,
+                                ),
                               ),
-                            ),
+                              const SizedBox(height: 6),
+                            ],
+                            _buildHandRow(),
                           ],
                         ),
-                        if (outcome != null) ...[
-                          const SizedBox(height: 14),
-                          _OutcomeBanner(
-                            outcome: outcome,
-                            myUsername: widget.username,
-                          ),
-                        ],
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
+                const SizedBox(height: 12),
                 SizedBox(height: 18, child: _buildTurnLine()),
                 const SizedBox(height: 10),
                 if (_selectedActionType != null) ...[
@@ -803,18 +855,6 @@ class _TableScreenState extends State<TableScreen> {
                 _buildActionArea(),
                 const SizedBox(height: 14),
                 _buildSelfStatus(),
-                const SizedBox(height: 8),
-                if (_phase == 'DRAW' && _isMyTurn) ...[
-                  Text(
-                    t.tapCardsToDiscard,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: KarataColors.dim,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                ],
-                _buildHandRow(),
               ],
             ),
           ),
@@ -1003,7 +1043,7 @@ class _TableScreenState extends State<TableScreen> {
     return Row(
       children: [
         Expanded(
-          child: _ActBtn(
+          child: ActButton(
             label: t.fold,
             enabled: mine,
             onPressed: () {
@@ -1014,7 +1054,7 @@ class _TableScreenState extends State<TableScreen> {
         ),
         const SizedBox(width: 9),
         Expanded(
-          child: _ActBtn(
+          child: ActButton(
             label: callLabel,
             enabled: mine && canCall,
             solid: mine,
@@ -1028,7 +1068,7 @@ class _TableScreenState extends State<TableScreen> {
         ),
         const SizedBox(width: 9),
         Expanded(
-          child: _ActBtn(
+          child: ActButton(
             label: raiseLabel,
             enabled: mine && canRaise,
             onPressed: () {
@@ -1040,7 +1080,7 @@ class _TableScreenState extends State<TableScreen> {
           ),
         ),
         const SizedBox(width: 9),
-        _BumpBtn(
+        BumpButton(
           on: sizerOpen,
           enabled: mine && canRaise,
           onPressed: () {
@@ -1116,13 +1156,17 @@ class _TableScreenState extends State<TableScreen> {
           ),
           Row(
             children: [
-              _quickBtn(t.min, _sizerAmount == minRaise, () {
+              _quickBtn(t.oneThirdPot, false, () {
                 _sounds.click();
-                setState(() => _sizerAmount = minRaise);
+                setState(() => _sizerAmount = clampAmount(pot ~/ 3));
               }),
               _quickBtn(t.halfPot, false, () {
                 _sounds.click();
                 setState(() => _sizerAmount = clampAmount(pot ~/ 2));
+              }),
+              _quickBtn(t.threeQuartersPot, false, () {
+                _sounds.click();
+                setState(() => _sizerAmount = clampAmount(pot * 3 ~/ 4));
               }),
               _quickBtn(t.pot, false, () {
                 _sounds.click();
@@ -1172,7 +1216,7 @@ class _TableScreenState extends State<TableScreen> {
         : ChipDisplay.instance.format(myChipsAmount);
     final myLastActionRaw = me?['lastAction']?.toString();
     final myLastAction = myLastActionRaw != null
-        ? _formatLastAction(t, myLastActionRaw)
+        ? formatLastAction(t, myLastActionRaw)
         : null;
 
     return Row(
@@ -1205,7 +1249,7 @@ class _TableScreenState extends State<TableScreen> {
         ],
         const Spacer(),
         if (myLastAction != null)
-          _LastActionBadge(
+          LastActionBadge(
             rawAction: myLastActionRaw!,
             displayText: myLastAction,
           ),
@@ -1214,415 +1258,73 @@ class _TableScreenState extends State<TableScreen> {
   }
 
   Widget _buildHandRow() {
+    final t = AppLocalizations.of(context);
     final canSelectDiscards = _phase == 'DRAW' && _isMyTurn;
-    return SizedBox(
-      height: 132,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Expanded(
-            child: _myCards.isEmpty
-                ? Row(
-                    children: const [
-                      _MutedHoleCard(),
-                      SizedBox(width: 0),
-                      _MutedHoleCard(),
-                    ],
-                  )
-                : Stack(
-                    children: [
-                      for (var i = 0; i < _myCards.length; i++)
-                        Positioned(
-                          left: i * 76.0,
-                          child: GestureDetector(
-                            onTap: canSelectDiscards
-                                ? () => _toggleDiscard(i)
-                                : null,
-                            child: Opacity(
-                              opacity:
-                                  canSelectDiscards &&
-                                      _selectedDiscardIndices.contains(i)
-                                  ? 0.35
-                                  : 1.0,
-                              child: PokerCardWidget(
-                                cardCode: _myCards[i]?.toString(),
-                                width: 92,
-                                height: 124,
-                                rankFontSize: 34,
-                                suitFontSize: 26,
+    final isDealer = _you?['blind']?.toString() == 'SMALL';
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (isDealer || _isMyTurn)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: Row(
+              children: [
+                if (isDealer) ...[
+                  const DealerChip(),
+                  const SizedBox(width: 8),
+                ],
+                if (_isMyTurn) TurnBadge(label: t.onTheClock),
+              ],
+            ),
+          ),
+        SizedBox(
+          height: 132,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Expanded(
+                child: _myCards.isEmpty
+                    ? Row(
+                        children: const [
+                          _MutedHoleCard(),
+                          SizedBox(width: 0),
+                          _MutedHoleCard(),
+                        ],
+                      )
+                    : Stack(
+                        children: [
+                          for (var i = 0; i < _myCards.length; i++)
+                            Positioned(
+                              left: i * 76.0,
+                              child: GestureDetector(
+                                onTap: canSelectDiscards
+                                    ? () => _toggleDiscard(i)
+                                    : null,
+                                child: Opacity(
+                                  opacity:
+                                      canSelectDiscards &&
+                                          _selectedDiscardIndices.contains(i)
+                                      ? 0.35
+                                      : 1.0,
+                                  child: PokerCardWidget(
+                                    cardCode: _myCards[i]?.toString(),
+                                    width: 92,
+                                    height: 124,
+                                    rankFontSize: 34,
+                                    suitFontSize: 26,
+                                  ),
+                                ),
                               ),
                             ),
-                          ),
-                        ),
-                    ],
-                  ),
-          ),
-          const SizedBox(width: 12),
-          const _MadeHandBox(),
-        ],
-      ),
-    );
-  }
-}
-
-/// The API returns lastAction as a pre-formatted English string (e.g. "CALL 20", "SMALL BLIND
-/// 10") derived from the domain action itself, not a translation key - re-parse it here rather
-/// than changing the API contract just for client-side display purposes.
-String _formatLastAction(AppLocalizations t, String raw) {
-  final parts = raw.split(' ');
-  if (parts.isEmpty) return raw;
-  final amount = int.tryParse(parts.last) ?? 0;
-  switch (parts.first) {
-    case 'FOLD':
-      return t.fold;
-    case 'CHECK':
-      return t.check;
-    case 'CALL':
-      return t.call(ChipDisplay.instance.format(amount));
-    case 'BET':
-      return t.bet(ChipDisplay.instance.format(amount));
-    case 'RAISE':
-      return t.raise(ChipDisplay.instance.format(amount));
-    case 'SMALL':
-      return '${t.sb} ${ChipDisplay.instance.format(amount)}';
-    case 'BIG':
-      return '${t.bb} ${ChipDisplay.instance.format(amount)}';
-    default:
-      return raw;
-  }
-}
-
-class _SeatWidget extends StatelessWidget {
-  final Map<String, dynamic> player;
-  final String? activePlayerId;
-  final Map<String, dynamic>? revealedHand;
-
-  const _SeatWidget({
-    required this.player,
-    required this.activePlayerId,
-    this.revealedHand,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final t = AppLocalizations.of(context);
-    final playerId = player['playerId']?.toString();
-    final username = player['username']?.toString() ?? 'Player';
-    final chips = ChipDisplay.instance.format(player['chips'] as num?);
-    final status = player['status']?.toString() ?? 'ACTIVE';
-    final blind = player['blind']?.toString();
-    final lastActionRaw = player['lastAction']?.toString();
-    final lastAction = lastActionRaw != null
-        ? _formatLastAction(t, lastActionRaw)
-        : null;
-    final contribution =
-        (player['contributionThisRound'] as num?)?.toInt() ?? 0;
-    final isActive = activePlayerId != null && activePlayerId == playerId;
-    final isFolded = status == 'FOLDED';
-    final isAllIn = status == 'ALL_IN';
-    final bool isBot = player['isBot'] == true;
-    final initial = isBot
-        ? 'BOT'
-        : (username.isNotEmpty ? username[0].toUpperCase() : '?');
-    final holeCards = revealedHand?['holeCards'] as List<dynamic>?;
-    final handRank = revealedHand?['handRank'] as String?;
-
-    return Opacity(
-      opacity: isFolded ? 0.26 : 1,
-      child: SizedBox(
-        width: 64,
-        child: Column(
-          children: [
-            if (lastAction != null)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 5),
-                child: _LastActionBadge(
-                  rawAction: lastActionRaw!,
-                  displayText: lastAction,
-                ),
-              ),
-            SizedBox(
-              width: 64,
-              height: 46,
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Center(
-                    child: Container(
-                      width: 46,
-                      height: 46,
-                      decoration: BoxDecoration(
-                        color: isBot
-                            ? const Color(0xFF1A1A1A)
-                            : const Color(0xFF221F28),
-                        shape: BoxShape.circle,
-                        border: isActive
-                            ? Border.all(color: KarataColors.ink, width: 2)
-                            : null,
+                        ],
                       ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        initial,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          color: KarataColors.ink,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ),
-                  if (blind != null || isAllIn)
-                    Positioned(
-                      top: 0,
-                      right: -1,
-                      child: Container(
-                        height: 16,
-                        padding: const EdgeInsets.symmetric(horizontal: 5),
-                        decoration: BoxDecoration(
-                          color: isAllIn
-                              ? KarataColors.allInBg
-                              : const Color(0xFF2E2C34),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          isAllIn
-                              ? t.allInTag
-                              : (blind == 'SMALL' ? t.sb : t.bb),
-                          style: TextStyle(
-                            fontSize: 9,
-                            fontWeight: FontWeight.w600,
-                            color: isAllIn
-                                ? KarataColors.allInInk
-                                : KarataColors.ink,
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
               ),
-            ),
-            const SizedBox(height: 7),
-            Text(
-              username + (isBot ? ' (BOT)' : ''),
-              textAlign: TextAlign.center,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 11, color: KarataColors.dim),
-            ),
-            Text(
-              chips,
-              style: const TextStyle(
-                fontSize: 15,
-                color: KarataColors.ink,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            if (contribution > 0)
-              Container(
-                margin: const EdgeInsets.only(top: 8),
-                height: 22,
-                padding: const EdgeInsets.symmetric(horizontal: 7),
-                decoration: BoxDecoration(
-                  color: KarataColors.chipBg,
-                  borderRadius: BorderRadius.circular(11),
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  '$contribution',
-                  style: const TextStyle(
-                    color: KarataColors.chipInk,
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            // Cards flip face-up at each seat that reached a real showdown (won or lost) once
-            // the hand concludes - a folded player has no entry here and stays hidden, per usual
-            // poker etiquette.
-            if (holeCards != null && holeCards.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              SizedBox(
-                // Overlapping mini-card stack, sized for however many hole cards this variant
-                // deals (2 for Hold'em, 4 for Omaha) - each card overlaps the previous by 6px.
-                width: 3.0 + 30.0 + 24.0 * (holeCards.length - 1),
-                height: 42,
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    for (var i = 0; i < holeCards.length; i++)
-                      Positioned(
-                        left: 3.0 + i * 24.0,
-                        child: PokerCardWidget(
-                          cardCode: holeCards[i]?.toString(),
-                          width: 30,
-                          height: 42,
-                          rankFontSize: 12,
-                          suitFontSize: 10,
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-              if (handRank != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: Text(
-                    handRank,
-                    textAlign: TextAlign.center,
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                    style: const TextStyle(
-                      fontSize: 8.5,
-                      color: KarataColors.dim,
-                    ),
-                  ),
-                ),
+              const SizedBox(width: 12),
+              const _MadeHandBox(),
             ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _LastActionBadge extends StatelessWidget {
-  final String rawAction;
-  final String displayText;
-  const _LastActionBadge({required this.rawAction, required this.displayText});
-
-  @override
-  Widget build(BuildContext context) {
-    // Keying on the raw action restarts this tween from scratch every time it changes to a
-    // genuinely new value (including its first appearance), giving a brief "just happened" pop
-    // without any manual AnimationController bookkeeping. Raw, not the localized display text, so
-    // a language switch doesn't replay this pop - only a genuinely new action should.
-    return TweenAnimationBuilder<double>(
-      key: ValueKey(rawAction),
-      tween: Tween(begin: 1.4, end: 1.0),
-      duration: const Duration(milliseconds: 380),
-      curve: Curves.easeOutBack,
-      builder: (context, scale, child) =>
-          Transform.scale(scale: scale, child: child),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-        decoration: BoxDecoration(
-          color: KarataColors.live,
-          borderRadius: BorderRadius.circular(999),
-        ),
-        child: Text(
-          displayText,
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            fontSize: 9.5,
-            fontWeight: FontWeight.w700,
-            color: KarataColors.cardInk,
-            height: 1,
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _BoardRow extends StatelessWidget {
-  final List<dynamic> cards;
-  const _BoardRow({required this.cards});
-
-  @override
-  Widget build(BuildContext context) {
-    const cardWidth = 64.0;
-    const step = 58.0; // cardWidth - 6px overlap, matching the mockup
-    final width = cardWidth + step * (cards.length - 1);
-    return SizedBox(
-      width: width,
-      height: 86,
-      child: Stack(
-        children: [
-          for (var i = 0; i < cards.length; i++)
-            Positioned(
-              left: i * step,
-              child: PokerCardWidget(cardCode: cards[i]?.toString()),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ActBtn extends StatelessWidget {
-  final String label;
-  final bool enabled;
-  final bool solid;
-  final VoidCallback onPressed;
-
-  const _ActBtn({
-    required this.label,
-    required this.enabled,
-    required this.onPressed,
-    this.solid = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 48,
-      child: OutlinedButton(
-        onPressed: enabled ? onPressed : null,
-        style: OutlinedButton.styleFrom(
-          backgroundColor: solid ? KarataColors.pill : Colors.transparent,
-          side: BorderSide(
-            color: solid ? Colors.transparent : KarataColors.pillLine,
-          ),
-          foregroundColor: KarataColors.ink,
-          disabledForegroundColor: KarataColors.ink.withValues(alpha: 0.3),
-          disabledBackgroundColor: solid
-              ? KarataColors.pill.withValues(alpha: 0.3)
-              : null,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(999),
-          ),
-        ),
-        child: Text(
-          label,
-          style: const TextStyle(fontSize: 14.5),
-          overflow: TextOverflow.ellipsis,
-          maxLines: 1,
-        ),
-      ),
-    );
-  }
-}
-
-class _BumpBtn extends StatelessWidget {
-  final bool on;
-  final bool enabled;
-  final VoidCallback onPressed;
-
-  const _BumpBtn({
-    required this.on,
-    required this.enabled,
-    required this.onPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 48,
-      height: 48,
-      child: OutlinedButton(
-        onPressed: enabled ? onPressed : null,
-        style: OutlinedButton.styleFrom(
-          padding: EdgeInsets.zero,
-          backgroundColor: on ? KarataColors.pill : Colors.transparent,
-          side: BorderSide(
-            color: on ? Colors.transparent : KarataColors.pillLine,
-          ),
-          foregroundColor: KarataColors.ink,
-          disabledForegroundColor: KarataColors.ink.withValues(alpha: 0.3),
-          shape: const CircleBorder(),
-        ),
-        child: const Icon(Icons.arrow_upward, size: 16),
-      ),
+      ],
     );
   }
 }
@@ -1692,150 +1394,3 @@ class _MutedHoleCard extends StatelessWidget {
   }
 }
 
-class _OutcomeBanner extends StatelessWidget {
-  final Map<String, dynamic> outcome;
-  final String myUsername;
-  const _OutcomeBanner({required this.outcome, required this.myUsername});
-
-  @override
-  Widget build(BuildContext context) {
-    final t = AppLocalizations.of(context);
-    final winners = outcome['winners'] as List<dynamic>? ?? [];
-    if (winners.isEmpty) return const SizedBox();
-    final names = winners
-        .map(
-          (w) => w['username'] == myUsername ? t.you : w['username'].toString(),
-        )
-        .join(' & ');
-    final total = winners.fold<int>(
-      0,
-      (sum, w) => sum + ((w['amount'] as num?)?.toInt() ?? 0),
-    );
-    final rank = (winners.first as Map<String, dynamic>)['handRank'] as String?;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        Text(
-          t.won(names, ChipDisplay.instance.format(total)),
-          style: const TextStyle(
-            color: KarataColors.ink,
-            fontSize: 14.5,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        if (rank != null) ...[
-          const SizedBox(height: 4),
-          Text(
-            rank,
-            style: const TextStyle(color: KarataColors.dim, fontSize: 12.5),
-          ),
-        ],
-      ],
-    );
-  }
-}
-
-class PokerCardWidget extends StatelessWidget {
-  final String? cardCode;
-  final double width;
-  final double height;
-  final double rankFontSize;
-  final double suitFontSize;
-
-  const PokerCardWidget({
-    super.key,
-    this.cardCode,
-    this.width = 64,
-    this.height = 86,
-    this.rankFontSize = 24,
-    this.suitFontSize = 19,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final radius = BorderRadius.circular(width > 80 ? 15 : 11);
-    if (cardCode == null) {
-      // A card slot that exists but hasn't been revealed yet - a face-down card, not an empty
-      // one, since the API always sends a fixed-size community-card array padded with nulls.
-      return Container(
-        width: width,
-        height: height,
-        decoration: BoxDecoration(
-          color: KarataColors.card,
-          borderRadius: radius,
-          border: Border.all(color: KarataColors.bg, width: 2),
-        ),
-        child: ClipRRect(
-          borderRadius: radius,
-          child: CustomPaint(painter: _CardBackPainter()),
-        ),
-      );
-    }
-
-    final code = cardCode!;
-    if (code.length < 2) return const SizedBox();
-    final suitChar = code[code.length - 1].toLowerCase();
-    final rank = code.substring(0, code.length - 1).toUpperCase();
-
-    const suitSymbols = {'c': '♣', 'd': '♦', 'h': '♥', 's': '♠'};
-    const redSuits = {'d', 'h'};
-    final suitSymbol = suitSymbols[suitChar] ?? '?';
-    final suitColor = redSuits.contains(suitChar)
-        ? KarataColors.red
-        : KarataColors.cardInk;
-
-    return Container(
-      width: width,
-      height: height,
-      padding: const EdgeInsets.only(top: 7, left: 8),
-      decoration: BoxDecoration(
-        color: KarataColors.card,
-        borderRadius: radius,
-        border: Border.all(color: KarataColors.bg, width: 2),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            rank,
-            style: TextStyle(
-              color: suitColor,
-              fontSize: rank.length > 1 ? rankFontSize * 0.8 : rankFontSize,
-              height: 1,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          Text(
-            suitSymbol,
-            style: TextStyle(
-              color: suitColor,
-              fontSize: suitFontSize,
-              height: 1,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CardBackPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = const Color(0xFFCBC9C5)
-      ..strokeWidth = 4;
-    const gap = 9.0;
-    final diag = size.width + size.height;
-    for (double x = -size.height; x < diag; x += gap) {
-      canvas.drawLine(
-        Offset(x, 0),
-        Offset(x + size.height, size.height),
-        paint,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}

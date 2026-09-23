@@ -19,6 +19,20 @@ class KarataColors {
   static const allInBg = Color(0xFF3A2028);
   static const allInInk = Color(0xFFF0A4B1);
 
+  /// Radial-gradient greens and outer ring for the table screen's felt background.
+  static const feltCenter = Color(0xFF1E4A38);
+  static const feltEdge = Color(0xFF0E241C);
+  static const feltRing = Color(0xFF2A3A34);
+
+  /// New per-action accents not already covered by the base palette - a fold/check/call badge
+  /// reuses `pill`/`live` below, these two cover raise/bet (amber) and "on the clock" (blue).
+  static const actionRaise = Color(0xFFE0954A);
+  static const actionTurn = Color(0xFF4A90D9);
+
+  /// Gold "WINNER" pill shown at showdown.
+  static const winnerGold = Color(0xFFE8C468);
+  static const winnerGoldInk = Color(0xFF2A2107);
+
   /// Background colors for the large public-table cards on the menu screen, cycled by index.
   static const publicTableAccents = [
     Color(0xFFB9AEEA),
