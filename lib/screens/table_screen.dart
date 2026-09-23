@@ -788,10 +788,10 @@ class _TableScreenState extends State<TableScreen> {
                               activePlayerId: _activePlayerId,
                               revealedHands: revealedHands,
                             ),
-                            // A little below dead-center so it clears the top-row seats and isn't
+                            // A touch below dead-center so it clears the top-row seats and isn't
                             // squeezed against them.
                             Align(
-                              alignment: const Alignment(0, 0.2),
+                              alignment: const Alignment(0, 0.08),
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 crossAxisAlignment: CrossAxisAlignment.end,
