@@ -1310,7 +1310,7 @@ class _TableScreenState extends State<TableScreen> {
           const SizedBox(height: 6),
         ],
         SizedBox(
-          height: 132,
+          height: 112,
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
@@ -1327,7 +1327,7 @@ class _TableScreenState extends State<TableScreen> {
                         children: [
                           for (var i = 0; i < _myCards.length; i++)
                             Positioned(
-                              left: i * 76.0,
+                              left: i * 64.0,
                               child: GestureDetector(
                                 onTap: canSelectDiscards
                                     ? () => _toggleDiscard(i)
@@ -1344,10 +1344,10 @@ class _TableScreenState extends State<TableScreen> {
                                     popKey: _myCards[i]?.toString(),
                                     child: PokerCardWidget(
                                       cardCode: _myCards[i]?.toString(),
-                                      width: 92,
-                                      height: 124,
-                                      rankFontSize: 34,
-                                      suitFontSize: 26,
+                                      width: 78,
+                                      height: 106,
+                                      rankFontSize: 28,
+                                      suitFontSize: 22,
                                     ),
                                   ),
                                 ),
@@ -1451,8 +1451,8 @@ class _MutedHoleCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 92,
-      height: 124,
+      width: 78,
+      height: 106,
       margin: const EdgeInsets.only(right: 8),
       decoration: BoxDecoration(
         border: Border.all(color: const Color(0xFF201E25)),
