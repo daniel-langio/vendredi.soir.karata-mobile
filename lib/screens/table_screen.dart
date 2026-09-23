@@ -1315,17 +1315,23 @@ class _TableScreenState extends State<TableScreen> {
           height: 112,
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.end,
+            // Centers the hand horizontally instead of pinning it to the row's left edge - the
+            // stack below only claims as much width as its cards actually span, so a plain Row
+            // (rather than an Expanded one) leaves room on both sides to center into.
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Expanded(
-                child: _myCards.isEmpty
-                    ? Row(
-                        children: const [
-                          _MutedHoleCard(),
-                          SizedBox(width: 0),
-                          _MutedHoleCard(),
-                        ],
-                      )
-                    : Stack(
+              _myCards.isEmpty
+                  ? Row(
+                      children: const [
+                        _MutedHoleCard(),
+                        SizedBox(width: 0),
+                        _MutedHoleCard(),
+                      ],
+                    )
+                  : SizedBox(
+                      width: (_myCards.length - 1) * 64.0 + 78.0,
+                      height: 106,
+                      child: Stack(
                         children: [
                           for (var i = 0; i < _myCards.length; i++)
                             Positioned(
@@ -1357,7 +1363,7 @@ class _TableScreenState extends State<TableScreen> {
                             ),
                         ],
                       ),
-              ),
+                    ),
               // _MadeHandBox (below) is hidden here per product decision - hand-strength
               // evaluation isn't implemented yet, so it only ever showed a "coming soon"
               // placeholder. Kept in code, not deleted, for when real evaluation lands.
