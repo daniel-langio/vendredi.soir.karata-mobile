@@ -13,6 +13,14 @@ permissions:
   contents: write
   id-token: write
 
+# One release at a time per branch. Two pushes landing close together used to build concurrently,
+# and since each run computes its version from its own checkout, both arrived at the same version
+# name and distributed two different APKs under it - leaving App Tester with nothing unambiguous
+# to offer. Queue rather than cancel, so no pushed commit silently goes undistributed.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   build:
     name: Build Android APK
@@ -63,8 +71,19 @@ jobs:
           # `feat` commit bumps minor (resets patch to 0), anything else bumps patch. Major is
           # deliberately never bumped here - see release_major.yml for that, a separate explicit
           # action rather than something that falls out of a commit message convention.
-          BUILD_NUMBER=$(git rev-list --count HEAD)
-          CURRENT_VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: *//' | cut -d'+' -f1 | tr -d '\r')
+          # Both numbers come from the branch's *remote* tip on a push, not from this run's
+          # checkout: checkout pins to the pushed commit, so a run queued behind another one reads
+          # a pubspec that predates the release commit the run ahead of it just pushed, and would
+          # compute a version name that was already used.
+          if [ "${{ github.event_name }}" = "push" ]; then
+            git fetch --quiet origin "${{ github.ref_name }}"
+            BASE_REF="origin/${{ github.ref_name }}"
+          else
+            BASE_REF="HEAD"
+          fi
+
+          BUILD_NUMBER=$(git rev-list --count "$BASE_REF")
+          CURRENT_VERSION=$(git show "$BASE_REF:pubspec.yaml" | grep '^version:' | sed 's/version: *//' | cut -d'+' -f1 | tr -d '\r')
 
           if [ "${{ github.event_name }}" = "push" ]; then
             IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
@@ -158,6 +177,12 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          # Land the bump on the branch's current tip rather than on this run's checkout, which may
+          # be an older commit by now - committing on the stale checkout is what made this push get
+          # rejected as non-fast-forward, failing the release after the APK had already gone out.
+          git fetch --quiet origin "${{ github.ref_name }}"
+          git checkout -f -B release-bump "origin/${{ github.ref_name }}"
+          sed -i "s/^version: .*/version: ${{ steps.version.outputs.version_name }}+${{ steps.version.outputs.build_number }}/" pubspec.yaml
           git add pubspec.yaml
           git commit -m "chore(release): v${{ steps.version.outputs.version_name }} [skip ci]"
           git tag "v${{ steps.version.outputs.version_name }}"
