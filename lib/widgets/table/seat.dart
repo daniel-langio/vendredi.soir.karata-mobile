@@ -45,6 +45,7 @@ class SeatWidget extends StatelessWidget {
       child: SizedBox(
         width: 64,
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             // On the clock takes priority over a stale badge from an earlier street - it's a
             // fresh decision point, not a repeat of whatever they last did.

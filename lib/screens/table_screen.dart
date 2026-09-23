@@ -19,6 +19,7 @@ import '../widgets/table/pop_in.dart';
 import '../widgets/table/pot_chips.dart';
 import '../widgets/table/seat.dart';
 import '../widgets/table/table_felt.dart';
+import '../widgets/table/table_seats.dart';
 
 class TableScreen extends StatefulWidget {
   final String serverUrl;
@@ -762,8 +763,10 @@ class _TableScreenState extends State<TableScreen> {
                 // the refusal surfaces as a bare error snackbar, reading as a bug rather than as
                 // the host having deliberately stopped play.
                 if (_isPaused && !_isClosed) _pausedBanner(t),
-                // The felt is a pure background decoration sized to this Expanded region; the
-                // seats/board/hero-cards Column on top of it lays out exactly as it did before.
+                // The felt is a pure background decoration sized to this Expanded region. Seats,
+                // board and the hero's own cards all share one Stack over it now, positioned by
+                // Align rather than flowed top-to-bottom, so opponents can sit anywhere around the
+                // felt instead of only along a single top row.
                 Expanded(
                   child: Stack(
                     children: [
@@ -773,90 +776,76 @@ class _TableScreenState extends State<TableScreen> {
                           vertical: 14,
                           horizontal: 10,
                         ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                        child: Stack(
                           children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: _players
+                            TableSeats(
+                              opponents: _players
                                   .where(
                                     (p) => p['username'] != widget.username,
                                   )
-                                  .map(
-                                    (p) => SeatWidget(
-                                      player: p as Map<String, dynamic>,
-                                      activePlayerId: _activePlayerId,
-                                      revealedHand:
-                                          revealedHands[p['playerId']
-                                              ?.toString()],
-                                    ),
-                                  )
+                                  .cast<Map<String, dynamic>>()
                                   .toList(),
+                              activePlayerId: _activePlayerId,
+                              revealedHands: revealedHands,
                             ),
-                            Expanded(
-                              child: Center(
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    BoardRow(cards: communityCards),
-                                    const SizedBox(height: 12),
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.end,
-                                      children: [
-                                        Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            const PotChips(),
-                                            const SizedBox(width: 6),
-                                            Text(
-                                              t.pot,
-                                              style: const TextStyle(
-                                                fontSize: 11.5,
-                                                color: KarataColors.dim,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        // Pops on every genuine pot change (raw amount, not the
-                                        // formatted string, so a money-display toggle in settings
-                                        // doesn't trigger a pop of its own).
-                                        PopIn(
-                                          popKey: _currentDeal?['pot'],
-                                          child: Text(
-                                            pot,
+                            // A little below dead-center so it clears the top-row seats and isn't
+                            // squeezed against them.
+                            Align(
+                              alignment: const Alignment(0, 0.2),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  BoardRow(cards: communityCards),
+                                  const SizedBox(height: 12),
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.end,
+                                    children: [
+                                      Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const PotChips(),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            t.pot,
                                             style: const TextStyle(
-                                              fontSize: 22,
-                                              color: KarataColors.ink,
-                                              fontWeight: FontWeight.w400,
+                                              fontSize: 11.5,
+                                              color: KarataColors.dim,
                                             ),
                                           ),
+                                        ],
+                                      ),
+                                      // Pops on every genuine pot change (raw amount, not the
+                                      // formatted string, so a money-display toggle in settings
+                                      // doesn't trigger a pop of its own).
+                                      PopIn(
+                                        popKey: _currentDeal?['pot'],
+                                        child: Text(
+                                          pot,
+                                          style: const TextStyle(
+                                            fontSize: 22,
+                                            color: KarataColors.ink,
+                                            fontWeight: FontWeight.w400,
+                                          ),
                                         ),
-                                      ],
-                                    ),
-                                    if (outcome != null) ...[
-                                      const SizedBox(height: 14),
-                                      OutcomeBanner(
-                                        outcome: outcome,
-                                        myUsername: widget.username,
                                       ),
                                     ],
+                                  ),
+                                  if (outcome != null) ...[
+                                    const SizedBox(height: 14),
+                                    OutcomeBanner(
+                                      outcome: outcome,
+                                      myUsername: widget.username,
+                                    ),
                                   ],
-                                ),
+                                ],
                               ),
                             ),
-                            if (_phase == 'DRAW' && _isMyTurn) ...[
-                              Text(
-                                t.tapCardsToDiscard,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: KarataColors.dim,
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                            ],
-                            _buildHandRow(),
+                            Align(
+                              alignment: Alignment.bottomCenter,
+                              child: _buildHandRow(),
+                            ),
                           ],
                         ),
                       ),
@@ -1303,6 +1292,13 @@ class _TableScreenState extends State<TableScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        if (canSelectDiscards) ...[
+          Text(
+            t.tapCardsToDiscard,
+            style: const TextStyle(fontSize: 12, color: KarataColors.dim),
+          ),
+          const SizedBox(height: 6),
+        ],
         if (isDealer || _isMyTurn)
           Padding(
             padding: const EdgeInsets.only(bottom: 6),
@@ -1363,8 +1359,9 @@ class _TableScreenState extends State<TableScreen> {
                         ],
                       ),
               ),
-              const SizedBox(width: 12),
-              const _MadeHandBox(),
+              // _MadeHandBox (below) is hidden here per product decision - hand-strength
+              // evaluation isn't implemented yet, so it only ever showed a "coming soon"
+              // placeholder. Kept in code, not deleted, for when real evaluation lands.
             ],
           ),
         ),
@@ -1398,6 +1395,9 @@ class _ClockBar extends StatelessWidget {
   }
 }
 
+// Not currently shown (see the comment at its old call site in _buildHandRow) - kept rather than
+// deleted for when real hand-strength evaluation lands.
+// ignore: unused_element
 class _MadeHandBox extends StatelessWidget {
   const _MadeHandBox();
 
