@@ -794,13 +794,22 @@ class _TableScreenState extends State<TableScreen> {
                               alignment: const Alignment(0, 0.08),
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.end,
+                                crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
+                                  // The winner banner reads as an announcement over the board it's
+                                  // about, not a footnote below the pot - matching the reference.
+                                  if (outcome != null) ...[
+                                    OutcomeBanner(
+                                      outcome: outcome,
+                                      myUsername: widget.username,
+                                    ),
+                                    const SizedBox(height: 10),
+                                  ],
                                   BoardRow(cards: communityCards),
                                   const SizedBox(height: 12),
                                   Column(
                                     crossAxisAlignment:
-                                        CrossAxisAlignment.end,
+                                        CrossAxisAlignment.center,
                                     children: [
                                       Row(
                                         mainAxisSize: MainAxisSize.min,
@@ -832,13 +841,6 @@ class _TableScreenState extends State<TableScreen> {
                                       ),
                                     ],
                                   ),
-                                  if (outcome != null) ...[
-                                    const SizedBox(height: 14),
-                                    OutcomeBanner(
-                                      outcome: outcome,
-                                      myUsername: widget.username,
-                                    ),
-                                  ],
                                 ],
                               ),
                             ),
