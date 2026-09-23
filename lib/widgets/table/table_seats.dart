@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'seat.dart';
 
 /// Lays opponent seats out around the felt like a real table, filling this fixed order as more
-/// opponents join: top-left, top-middle, top-right, left-middle, right-middle, bottom-left,
-/// bottom-right. The hero's own seat isn't part of this - it's the separate hand row anchored at
-/// bottom-center, alongside these on the same felt.
+/// opponents join: top-left, top-middle, top-right, bottom-right, bottom-left, left-middle,
+/// right-middle - matching the reference (which fills the bottom pair before ever using a
+/// middle seat, since middles sit level with the board and would otherwise collide with it).
+/// The hero's own seat isn't part of this - it's the separate hand row anchored at bottom-center,
+/// alongside these on the same felt.
 class TableSeats extends StatelessWidget {
   final List<Map<String, dynamic>> opponents;
   final String? activePlayerId;
@@ -23,10 +25,10 @@ class TableSeats extends StatelessWidget {
     Alignment(-0.72, -0.92), // top-left
     Alignment(0.0, -1.0), // top-middle
     Alignment(0.72, -0.92), // top-right
+    Alignment(0.72, 0.68), // bottom-right
+    Alignment(-0.72, 0.68), // bottom-left
     Alignment(-0.88, -0.05), // left-middle
     Alignment(0.88, -0.05), // right-middle
-    Alignment(-0.72, 0.68), // bottom-left
-    Alignment(0.72, 0.68), // bottom-right
   ];
 
   @override

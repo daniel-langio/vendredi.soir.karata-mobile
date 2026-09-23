@@ -1289,7 +1289,17 @@ class _TableScreenState extends State<TableScreen> {
     final t = AppLocalizations.of(context);
     final canSelectDiscards = _phase == 'DRAW' && _isMyTurn;
     final isDealer = _you?['blind']?.toString() == 'SMALL';
+    final me =
+        _players.firstWhere(
+              (p) => p['username'] == widget.username,
+              orElse: () => null,
+            )
+            as Map<String, dynamic>?;
+    final myChips = (me?['chips'] as num?) == null
+        ? null
+        : ChipDisplay.instance.format(me!['chips'] as num?);
     return Column(
+      mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (canSelectDiscards) ...[
@@ -1299,19 +1309,6 @@ class _TableScreenState extends State<TableScreen> {
           ),
           const SizedBox(height: 6),
         ],
-        if (isDealer || _isMyTurn)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 6),
-            child: Row(
-              children: [
-                if (isDealer) ...[
-                  const DealerChip(),
-                  const SizedBox(width: 8),
-                ],
-                if (_isMyTurn) TurnBadge(label: t.onTheClock),
-              ],
-            ),
-          ),
         SizedBox(
           height: 132,
           child: Row(
@@ -1365,6 +1362,33 @@ class _TableScreenState extends State<TableScreen> {
             ],
           ),
         ),
+        // Dealer chip, turn badge and hero's own stack sit below the cards - matching the
+        // reference, and the opposite order from an opponent's badge (which sits above theirs).
+        if (isDealer || _isMyTurn || myChips != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 6),
+            child: Row(
+              children: [
+                if (isDealer) ...[
+                  const DealerChip(),
+                  const SizedBox(width: 8),
+                ],
+                if (_isMyTurn) ...[
+                  TurnBadge(label: t.onTheClock),
+                  const SizedBox(width: 8),
+                ],
+                if (myChips != null)
+                  Text(
+                    myChips,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      color: KarataColors.ink,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+              ],
+            ),
+          ),
       ],
     );
   }
