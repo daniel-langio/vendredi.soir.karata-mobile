@@ -104,6 +104,12 @@ class AppLocalizations {
   // NewTableScreen
   String get makePublic => _s('makePublic');
   String get makePublicHint => _s('makePublicHint');
+  String get virtualChips => _s('virtualChips');
+  String get virtualChipsHint => _s('virtualChipsHint');
+  String get strictMinimumBuyIn => _s('strictMinimumBuyIn');
+  String get strictMinimumBuyInHint => _s('strictMinimumBuyInHint');
+  String get autoRebuy => _s('autoRebuy');
+  String get autoRebuyHint => _s('autoRebuyHint');
   String get newTableTitle => _s('newTableTitle');
   String get newTableSubtitle => _s('newTableSubtitle');
   String get name => _s('name');
@@ -323,6 +329,15 @@ class AppLocalizations {
       'makePublicHint':
           'Listed on everyone\'s home screen and hosted by the house - you will not be seated, '
           'and it cannot be paused or closed.',
+      'virtualChips': 'Virtual chips (no real money)',
+      'virtualChipsHint':
+          'Chips here are free and can never be cashed out - use this for a practice/demo table.',
+      'strictMinimumBuyIn': 'Enforce minimum buy-in',
+      'strictMinimumBuyInHint': 'Players must buy in for at least the tier amount above.',
+      'autoRebuy': 'Auto-rebuy busted players',
+      'autoRebuyHint':
+          'Whenever an active player runs out of chips, the house tops them back up before '
+          'the next hand - useful with a permanent bot opponent.',
       'publicTables': 'Public tables',
       'anyoneCanSitDown': 'anyone can sit down',
       'noPublicTables': 'No public tables are open right now.',
@@ -554,6 +569,17 @@ class AppLocalizations {
       'makePublicHint':
           'Affichée sur l\'accueil de tous et hébergée par la maison - vous n\'y serez pas assis, '
           'et elle ne peut être ni mise en pause ni fermée.',
+      'virtualChips': 'Jetons virtuels (pas d\'argent réel)',
+      'virtualChipsHint':
+          'Les jetons ici sont gratuits et ne peuvent jamais être encaissés - à utiliser pour '
+          'une table de démonstration.',
+      'strictMinimumBuyIn': 'Imposer la cave minimale',
+      'strictMinimumBuyInHint':
+          'Les joueurs doivent se recaver pour au moins le montant du palier ci-dessus.',
+      'autoRebuy': 'Recave automatique des joueurs ruinés',
+      'autoRebuyHint':
+          'Quand un joueur actif n\'a plus de jetons, la maison le recave avant la prochaine '
+          'main - utile avec un bot adversaire permanent.',
       'publicTables': 'Tables publiques',
       'anyoneCanSitDown': 'ouvertes à tous',
       'noPublicTables': 'Aucune table publique n\'est ouverte pour le moment.',

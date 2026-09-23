@@ -182,6 +182,9 @@ class ApiClient {
     int bigBlind, {
     required int defaultBuyIn,
     String? variant,
+    bool? cashoutEnabled,
+    bool? enforceMinimumBuyIn,
+    bool? autoRebuyEnabled,
   }) async {
     final body = <String, dynamic>{
       'name': name,
@@ -189,6 +192,11 @@ class ApiClient {
       'defaultBuyIn': defaultBuyIn,
     };
     if (variant != null) body['variant'] = variant;
+    if (cashoutEnabled != null) body['cashoutEnabled'] = cashoutEnabled;
+    if (enforceMinimumBuyIn != null) {
+      body['enforceMinimumBuyIn'] = enforceMinimumBuyIn;
+    }
+    if (autoRebuyEnabled != null) body['autoRebuyEnabled'] = autoRebuyEnabled;
 
     final response = await http.post(
       Uri.parse('$baseUrl/games/public'),
