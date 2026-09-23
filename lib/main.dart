@@ -6,6 +6,7 @@ import 'l10n/app_localizations.dart';
 import 'chip_display.dart';
 import 'locale_controller.dart';
 import 'sound_settings.dart';
+import 'wide_layout.dart';
 import 'url_strategy_stub.dart'
     if (dart.library.js_interop) 'url_strategy_web.dart';
 import 'screens/welcome_screen.dart';
@@ -53,14 +54,19 @@ class MyApp extends StatelessWidget {
           onGenerateRoute: _onGenerateRoute,
           // This UI was designed as a phone screen. On a wide browser window it just looked like
           // that same phone layout stretched edge to edge, so cap it and centre it there; a native
-          // build is already phone-shaped and wants the full window.
+          // build is already phone-shaped and wants the full window. TableScreen raises this cap
+          // (via WideLayout) while it's the active route, so it can use a laptop-size window - every
+          // other screen never touches WideLayout, so they stay phone-width regardless.
           builder: kIsWeb
-              ? (context, child) => ColoredBox(
-                  color: KarataColors.bg,
-                  child: Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 430),
-                      child: child,
+              ? (context, child) => ValueListenableBuilder<bool>(
+                  valueListenable: WideLayout.instance,
+                  builder: (context, wide, _) => ColoredBox(
+                    color: KarataColors.bg,
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(maxWidth: wide ? 1040 : 430),
+                        child: child,
+                      ),
                     ),
                   ),
                 )

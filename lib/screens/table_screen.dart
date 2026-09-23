@@ -7,8 +7,10 @@ import '../chip_display.dart';
 import '../game_sounds.dart';
 import '../l10n/app_localizations.dart';
 import '../theme.dart';
+import '../wide_layout.dart';
 import '../widgets/table/act_button.dart';
 import '../widgets/table/board_row.dart';
+import '../widgets/table/chat_dock_panel.dart';
 import '../widgets/table/dealer_chip.dart';
 import '../widgets/table/last_action_badge.dart';
 import '../widgets/table/outcome_banner.dart';
@@ -36,6 +38,10 @@ class TableScreen extends StatefulWidget {
 }
 
 class _TableScreenState extends State<TableScreen> {
+  // Below this body width, render the original single-column phone layout; at or above it, add
+  // the docked chat panel alongside a wider table (see WideLayout for how web reaches this width).
+  static const _wideBreakpoint = 700.0;
+
   late final ApiClient _apiClient;
   Timer? _pollTimer;
   Timer? _tickTimer;
@@ -81,6 +87,9 @@ class _TableScreenState extends State<TableScreen> {
     // Every chip amount on this screen is formatted through ChipDisplay, so a change made in
     // settings has to repaint the table.
     ChipDisplay.instance.addListener(_onChipDisplayChanged);
+    // Only this screen wants more than the app's default phone-width cap on web - see
+    // WideLayout's doc comment.
+    WideLayout.instance.value = true;
   }
 
   void _onChipDisplayChanged() {
@@ -92,6 +101,7 @@ class _TableScreenState extends State<TableScreen> {
     _pollTimer?.cancel();
     _tickTimer?.cancel();
     ChipDisplay.instance.removeListener(_onChipDisplayChanged);
+    WideLayout.instance.value = false;
     unawaited(_sounds.dispose());
     super.dispose();
   }
@@ -739,9 +749,10 @@ class _TableScreenState extends State<TableScreen> {
           ),
         ],
       ),
-      body: Stack(
-        children: [
-          Padding(
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isWide = constraints.maxWidth >= _wideBreakpoint;
+          final tableContent = Padding(
             padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -857,13 +868,34 @@ class _TableScreenState extends State<TableScreen> {
                 _buildSelfStatus(),
               ],
             ),
-          ),
-          if (_isLoading)
-            Container(
-              color: Colors.black45,
-              child: const Center(child: CircularProgressIndicator()),
-            ),
-        ],
+          );
+
+          return Stack(
+            children: [
+              if (isWide)
+                Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 1040),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Expanded(child: tableContent),
+                        const SizedBox(width: 16),
+                        const SizedBox(width: 300, child: ChatDockPanel()),
+                      ],
+                    ),
+                  ),
+                )
+              else
+                tableContent,
+              if (_isLoading)
+                Container(
+                  color: Colors.black45,
+                  child: const Center(child: CircularProgressIndicator()),
+                ),
+            ],
+          );
+        },
       ),
     );
   }
