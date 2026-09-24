@@ -659,7 +659,7 @@ class _TableScreenState extends State<TableScreen> {
         (rh as Map<String, dynamic>)['playerId'].toString(): rh,
     };
 
-    return Scaffold(
+    final scaffold = Scaffold(
       backgroundColor: KarataColors.bg,
       appBar: AppBar(
         title: Text(
@@ -895,6 +895,19 @@ class _TableScreenState extends State<TableScreen> {
           );
         },
       ),
+    );
+
+    // Going back has to give up the seat for real, not just pop the route - the server still has
+    // you in the hand otherwise. Intercepting here covers the app-bar arrow, the system back
+    // button and the predictive-back gesture at once, and reuses the same confirmation the Leave
+    // table menu item shows. A closed table has no seat left to give up, so it pops normally.
+    return PopScope(
+      canPop: _isClosed,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        _leaveTable();
+      },
+      child: scaffold,
     );
   }
 
