@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../chip_display.dart';
 
 /// Hand-rolled localization: no ARB files or code generation, just a plain lookup table per
 /// locale, registered through the real Localizations/LocalizationsDelegate APIs so it plugs into
@@ -20,8 +21,20 @@ class AppLocalizations {
   static AppLocalizations of(BuildContext context) =>
       Localizations.of<AppLocalizations>(context, AppLocalizations)!;
 
-  String _s(String key) =>
-      _strings[locale.languageCode]?[key] ?? _strings['en']![key] ?? key;
+  /// Prefers a `<key>.money` variant while chips are displayed as money, so the economy flow
+  /// speaks of deposits and withdrawals rather than buying and redeeming chips. Only the keys
+  /// whose wording actually changes need a `.money` entry - everything else falls straight
+  /// through to the chip wording, in either mode.
+  String _s(String key) {
+    if (ChipDisplay.instance.value.asMoney) {
+      final money = _lookup('$key.money');
+      if (money != null) return money;
+    }
+    return _lookup(key) ?? key;
+  }
+
+  String? _lookup(String key) =>
+      _strings[locale.languageCode]?[key] ?? _strings['en']![key];
 
   String _fmt(String key, Map<String, String> args) {
     var value = _s(key);
@@ -479,16 +492,24 @@ class AppLocalizations {
           'Minimum raise is simplified (double the current bet), not the standard last-raise-size rule',
       'close': 'Close',
       'economyTitle': 'Chip Exchange',
+      'economyTitle.money': 'Wallet',
       'economySubtitle':
           'One global rate for everyone. Buy chips or redeem them for cash.',
+      'economySubtitle.money':
+          'Deposit to top up your balance, or withdraw it back to mobile money.',
       'buyPriceLine': 'Redeem rate: {price} Ar per chip',
       'sellPriceLine': 'Buy rate: {price} Ar per chip',
       'buyChips': 'Buy chips',
+      'buyChips.money': 'Deposit',
       'redeemChips': 'Redeem chips',
+      'redeemChips.money': 'Withdraw',
       'pendingRedemptions': 'Pending redemptions',
+      'pendingRedemptions.money': 'Pending withdrawals',
       'economySettings': 'Economy settings',
       'couldNotLoadPrice': 'Could not load the chip price: {error}',
+      'couldNotLoadPrice.money': 'Could not load the rate: {error}',
       'quantity': 'Quantity',
+      'quantity.money': 'Amount',
       'paymentProvider': 'Payment provider',
       'payInstructions':
           'Pay {amount} Ar to {phone} using your mobile money app, then enter the phone number you paid from and the reference (Trans Id / Ref) from your confirmation SMS below.',
@@ -498,14 +519,20 @@ class AppLocalizations {
       'submitPayment': "I've paid",
       'waitingForConfirmation': 'Waiting for the payment to be confirmed...',
       'chipsCredited': 'Chips credited to your wallet!',
+      'chipsCredited.money': 'Deposit credited to your wallet!',
       'couldNotBuyChips': 'Could not submit payment: {error}',
       'payoutPhoneNumber': 'Payout phone number',
       'redeemTotalLine': 'You will receive {amount} Ar',
       'submitRedemption': 'Redeem chips',
+      'submitRedemption.money': 'Withdraw',
       'waitingForPayout': 'Waiting for the payout to be confirmed...',
       'redemptionPaidOut': 'Redemption paid out!',
+      'redemptionPaidOut.money': 'Withdrawal paid out!',
       'redemptionCancelled': 'Redemption cancelled - your chips were refunded.',
+      'redemptionCancelled.money':
+          'Withdrawal cancelled - your balance was refunded.',
       'couldNotRedeemChips': 'Could not submit redemption: {error}',
+      'couldNotRedeemChips.money': 'Could not submit withdrawal: {error}',
       'chipPriceField': 'Chip price (Ar per chip)',
       'savePrice': 'Save price',
       'priceUpdated': 'Price updated',
@@ -727,16 +754,25 @@ class AppLocalizations {
           'Relance minimale simplifiée (le double de la mise actuelle), pas la règle standard de la taille de la dernière relance',
       'close': 'Fermer',
       'economyTitle': 'Change de jetons',
+      'economyTitle.money': 'Portefeuille',
       'economySubtitle':
           'Un taux global pour tout le monde. Achetez des jetons ou encaissez-les.',
+      'economySubtitle.money':
+          'Déposez pour recharger votre solde, ou retirez-le vers mobile money.',
       'buyPriceLine': "Taux d'encaissement : {price} Ar par jeton",
       'sellPriceLine': "Taux d'achat : {price} Ar par jeton",
       'buyChips': 'Acheter des jetons',
+      'buyChips.money': 'Dépôt',
       'redeemChips': 'Encaisser des jetons',
+      'redeemChips.money': 'Retrait',
       'pendingRedemptions': 'Encaissements en attente',
+      'pendingRedemptions.money': 'Retraits en attente',
       'economySettings': "Paramètres de l'économie",
       'couldNotLoadPrice': 'Impossible de charger le prix du jeton : {error}',
+      'couldNotLoadPrice.money':
+          'Impossible de charger le taux : {error}',
       'quantity': 'Quantité',
+      'quantity.money': 'Montant',
       'paymentProvider': 'Opérateur de paiement',
       'payInstructions':
           "Payez {amount} Ar au {phone} via votre application mobile money, puis saisissez le numéro depuis lequel vous avez payé et la référence (Trans Id / Ref) reçue par SMS ci-dessous.",
@@ -746,16 +782,23 @@ class AppLocalizations {
       'submitPayment': "J'ai payé",
       'waitingForConfirmation': 'En attente de la confirmation du paiement...',
       'chipsCredited': 'Jetons crédités sur votre portefeuille !',
+      'chipsCredited.money': 'Dépôt crédité sur votre portefeuille !',
       'couldNotBuyChips': "Impossible d'envoyer le paiement : {error}",
       'payoutPhoneNumber': 'Numéro de téléphone de réception',
       'redeemTotalLine': 'Vous recevrez {amount} Ar',
       'submitRedemption': 'Encaisser',
+      'submitRedemption.money': 'Retirer',
       'waitingForPayout': 'En attente de la confirmation du paiement...',
       'redemptionPaidOut': 'Encaissement payé !',
+      'redemptionPaidOut.money': 'Retrait payé !',
       'redemptionCancelled':
           'Encaissement annulé - vos jetons ont été remboursés.',
+      'redemptionCancelled.money':
+          'Retrait annulé - votre solde a été recrédité.',
       'couldNotRedeemChips':
           "Impossible d'envoyer la demande d'encaissement : {error}",
+      'couldNotRedeemChips.money':
+          "Impossible d'envoyer la demande de retrait : {error}",
       'chipPriceField': 'Prix du jeton (Ar par jeton)',
       'savePrice': 'Enregistrer le prix',
       'priceUpdated': 'Prix mis à jour',

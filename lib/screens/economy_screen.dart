@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../api/api_client.dart';
+import '../chip_display.dart';
 import '../l10n/app_localizations.dart';
 import '../theme.dart';
 
@@ -154,34 +155,39 @@ class _EconomyScreenState extends State<EconomyScreen> {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: KarataColors.field,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            t.buyPriceLine('$buyPrice'),
-                            style: const TextStyle(
-                              color: KarataColors.ink,
-                              fontSize: 15,
+                    // The per-chip rate is the one thing that can't be said without naming chips,
+                    // and it's redundant once every amount is already shown in Ariary - so it's
+                    // dropped entirely rather than reworded when money display is on.
+                    if (!ChipDisplay.instance.value.asMoney) ...[
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: KarataColors.field,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              t.buyPriceLine('$buyPrice'),
+                              style: const TextStyle(
+                                color: KarataColors.ink,
+                                fontSize: 15,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            t.sellPriceLine('$sellPrice'),
-                            style: const TextStyle(
-                              color: KarataColors.dim,
-                              fontSize: 13,
+                            const SizedBox(height: 6),
+                            Text(
+                              t.sellPriceLine('$sellPrice'),
+                              style: const TextStyle(
+                                color: KarataColors.dim,
+                                fontSize: 13,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 28),
+                      const SizedBox(height: 28),
+                    ],
                     ElevatedButton(
                       onPressed: _openBuy,
                       child: Text(t.buyChips),
