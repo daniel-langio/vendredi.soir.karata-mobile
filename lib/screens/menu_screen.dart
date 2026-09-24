@@ -266,18 +266,12 @@ class _MenuScreenState extends State<MenuScreen> {
                               if (_tablesError != null)
                                 _note(t.couldNotLoadTables(_tablesError!)),
                               if (_showPublic) ...[
-                                _sectionHeader(
-                                  t.publicTables,
-                                  t.anyoneCanSitDown,
-                                ),
+                                _sectionHint(t.anyoneCanSitDown),
                                 if (_public.isEmpty && _tablesError == null)
                                   _note(t.noPublicTables),
                                 _publicTableCards(chipSettings),
                               ] else ...[
-                                _sectionHeader(
-                                  t.yourTables,
-                                  t.syncedToYourAccount,
-                                ),
+                                _sectionHint(t.syncedToYourAccount),
                                 if (_mine.isEmpty && _tablesError == null)
                                   _note(t.noTablesYet),
                                 ..._mine.map(
@@ -340,26 +334,13 @@ class _MenuScreenState extends State<MenuScreen> {
     );
   }
 
-  Widget _sectionHeader(String title, String hint) => Padding(
+  /// Just the explanatory line under the list - the selected tab above already names it, so
+  /// repeating the title here only said "Public tables" twice in a row.
+  Widget _sectionHint(String hint) => Padding(
     padding: const EdgeInsets.only(bottom: 4),
-    child: Row(
-      children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: KarataColors.ink,
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            hint,
-            style: const TextStyle(fontSize: 12.5, color: KarataColors.dim),
-          ),
-        ),
-      ],
+    child: Text(
+      hint,
+      style: const TextStyle(fontSize: 12.5, color: KarataColors.dim),
     ),
   );
 
