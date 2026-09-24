@@ -4,6 +4,18 @@ import '../../l10n/app_localizations.dart';
 import '../../theme.dart';
 import 'pop_in.dart';
 
+/// Picks the phrasing that agrees with who actually won - see AppLocalizations.won.
+String _wonLine(
+  AppLocalizations t,
+  int winnerCount,
+  bool iWon,
+  String names,
+  String amount,
+) {
+  if (winnerCount > 1) return t.wonBySeveral(names, amount);
+  return iWon ? t.wonByYou(amount) : t.won(names, amount);
+}
+
 class OutcomeBanner extends StatelessWidget {
   final Map<String, dynamic> outcome;
   final String myUsername;
@@ -18,6 +30,7 @@ class OutcomeBanner extends StatelessWidget {
     final t = AppLocalizations.of(context);
     final winners = outcome['winners'] as List<dynamic>? ?? [];
     if (winners.isEmpty) return const SizedBox();
+    final iWon = winners.any((w) => w['username'] == myUsername);
     final names = winners
         .map(
           (w) => w['username'] == myUsername ? t.you : w['username'].toString(),
@@ -55,7 +68,13 @@ class OutcomeBanner extends StatelessWidget {
         ),
         const SizedBox(height: 6),
         Text(
-          t.won(names, ChipDisplay.instance.format(total)),
+          _wonLine(
+            t,
+            winners.length,
+            iWon,
+            names,
+            ChipDisplay.instance.format(total),
+          ),
           style: const TextStyle(
             color: KarataColors.ink,
             fontSize: 14.5,
