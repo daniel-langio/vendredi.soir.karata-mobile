@@ -236,7 +236,6 @@ class AppLocalizations {
   String get variantSimplificationsHeading =>
       _s('variantSimplificationsHeading');
   String get variantNoSidePots => _s('variantNoSidePots');
-  String get variantNoButtonRotation => _s('variantNoButtonRotation');
   String get variantSimplifiedMinRaise => _s('variantSimplifiedMinRaise');
   String get close => _s('close');
 
@@ -476,8 +475,6 @@ class AppLocalizations {
       'variantSimplificationsHeading': 'This table simplifies a few things',
       'variantNoSidePots':
           'No side pots - an all-in tie splits the whole pot evenly, regardless of stack size',
-      'variantNoButtonRotation':
-          'No dealer button rotation - the same two seats always post the blinds',
       'variantSimplifiedMinRaise':
           'Minimum raise is simplified (double the current bet), not the standard last-raise-size rule',
       'close': 'Close',
@@ -726,8 +723,6 @@ class AppLocalizations {
       'variantSimplificationsHeading': 'Cette table simplifie quelques règles',
       'variantNoSidePots':
           'Pas de pots secondaires - une égalité à tapis partage tout le pot également, peu importe la taille des tapis',
-      'variantNoButtonRotation':
-          'Pas de rotation du bouton donneur - les deux mêmes sièges misent toujours les blindes',
       'variantSimplifiedMinRaise':
           'Relance minimale simplifiée (le double de la mise actuelle), pas la règle standard de la taille de la dernière relance',
       'close': 'Fermer',

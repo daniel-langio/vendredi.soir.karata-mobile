@@ -32,7 +32,7 @@ class SeatWidget extends StatelessWidget {
     final isActive = activePlayerId != null && activePlayerId == playerId;
     final isFolded = status == 'FOLDED';
     final isAllIn = status == 'ALL_IN';
-    final isDealer = blind == 'SMALL';
+    final isDealer = player['dealer'] == true;
     final bool isBot = player['isBot'] == true;
     final initial = isBot
         ? 'BOT'

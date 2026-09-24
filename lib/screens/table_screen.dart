@@ -612,7 +612,6 @@ class _TableScreenState extends State<TableScreen> {
                 ),
                 const SizedBox(height: 8),
                 bullet(t.variantNoSidePots),
-                bullet(t.variantNoButtonRotation),
                 bullet(t.variantSimplifiedMinRaise),
               ],
             ),
@@ -1303,7 +1302,7 @@ class _TableScreenState extends State<TableScreen> {
   Widget _buildHandRow() {
     final t = AppLocalizations.of(context);
     final canSelectDiscards = _phase == 'DRAW' && _isMyTurn;
-    final isDealer = _you?['blind']?.toString() == 'SMALL';
+    final isDealer = _you?['dealer'] == true;
     final me =
         _players.firstWhere(
               (p) => p['username'] == widget.username,
