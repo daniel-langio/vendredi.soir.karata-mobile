@@ -899,9 +899,10 @@ class _TableScreenState extends State<TableScreen> {
     // Going back has to give up the seat for real, not just pop the route - the server still has
     // you in the hand otherwise. Intercepting here covers the app-bar arrow, the system back
     // button and the predictive-back gesture at once, and reuses the same confirmation the Leave
-    // table menu item shows. A closed table has no seat left to give up, so it pops normally.
+    // table menu item shows. Only worth asking of someone who actually holds a seat though: a
+    // spectator, or anyone at a closed table, has nothing to give up and just leaves.
     return PopScope(
-      canPop: _isClosed,
+      canPop: _isClosed || !_isPlaying,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
         _leaveTable();
