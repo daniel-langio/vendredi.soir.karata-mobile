@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:yaml/yaml.dart';
 
+import 'server_config.dart';
+
 class BackendOption {
   final String name;
   final String url;
@@ -31,7 +33,10 @@ class DebugBackendConfig {
         for (final entry in list)
           BackendOption(
             name: (entry as YamlMap)['name'] as String,
-            url: entry['url'] as String,
+            // An entry may leave "url" out to mean the backend this build already ships against.
+            // The picker auto-selects whichever entry matches that default, so writing the
+            // deployed URL out again here only created a second copy to keep in step.
+            url: entry['url'] as String? ?? kDefaultServerUrl,
           ),
       ];
     } catch (_) {

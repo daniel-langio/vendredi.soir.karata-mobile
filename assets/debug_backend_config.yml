@@ -1,4 +1,6 @@
 enabled: true
 backends:
+  # No "url" here on purpose: this entry means whatever this build already ships against
+  # (kDefaultServerUrl in lib/server_config.dart), so the deployed address is written down once.
+  # Add further entries with an explicit "url" to point a debug build somewhere else.
   - name: "Cloud Run (karata0)"
-    url: "https://preprod-karata-210977503792.southamerica-east1.run.app/poker"
