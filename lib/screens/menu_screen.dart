@@ -52,6 +52,10 @@ class _MenuScreenState extends State<MenuScreen> {
   String? _tablesError;
   int? _walletChips;
 
+  /// Which of the two table lists the tab selector is showing. Public tables lead: they're the
+  /// ones a player with no table of their own can actually sit down at.
+  bool _showPublic = true;
+
   @override
   void initState() {
     super.initState();
@@ -248,6 +252,8 @@ class _MenuScreenState extends State<MenuScreen> {
                 label: Text(t.joinWithLink),
               ),
               const SizedBox(height: 32),
+              _tableTabs(t),
+              const SizedBox(height: 16),
               Expanded(
                 child: _loadingTables && _mine.isEmpty && _public.isEmpty
                     ? const Center(child: CircularProgressIndicator())
@@ -259,29 +265,75 @@ class _MenuScreenState extends State<MenuScreen> {
                             children: [
                               if (_tablesError != null)
                                 _note(t.couldNotLoadTables(_tablesError!)),
-                              _sectionHeader(
-                                t.yourTables,
-                                t.syncedToYourAccount,
-                              ),
-                              if (_mine.isEmpty && _tablesError == null)
-                                _note(t.noTablesYet),
-                              ..._mine.map(
-                                (table) => _tableTile(table, chipSettings),
-                              ),
-                              const SizedBox(height: 28),
-                              _sectionHeader(
-                                t.publicTables,
-                                t.anyoneCanSitDown,
-                              ),
-                              if (_public.isEmpty && _tablesError == null)
-                                _note(t.noPublicTables),
-                              _publicTableCards(chipSettings),
+                              if (_showPublic) ...[
+                                _sectionHeader(
+                                  t.publicTables,
+                                  t.anyoneCanSitDown,
+                                ),
+                                if (_public.isEmpty && _tablesError == null)
+                                  _note(t.noPublicTables),
+                                _publicTableCards(chipSettings),
+                              ] else ...[
+                                _sectionHeader(
+                                  t.yourTables,
+                                  t.syncedToYourAccount,
+                                ),
+                                if (_mine.isEmpty && _tablesError == null)
+                                  _note(t.noTablesYet),
+                                ..._mine.map(
+                                  (table) => _tableTile(table, chipSettings),
+                                ),
+                              ],
                             ],
                           ),
                         ),
                       ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _tableTabs(AppLocalizations t) => Container(
+    padding: const EdgeInsets.all(3),
+    decoration: BoxDecoration(
+      color: KarataColors.pill,
+      borderRadius: BorderRadius.circular(11),
+      border: Border.all(color: KarataColors.pillLine),
+    ),
+    child: Row(
+      children: [
+        _tableTab(t.publicTables, true),
+        _tableTab(t.yourTables, false),
+      ],
+    ),
+  );
+
+  Widget _tableTab(String label, bool selectsPublic) {
+    final selected = _showPublic == selectsPublic;
+    return Expanded(
+      child: GestureDetector(
+        // Opaque, so the whole half stays tappable rather than only the glyphs in it.
+        behavior: HitTestBehavior.opaque,
+        onTap: selected
+            ? null
+            : () => setState(() => _showPublic = selectsPublic),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 9),
+          decoration: BoxDecoration(
+            color: selected ? KarataColors.pillLine : Colors.transparent,
+            borderRadius: BorderRadius.circular(9),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: selected ? KarataColors.ink : KarataColors.dim,
+            ),
           ),
         ),
       ),
