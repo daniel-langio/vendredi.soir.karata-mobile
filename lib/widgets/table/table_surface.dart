@@ -4,6 +4,7 @@ import 'board_row.dart';
 import 'dealer_button.dart';
 import 'fanned_hand.dart';
 import 'hand_label.dart';
+import 'pot_amount.dart';
 import 'seat_data.dart';
 import 'seat_layout.dart';
 import 'table_felt.dart';
@@ -19,6 +20,7 @@ class TableSurface extends StatelessWidget {
     super.key,
     required this.opponents,
     required this.board,
+    required this.pot,
     required this.heroCards,
     this.winningCards = const {},
     this.handLabel,
@@ -31,6 +33,10 @@ class TableSurface extends StatelessWidget {
 
   final List<SeatData> opponents;
   final List<String?> board;
+
+  /// Already formatted. Sits under the board, where the chips it counts actually are.
+  final String pot;
+
   final List<String?> heroCards;
   final Set<String> winningCards;
   final String? handLabel;
@@ -101,8 +107,10 @@ class TableSurface extends StatelessWidget {
                 children: [
                   if (banner != null) ...[banner!, const SizedBox(height: 10)],
                   BoardRow(cards: board, winningCards: winningCards),
+                  const SizedBox(height: 12),
+                  PotAmount(pot),
                   if (handLabel != null) ...[
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 6),
                     HandLabel(handLabel!),
                   ],
                 ],

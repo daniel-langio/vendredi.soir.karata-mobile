@@ -615,6 +615,7 @@ class _TableScreenState extends State<TableScreen> {
               .map((c) => c?.toString())
               .toList(),
       winningCards: winningCards,
+      pot: ChipDisplay.instance.format(deal?['pot'] as num?),
       handLabel: outcome?['handName']?.toString(),
       heroCards: _myCards.map((c) => c?.toString()).toList(),
       heroDimmed: _you?['status'] == 'FOLDED',
@@ -696,16 +697,13 @@ class _TableScreenState extends State<TableScreen> {
 
   /// The pot line, the two round buttons, the sizer and the action buttons.
   Widget _controls(AppLocalizations t) {
-    final pot = ChipDisplay.instance.format(_currentDeal?['pot'] as num?);
     final common = (
-      pot: pot,
       handStrengthLabel: t.handStrength,
       emoteLabel: t.sendReaction,
     );
 
     if (_isClosed) {
       return TableControls(
-        pot: common.pot,
         actions: const [],
         actionsEnabled: false,
         message: t.tableClosed,
@@ -721,7 +719,6 @@ class _TableScreenState extends State<TableScreen> {
     if (!_isPlaying) {
       final handInProgress = _dealId.isNotEmpty && _phase != 'SHOWDOWN';
       return TableControls(
-        pot: common.pot,
         actionsEnabled: !_isLoading,
         actions: [
           (
@@ -740,7 +737,6 @@ class _TableScreenState extends State<TableScreen> {
 
     if (_dealId.isEmpty || _phase == 'SHOWDOWN') {
       return TableControls(
-        pot: common.pot,
         actionsEnabled: true,
         actions: [
           (
@@ -761,7 +757,6 @@ class _TableScreenState extends State<TableScreen> {
 
     if (_phase == 'DRAW') {
       return TableControls(
-        pot: common.pot,
         actionsEnabled: _isMyTurn,
         message: _isMyTurn ? null : t.waitingForDraw,
         actions: [
@@ -781,7 +776,6 @@ class _TableScreenState extends State<TableScreen> {
     }
 
     return TableControls(
-      pot: common.pot,
       actionsEnabled: _isMyTurn,
       actions: _bettingActions(t),
       sizer: _betSizer(t),

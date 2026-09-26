@@ -12,7 +12,7 @@ import 'table_action_bar.dart';
 class TableControls extends StatelessWidget {
   const TableControls({
     super.key,
-    required this.pot,
+    this.centreLabel,
     required this.actions,
     required this.actionsEnabled,
     required this.onHandStrength,
@@ -23,8 +23,9 @@ class TableControls extends StatelessWidget {
     this.message,
   });
 
-  /// Already formatted.
-  final String pot;
+  /// What sits between the two round buttons. The pot lives on the felt, under the board it
+  /// belongs to, so this slot carries something about the player instead.
+  final String? centreLabel;
 
   final List<TableAction> actions;
   final bool actionsEnabled;
@@ -54,8 +55,10 @@ class TableControls extends StatelessWidget {
             ),
             Expanded(
               child: Text(
-                pot,
+                centreLabel ?? '',
                 textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: karataText(
                   size: 18,
                   weight: 800,
