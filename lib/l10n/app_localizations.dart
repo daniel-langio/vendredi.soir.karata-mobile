@@ -333,6 +333,80 @@ class AppLocalizations {
   String couldNotCancelRedemption(String error) =>
       _fmt('couldNotCancelRedemption', {'error': error});
 
+  // V2 design - common chrome and the auth screens
+  String get back => _s('back');
+  String get usernameHint => _s('usernameHint');
+  String get passwordHint => _s('passwordHint');
+  String get showPassword => _s('showPassword');
+  String get loginSubtitle => _s('loginSubtitle');
+  String get alreadyHaveAnAccount => _s('alreadyHaveAnAccount');
+  String get newHere => _s('newHere');
+
+  // V2 design - joining a table
+  String get tableLink => _s('tableLink');
+
+  // V2 design - the lobby and the balance card
+  String get balance => _s('balance');
+  String get atTables => _s('atTables');
+  String get deposit => _s('deposit');
+  String get withdraw => _s('withdraw');
+  String get seatsOpen => _s('seatsOpen');
+
+  // V2 design - creating a table
+  String get table => _s('table');
+  String bigBlindsPreset(String count) =>
+      _fmt('bigBlindsPreset', {'count': count});
+  String get maxPreset => _s('maxPreset');
+  String thatsNBigBlinds(String count) =>
+      _fmt('thatsNBigBlinds', {'count': count});
+  String balanceOf(String amount) => _fmt('balanceOf', {'amount': amount});
+
+  // V2 design - the wallet
+  String get house => _s('house');
+  String get admin => _s('admin');
+  String get refresh => _s('refresh');
+  String get pendingRedemptionsHint => _s('pendingRedemptionsHint');
+  String get economySettingsHint => _s('economySettingsHint');
+
+  // V2 design - deposits and withdrawals
+  String get chipsYouGet => _s('chipsYouGet');
+  String get fee => _s('fee');
+  String get youPay => _s('youPay');
+  String get sendThePayment => _s('sendThePayment');
+  String get confirmItHere => _s('confirmItHere');
+  String get copyNumber => _s('copyNumber');
+  String get numberCopied => _s('numberCopied');
+  String get depositSubtitle => _s('depositSubtitle');
+
+  // V2 design - withdrawals
+  String get withdrawSubtitle => _s('withdrawSubtitle');
+  String get allPreset => _s('allPreset');
+  String get chipsBurned => _s('chipsBurned');
+  String get youWillReceive => _s('youWillReceive');
+  String get payoutsByHand => _s('payoutsByHand');
+
+  // V2 design - pending payouts
+  String get owedInTotal => _s('owedInTotal');
+  String get toSend => _s('toSend');
+  String nPending(String count) => _fmt('nPending', {'count': count});
+
+  // V2 design - economy settings
+  String get chipPrice => _s('chipPrice');
+  String get price => _s('price');
+  String get arPerChip => _s('arPerChip');
+  String get fees => _s('fees');
+  String get houseAccount => _s('houseAccount');
+  String get receivingPhoneNumber => _s('receivingPhoneNumber');
+  String get noMinimum => _s('noMinimum');
+
+  // V2 design - the table
+  String get winner => _s('winner');
+  String get yourTurnBadge => _s('yourTurnBadge');
+  String get handStrength => _s('handStrength');
+  String get sendReaction => _s('sendReaction');
+  String get betAmount => _s('betAmount');
+  String get tablePausedHost => _s('tablePausedHost');
+
   static const Map<String, Map<String, String>> _strings = {
     'en': {
       'cancel': 'Cancel',
@@ -342,7 +416,7 @@ class AppLocalizations {
       'username': 'Username',
       'password': 'Password',
       'welcomeTagline':
-          'Play poker with your friends. No accounts to manage,\njust a name and a table.',
+          'Play poker with your friends. No accounts to manage, just a name and a table.',
       'serverSettings': 'Server settings',
       'hideServerSettings': 'Hide server settings',
       'serverBaseUrl': 'Server base URL',
@@ -355,14 +429,13 @@ class AppLocalizations {
           'Promo code {code} will be applied to your account.',
       'couldNotLogIn': 'Could not log in: {error}',
       'signInHint': 'This name is your sign-in',
-      'createTable': 'Create a table',
-      'joinWithLink': 'Join with a link',
+      'createTable': 'New table',
+      'joinWithLink': 'Join with link',
       'yourTables': 'Your tables',
       'syncedToYourAccount': 'synced to your account',
       'makePublic': 'Make this table public',
       'makePublicHint':
-          'Listed on everyone\'s home screen and hosted by the house - you will not be seated, '
-          'and it cannot be paused or closed.',
+          'Listed on everyone’s home screen and hosted by the house. You won’t be seated, and it can’t be paused or closed.',
       'virtualChips': 'Virtual chips (no real money)',
       'virtualChipsHint':
           'Chips here are free and can never be cashed out - use this for a practice/demo table.',
@@ -374,7 +447,7 @@ class AppLocalizations {
           'Whenever an active player runs out of chips, the house tops them back up before '
           'the next hand - useful with a permanent bot opponent.',
       'publicTables': 'Public tables',
-      'anyoneCanSitDown': 'anyone can sit down',
+      'anyoneCanSitDown': 'Anyone can sit down',
       'noPublicTables': 'No public tables are open right now.',
       'buyInOf': '{amount} buy-in',
       'seatedCount': '{count} players',
@@ -391,21 +464,19 @@ class AppLocalizations {
       'newTableSubtitle':
           'Name and blinds are all the server keeps. Everything else is set when each player sits down.',
       'name': 'Name',
-      'generateTableName': 'Generate a random name',
+      'generateTableName': 'Suggest another name',
       'smallBlind': 'Small blind',
-      'smallBlind.money': 'Small blind (Ar)',
       'bigBlind': 'Big blind',
-      'bigBlind.money': 'Big blind (Ar)',
       'yourBuyIn': 'Your buy-in',
       'chips': 'Chips',
       'newTableFooter':
-          "Creating the table seats you at it. Everyone else picks their own buy-in when they join, and chips carry between hands.",
+          'Creating the table seats you at it. Everyone else picks their own buy-in when they join, and chips carry between hands.',
       'createAndSitDown': 'Create and sit down',
       'fillValidValues': 'Please fill in valid values',
       'couldNotCreateTable': 'Could not create table: {error}',
       'joinTableTitle': 'Join a table',
       'joinTableSubtitle':
-          "Paste the link someone sent you. Table IDs are long, so nobody should ever have to read one out.",
+          'Paste the link someone sent you. Table IDs are long, so nobody should ever have to read one out.',
       'linkHint': 'karata.app/t/…',
       'find': 'Find',
       'foundIt': 'Found it',
@@ -413,7 +484,6 @@ class AppLocalizations {
       'youCanOnlyBuyInOnce':
           "You can only buy in once per table, so pick a stack you're happy to sit with.",
       'amount': 'Amount',
-      'amount.money': 'Amount (Ar)',
       'sitDown': 'Sit down',
       'openTable': 'Open table',
       'noValidLink': 'No valid table link found',
@@ -430,7 +500,7 @@ class AppLocalizations {
       'closeTable': 'Close table',
       'pauseTable': 'Pause table',
       'resumeTable': 'Resume table',
-      'tablePaused': 'Paused by the host',
+      'tablePaused': 'The host has paused this table.',
       'tablePausedExplainer':
           'No deals or actions until the host resumes. Your chips stay where they are.',
       'couldNotPauseTable': 'Could not change the pause state: {error}',
@@ -471,11 +541,11 @@ class AppLocalizations {
       'betVerb': 'Bet',
       'raiseVerb': 'Raise',
       'minAllIn': 'min {min} · all in {max}',
-      'oneThirdPot': '⅓ pot',
-      'halfPot': '½ pot',
-      'threeQuartersPot': '¾ pot',
+      'oneThirdPot': '1/3',
+      'halfPot': '1/2',
+      'threeQuartersPot': '3/4',
       'pot': 'Pot',
-      'allIn': 'All in',
+      'allIn': 'All-in',
       'handStrengthAvailableSoon': 'Hand strength\navailable soon',
       'won': '💰 {names} won {amount}',
       'wonByYou': '💰 You won {amount}',
@@ -501,8 +571,8 @@ class AppLocalizations {
       'variantHoleCardsOmaha': '4 hole cards per player, dealt face down',
       'variantRankingOmaha':
           'Best 5-card hand using exactly 2 of your hole cards and exactly 3 from the board',
-      'variantTexasHoldemShort': 'Texas Hold\'em',
-      'variantOmahaShort': 'Omaha',
+      'variantTexasHoldemShort': 'No-limit Texas Hold\'em',
+      'variantOmahaShort': 'Pot-limit Omaha',
       'variantTitleFiveCardDraw': 'No-Limit Five-Card Draw',
       'variantHoleCardsFiveCardDraw':
           '5 hole cards per player, dealt face down',
@@ -518,10 +588,10 @@ class AppLocalizations {
       'variantSimplifiedMinRaise':
           'Minimum raise is simplified (double the current bet), not the standard last-raise-size rule',
       'close': 'Close',
-      'economyTitle': 'Chip Exchange',
+      'economyTitle': 'Wallet',
       'economyTitle.money': 'Wallet',
       'economySubtitle':
-          'One global rate for everyone. Buy chips or redeem them for cash.',
+          'Deposit to top up your balance, or withdraw it back to mobile money.',
       'economySubtitle.money':
           'Deposit to top up your balance, or withdraw it back to mobile money.',
       'buyPriceLine': 'Redeem rate: {price} Ar per chip',
@@ -530,7 +600,7 @@ class AppLocalizations {
       'buyChips.money': 'Deposit',
       'redeemChips': 'Redeem chips',
       'redeemChips.money': 'Withdraw',
-      'pendingRedemptions': 'Pending redemptions',
+      'pendingRedemptions': 'Pending withdrawals',
       'pendingRedemptions.money': 'Pending withdrawals',
       'economySettings': 'Economy settings',
       'couldNotLoadPrice': 'Could not load the chip price: {error}',
@@ -538,12 +608,11 @@ class AppLocalizations {
       'quantity': 'Quantity',
       'quantity.money': 'Amount (Ar)',
       'paymentProvider': 'Payment provider',
-      'payInstructions':
-          'Pay {amount} Ar to {phone} using your mobile money app, then enter the phone number you paid from and the reference (Trans Id / Ref) from your confirmation SMS below.',
+      'payInstructions': 'Pay {amount} to {phone} from your mobile money app.',
       'yourPhoneNumber': 'Your phone number',
       'transactionRef': 'Transaction reference',
-      'transactionRefHint': 'e.g. the Ref or Trans Id from your SMS',
-      'submitPayment': "I've paid",
+      'transactionRefHint': 'Ref or Trans Id from your SMS',
+      'submitPayment': 'I’ve paid',
       'waitingForConfirmation': 'Waiting for the payment to be confirmed...',
       'chipsCredited': 'Chips credited to your wallet!',
       'chipsCredited.money': 'Deposit credited to your wallet!',
@@ -564,15 +633,15 @@ class AppLocalizations {
       'savePrice': 'Save price',
       'priceUpdated': 'Price updated',
       'couldNotUpdatePrice': 'Could not update the price: {error}',
-      'sellSpreadPercentField': 'Sell spread (%)',
-      'rakePercentField': 'Table rake (%)',
+      'sellSpreadPercentField': 'Sell spread',
+      'rakePercentField': 'Table rake',
       'rakeMinField': 'Table rake minimum',
       'houseReceivingPhoneNumberField': 'House receiving phone number',
       'saveConfig': 'Save config',
       'configUpdated': 'Config updated',
       'couldNotUpdateConfig': 'Could not update the config: {error}',
       'pendingRedemptionsSubtitle':
-          'Chips already burned, payout still owed - send these manually.',
+          'Chips already burned, payout still owed. Send these by hand.',
       'noPendingRedemptions': 'No pending redemptions.',
       'couldNotLoadPendingRedemptions':
           'Could not load pending redemptions: {error}',
@@ -586,7 +655,7 @@ class AppLocalizations {
       'settingsTable': 'Table',
       'chipsAsMoney': 'Show chips as money',
       'chipsAsMoneySubtitle':
-          'Show every chip count in Ariary instead. This is your own valuation, not an official rate.',
+          'Show every chip count in Ariary. This is your own valuation, not an official rate.',
       'chipsAsMoneyExample': '{chips} chips shows as {money}',
       'tableSounds': 'Table sounds',
       'tableSoundsSubtitle': 'Card, chip and button sounds during a hand.',
@@ -598,6 +667,59 @@ class AppLocalizations {
       'phoneNumberSaved': 'Phone number saved',
       'couldNotLoadPhoneNumber': 'Could not load your phone number: {error}',
       'couldNotSavePhoneNumber': 'Could not save your phone number: {error}',
+      'back': 'Back',
+      'usernameHint': 'Your table name',
+      'passwordHint': 'At least 8 characters',
+      'showPassword': 'Show password',
+      'loginSubtitle': 'Welcome back.',
+      'alreadyHaveAnAccount': 'Already have an account?',
+      'newHere': 'New here?',
+      'tableLink': 'Table link',
+      'balance': 'Balance',
+      'atTables': 'At tables',
+      'deposit': 'Deposit',
+      'withdraw': 'Withdraw',
+      'seatsOpen': 'Seats open',
+      'table': 'Table',
+      'bigBlindsPreset': '{count} BB',
+      'maxPreset': 'Max',
+      'thatsNBigBlinds': 'That’s {count} big blinds.',
+      'balanceOf': 'Balance: {amount}',
+      'house': 'House',
+      'admin': 'Admin',
+      'refresh': 'Refresh',
+      'pendingRedemptionsHint': 'Payouts you still owe players',
+      'economySettingsHint': 'Chip price, spread and rake',
+      'chipsYouGet': 'Chips you get',
+      'fee': 'Fee',
+      'youPay': 'You pay',
+      'sendThePayment': 'Send the payment',
+      'confirmItHere': 'Confirm it here',
+      'copyNumber': 'Copy number',
+      'numberCopied': 'Number copied',
+      'depositSubtitle': 'Top up with mobile money.',
+      'withdrawSubtitle': 'Send your balance back to mobile money.',
+      'allPreset': 'All',
+      'chipsBurned': 'Chips burned',
+      'youWillReceive': 'You will receive',
+      'payoutsByHand': 'Payouts are sent by hand, usually within a day.',
+      'owedInTotal': 'Owed in total',
+      'toSend': 'To send',
+      'nPending': '{count} pending',
+      'chipPrice': 'Chip price',
+      'price': 'Price',
+      'arPerChip': 'Ar per chip',
+      'fees': 'Fees',
+      'houseAccount': 'House account',
+      'receivingPhoneNumber': 'Receiving phone number',
+      'noMinimum': 'No minimum',
+      'winner': 'Winner',
+      'yourTurnBadge': 'Your turn',
+      'handStrength': 'Hand strength',
+      'sendReaction': 'Send a reaction',
+      'betAmount': 'Bet amount',
+      'tablePausedHost':
+          'You have paused this table. Nobody can act until you resume it.',
     },
     'fr': {
       'cancel': 'Annuler',
@@ -607,12 +729,12 @@ class AppLocalizations {
       'username': "Nom d'utilisateur",
       'password': 'Mot de passe',
       'welcomeTagline':
-          'Jouez au poker avec vos amis. Pas de compte à gérer,\njuste un nom et une table.',
+          'Jouez au poker avec vos amis. Pas de compte à gérer, juste un nom et une table.',
       'serverSettings': 'Paramètres du serveur',
       'hideServerSettings': 'Masquer les paramètres du serveur',
       'serverBaseUrl': 'URL de base du serveur',
       'registerSubtitle':
-          'Ce nom est celui que les autres joueurs verront à la table.',
+          'Ce nom est celui que tous les autres joueurs verront à la table.',
       'usernameTooShort': 'Au moins 3 caractères',
       'passwordTooShort': 'Au moins 6 caractères',
       'couldNotCreateAccount': 'Impossible de créer le compte : {error}',
@@ -620,14 +742,13 @@ class AppLocalizations {
           'Le code promo {code} sera appliqué à votre compte.',
       'couldNotLogIn': 'Impossible de se connecter : {error}',
       'signInHint': 'Ce nom est votre identifiant de connexion',
-      'createTable': 'Créer une table',
-      'joinWithLink': 'Rejoindre avec un lien',
+      'createTable': 'Nouvelle table',
+      'joinWithLink': 'Rejoindre par lien',
       'yourTables': 'Vos tables',
       'syncedToYourAccount': 'synchronisées avec votre compte',
       'makePublic': 'Rendre cette table publique',
       'makePublicHint':
-          'Affichée sur l\'accueil de tous et hébergée par la maison - vous n\'y serez pas assis, '
-          'et elle ne peut être ni mise en pause ni fermée.',
+          'Listée sur l\'écran d\'accueil de tous et hébergée par la maison. Vous n\'y serez pas assis, et elle ne peut être ni mise en pause ni fermée.',
       'virtualChips': 'Jetons virtuels (pas d\'argent réel)',
       'virtualChipsHint':
           'Les jetons ici sont gratuits et ne peuvent jamais être encaissés - à utiliser pour '
@@ -640,7 +761,7 @@ class AppLocalizations {
           'Quand un joueur actif n\'a plus de jetons, la maison le recave avant la prochaine '
           'main - utile avec un bot adversaire permanent.',
       'publicTables': 'Tables publiques',
-      'anyoneCanSitDown': 'ouvertes à tous',
+      'anyoneCanSitDown': 'Tout le monde peut s\'asseoir',
       'noPublicTables': 'Aucune table publique n\'est ouverte pour le moment.',
       'buyInOf': 'cave de {amount}',
       'seatedCount': '{count} joueurs',
@@ -656,23 +777,21 @@ class AppLocalizations {
       'walletBalance': 'Solde du portefeuille - touchez pour ouvrir le marché',
       'newTableTitle': 'Nouvelle table',
       'newTableSubtitle':
-          'Le serveur ne conserve que le nom et les blindes. Tout le reste est défini quand chaque joueur s\'installe.',
+          'Le serveur ne retient que le nom et les blindes. Tout le reste se règle quand chaque joueur s\'assoit.',
       'name': 'Nom',
-      'generateTableName': 'Générer un nom aléatoire',
+      'generateTableName': 'Proposer un autre nom',
       'smallBlind': 'Petite blinde',
-      'smallBlind.money': 'Petite blinde (Ar)',
       'bigBlind': 'Grosse blinde',
-      'bigBlind.money': 'Grosse blinde (Ar)',
       'yourBuyIn': "Votre mise d'entrée",
       'chips': 'Jetons',
       'newTableFooter':
-          "Créer la table vous y installe directement. Chacun choisit sa propre mise d'entrée en rejoignant, et les jetons sont conservés d'une main à l'autre.",
+          'Créer la table vous y installe. Chacun choisit sa propre cave en rejoignant, et les jetons se reportent d\'une main à l\'autre.',
       'createAndSitDown': "Créer et s'installer",
       'fillValidValues': 'Veuillez saisir des valeurs valides',
       'couldNotCreateTable': 'Impossible de créer la table : {error}',
       'joinTableTitle': 'Rejoindre une table',
       'joinTableSubtitle':
-          "Collez le lien que quelqu'un vous a envoyé. Les identifiants de table sont longs, personne ne devrait avoir à en lire un à voix haute.",
+          'Collez le lien qu\'on vous a envoyé. Les identifiants de table sont longs : personne ne devrait avoir à en dicter un.',
       'linkHint': 'karata.app/t/…',
       'find': 'Rechercher',
       'foundIt': 'Trouvée',
@@ -680,7 +799,6 @@ class AppLocalizations {
       'youCanOnlyBuyInOnce':
           "Vous ne pouvez acheter des jetons qu'une seule fois par table : choisissez une pile qui vous convient.",
       'amount': 'Montant',
-      'amount.money': 'Montant (Ar)',
       'sitDown': "S'installer",
       'openTable': 'Ouvrir la table',
       'noValidLink': 'Aucun lien de table valide trouvé',
@@ -698,7 +816,7 @@ class AppLocalizations {
       'closeTable': 'Fermer la table',
       'pauseTable': 'Mettre la table en pause',
       'resumeTable': 'Reprendre la partie',
-      'tablePaused': 'En pause par l\'hôte',
+      'tablePaused': 'L\'hôte a mis cette table en pause.',
       'tablePausedExplainer':
           'Aucune donne ni action tant que l\'hôte n\'a pas repris. Vos jetons restent en place.',
       'couldNotPauseTable': 'Impossible de changer l\'état de pause : {error}',
@@ -741,9 +859,9 @@ class AppLocalizations {
       'betVerb': 'Miser',
       'raiseVerb': 'Relancer',
       'minAllIn': 'min {min} · tapis {max}',
-      'oneThirdPot': '⅓ pot',
-      'halfPot': '½ pot',
-      'threeQuartersPot': '¾ pot',
+      'oneThirdPot': '1/3',
+      'halfPot': '1/2',
+      'threeQuartersPot': '3/4',
       'pot': 'Pot',
       'allIn': 'Tapis',
       'handStrengthAvailableSoon': 'Force de la main\nbientôt disponible',
@@ -773,8 +891,8 @@ class AppLocalizations {
           '4 cartes fermées par joueur, distribuées face cachée',
       'variantRankingOmaha':
           'Meilleure main de 5 cartes en utilisant exactement 2 de vos cartes fermées et exactement 3 du tableau',
-      'variantTexasHoldemShort': 'Texas Hold\'em',
-      'variantOmahaShort': 'Omaha',
+      'variantTexasHoldemShort': 'Texas Hold\'em no-limit',
+      'variantOmahaShort': 'Omaha pot-limit',
       'variantTitleFiveCardDraw': 'Five-Card Draw sans limite',
       'variantHoleCardsFiveCardDraw':
           '5 cartes fermées par joueur, distribuées face cachée',
@@ -791,10 +909,10 @@ class AppLocalizations {
       'variantSimplifiedMinRaise':
           'Relance minimale simplifiée (le double de la mise actuelle), pas la règle standard de la taille de la dernière relance',
       'close': 'Fermer',
-      'economyTitle': 'Change de jetons',
+      'economyTitle': 'Portefeuille',
       'economyTitle.money': 'Portefeuille',
       'economySubtitle':
-          'Un taux global pour tout le monde. Achetez des jetons ou encaissez-les.',
+          'Déposez pour recharger votre solde, ou retirez-le vers le mobile money.',
       'economySubtitle.money':
           'Déposez pour recharger votre solde, ou retirez-le vers mobile money.',
       'buyPriceLine': "Taux d'encaissement : {price} Ar par jeton",
@@ -803,25 +921,25 @@ class AppLocalizations {
       'buyChips.money': 'Dépôt',
       'redeemChips': 'Encaisser des jetons',
       'redeemChips.money': 'Retrait',
-      'pendingRedemptions': 'Encaissements en attente',
+      'pendingRedemptions': 'Retraits en attente',
       'pendingRedemptions.money': 'Retraits en attente',
-      'economySettings': "Paramètres de l'économie",
+      'economySettings': 'Paramètres économiques',
       'couldNotLoadPrice': 'Impossible de charger le prix du jeton : {error}',
       'couldNotLoadPrice.money': 'Impossible de charger le taux : {error}',
       'quantity': 'Quantité',
       'quantity.money': 'Montant (Ar)',
       'paymentProvider': 'Opérateur de paiement',
       'payInstructions':
-          "Payez {amount} Ar au {phone} via votre application mobile money, puis saisissez le numéro depuis lequel vous avez payé et la référence (Trans Id / Ref) reçue par SMS ci-dessous.",
+          'Payez {amount} au {phone} depuis votre application mobile money.',
       'yourPhoneNumber': 'Votre numéro de téléphone',
-      'transactionRef': 'Référence de transaction',
-      'transactionRefHint': 'ex. le Ref ou Trans Id de votre SMS',
-      'submitPayment': "J'ai payé",
+      'transactionRef': 'Référence de la transaction',
+      'transactionRefHint': 'Réf ou Trans Id de votre SMS',
+      'submitPayment': 'J’ai payé',
       'waitingForConfirmation': 'En attente de la confirmation du paiement...',
       'chipsCredited': 'Jetons crédités sur votre portefeuille !',
       'chipsCredited.money': 'Dépôt crédité sur votre portefeuille !',
       'couldNotBuyChips': "Impossible d'envoyer le paiement : {error}",
-      'payoutPhoneNumber': 'Numéro de téléphone de réception',
+      'payoutPhoneNumber': 'Numéro de paiement',
       'redeemTotalLine': 'Vous recevrez {amount} Ar',
       'submitRedemption': 'Encaisser',
       'submitRedemption.money': 'Retirer',
@@ -840,15 +958,15 @@ class AppLocalizations {
       'savePrice': 'Enregistrer le prix',
       'priceUpdated': 'Prix mis à jour',
       'couldNotUpdatePrice': 'Impossible de mettre à jour le prix : {error}',
-      'sellSpreadPercentField': "Marge à l'achat (%)",
-      'rakePercentField': 'Commission de table (%)',
-      'rakeMinField': 'Commission de table minimale',
+      'sellSpreadPercentField': 'Écart à la vente',
+      'rakePercentField': 'Commission de table',
+      'rakeMinField': 'Commission minimale',
       'houseReceivingPhoneNumberField': 'Numéro de réception de la maison',
       'saveConfig': 'Enregistrer la config',
       'configUpdated': 'Config mise à jour',
       'couldNotUpdateConfig': 'Impossible de mettre à jour la config : {error}',
       'pendingRedemptionsSubtitle':
-          'Jetons déjà brûlés, paiement encore dû - à envoyer manuellement.',
+          'Jetons déjà brûlés, paiement encore dû. Envoyez-les à la main.',
       'noPendingRedemptions': 'Aucun encaissement en attente.',
       'couldNotLoadPendingRedemptions':
           'Impossible de charger les encaissements en attente : {error}',
@@ -863,7 +981,7 @@ class AppLocalizations {
       'settingsTable': 'Table',
       'chipsAsMoney': 'Afficher les jetons en argent',
       'chipsAsMoneySubtitle':
-          "Affiche chaque montant de jetons en ariary. C'est votre propre estimation, pas un taux officiel.",
+          'Affiche chaque compte de jetons en Ariary. C\'est votre propre valorisation, pas un taux officiel.',
       'chipsAsMoneyExample': "{chips} jetons s'affichent comme {money}",
       'tableSounds': 'Sons de la table',
       'tableSoundsSubtitle':
@@ -877,6 +995,60 @@ class AppLocalizations {
       'couldNotLoadPhoneNumber': 'Impossible de charger votre numéro : {error}',
       'couldNotSavePhoneNumber':
           "Impossible d'enregistrer votre numéro : {error}",
+      'back': 'Retour',
+      'usernameHint': 'Votre nom de table',
+      'passwordHint': 'Au moins 8 caractères',
+      'showPassword': 'Afficher le mot de passe',
+      'loginSubtitle': 'Bon retour.',
+      'alreadyHaveAnAccount': 'Vous avez déjà un compte ?',
+      'newHere': 'Nouveau ici ?',
+      'tableLink': 'Lien de la table',
+      'balance': 'Solde',
+      'atTables': 'Aux tables',
+      'deposit': 'Dépôt',
+      'withdraw': 'Retrait',
+      'seatsOpen': 'Places libres',
+      'table': 'Table',
+      'bigBlindsPreset': '{count} BB',
+      'maxPreset': 'Max',
+      'thatsNBigBlinds': 'Soit {count} grosses blindes.',
+      'balanceOf': 'Solde : {amount}',
+      'house': 'La maison',
+      'admin': 'Admin',
+      'refresh': 'Actualiser',
+      'pendingRedemptionsHint': 'Paiements que vous devez encore aux joueurs',
+      'economySettingsHint': 'Prix du jeton, écart et commission',
+      'chipsYouGet': 'Jetons reçus',
+      'fee': 'Frais',
+      'youPay': 'Vous payez',
+      'sendThePayment': 'Envoyez le paiement',
+      'confirmItHere': 'Confirmez-le ici',
+      'copyNumber': 'Copier le numéro',
+      'numberCopied': 'Numéro copié',
+      'depositSubtitle': 'Rechargez avec le mobile money.',
+      'withdrawSubtitle': 'Renvoyez votre solde vers le mobile money.',
+      'allPreset': 'Tout',
+      'chipsBurned': 'Jetons brûlés',
+      'youWillReceive': 'Vous recevrez',
+      'payoutsByHand':
+          'Les paiements sont envoyés à la main, généralement sous un jour.',
+      'owedInTotal': 'Dû au total',
+      'toSend': 'À envoyer',
+      'nPending': '{count} en attente',
+      'chipPrice': 'Prix du jeton',
+      'price': 'Prix',
+      'arPerChip': 'Ar par jeton',
+      'fees': 'Frais',
+      'houseAccount': 'Compte de la maison',
+      'receivingPhoneNumber': 'Numéro de réception',
+      'noMinimum': 'Pas de minimum',
+      'winner': 'Gagnant',
+      'yourTurnBadge': 'À vous',
+      'handStrength': 'Force de la main',
+      'sendReaction': 'Envoyer une réaction',
+      'betAmount': 'Montant de la mise',
+      'tablePausedHost':
+          'Vous avez mis cette table en pause. Personne ne peut jouer avant que vous la repreniez.',
     },
   };
 }

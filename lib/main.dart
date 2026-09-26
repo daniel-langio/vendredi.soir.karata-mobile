@@ -6,7 +6,6 @@ import 'l10n/app_localizations.dart';
 import 'chip_display.dart';
 import 'locale_controller.dart';
 import 'sound_settings.dart';
-import 'wide_layout.dart';
 import 'url_strategy_stub.dart'
     if (dart.library.js_interop) 'url_strategy_web.dart';
 import 'screens/welcome_screen.dart';
@@ -22,7 +21,8 @@ import 'screens/chip_purchase_screen.dart';
 import 'screens/chip_redemption_screen.dart';
 import 'screens/economy_config_screen.dart';
 import 'screens/pending_redemptions_screen.dart';
-import 'theme.dart';
+import 'theme/karata_colors.dart';
+import 'theme/karata_theme.dart';
 
 void main() {
   configureUrlStrategy();
@@ -52,21 +52,19 @@ class MyApp extends StatelessWidget {
             GlobalWidgetsLocalizations.delegate,
           ],
           onGenerateRoute: _onGenerateRoute,
-          // This UI was designed as a phone screen. On a wide browser window it just looked like
-          // that same phone layout stretched edge to edge, so cap it and centre it there; a native
-          // build is already phone-shaped and wants the full window. TableScreen raises this cap
-          // (via WideLayout) while it's the active route, so it can use a laptop-size window - every
-          // other screen never touches WideLayout, so they stay phone-width regardless.
+          // This UI is drawn as a phone screen. On a wide browser window it just looked like that
+          // same phone layout stretched edge to edge, so cap it and centre it there; a native
+          // build is already phone-shaped and wants the full window.
+          //
+          // Every screen is phone-width for now, the table included: the V2 design has a separate
+          // desktop layout for each screen, which is a pass of its own.
           builder: kIsWeb
-              ? (context, child) => ValueListenableBuilder<bool>(
-                  valueListenable: WideLayout.instance,
-                  builder: (context, wide, _) => ColoredBox(
-                    color: KarataColors.bg,
-                    child: Center(
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(maxWidth: wide ? 1040 : 430),
-                        child: child,
-                      ),
+              ? (context, child) => ColoredBox(
+                  color: KarataColors.backdrop,
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 430),
+                      child: child,
                     ),
                   ),
                 )

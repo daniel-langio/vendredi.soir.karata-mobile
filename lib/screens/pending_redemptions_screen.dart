@@ -1,11 +1,21 @@
 import 'package:flutter/material.dart';
+
 import '../api/api_client.dart';
 import '../chip_display.dart';
 import '../l10n/app_localizations.dart';
-import '../theme.dart';
+import '../theme/karata_colors.dart';
+import '../theme/karata_text_styles.dart';
+import '../widgets/common/circle_icon_button.dart';
+import '../widgets/common/karata_card.dart';
+import '../widgets/common/karata_icons.dart';
+import '../widgets/common/karata_screen.dart';
+import '../widgets/common/section_card.dart';
+import '../widgets/common/status_pill.dart';
+import '../widgets/wallet/pending_payout_row.dart';
+import '../widgets/wallet/summary_card.dart';
 
-/// Operator-only: what the dev still needs to manually go send via mobile money to close out a
-/// redemption. Cancelling refunds the escrowed chips back to the player.
+/// Operator-only: what the house still needs to go and send by mobile money to close out a
+/// withdrawal. Cancelling refunds the escrowed chips back to the player.
 class PendingRedemptionsScreen extends StatefulWidget {
   final String serverUrl;
   final String token;
@@ -57,6 +67,11 @@ class _PendingRedemptionsScreenState extends State<PendingRedemptionsScreen> {
     if (mounted) setState(() => _isLoading = false);
   }
 
+  int get _owedAr => _pending.fold<int>(
+    0,
+    (total, r) => total + ((r['totalPriceAr'] as num?)?.toInt() ?? 0),
+  );
+
   Future<void> _cancel(Map<String, dynamic> redemption) async {
     final t = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
@@ -96,89 +111,80 @@ class _PendingRedemptionsScreenState extends State<PendingRedemptionsScreen> {
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
-    return Scaffold(
-      appBar: AppBar(
-        actions: [
-          IconButton(icon: const Icon(Icons.refresh), onPressed: _load),
-        ],
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                t.pendingRedemptions,
-                style: const TextStyle(
-                  fontSize: 34,
-                  fontWeight: FontWeight.w300,
-                  color: KarataColors.ink,
+
+    return KarataScreen(
+      onBack: () => Navigator.of(context).pop(),
+      backLabel: t.back,
+      title: t.pendingRedemptions,
+      subtitle: t.pendingRedemptionsSubtitle,
+      actions: [
+        CircleIconButton(
+          icon: KarataIcons.refresh,
+          onPressed: _isLoading ? null : _load,
+          semanticLabel: t.refresh,
+        ),
+      ],
+      children: _isLoading
+          ? const [
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: 60),
+                child: Center(
+                  child: CircularProgressIndicator(color: KarataColors.gold),
                 ),
               ),
-              const SizedBox(height: 8),
-              Text(
-                t.pendingRedemptionsSubtitle,
-                style: const TextStyle(
-                  fontSize: 13.5,
-                  color: KarataColors.dim,
-                  height: 1.45,
+            ]
+          : _pending.isEmpty
+          ? [
+              KarataCard(
+                child: Text(
+                  t.noPendingRedemptions,
+                  textAlign: TextAlign.center,
+                  style: KarataText.subtitle,
                 ),
               ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: _isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : _pending.isEmpty
-                    ? Center(
-                        child: Text(
-                          t.noPendingRedemptions,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(color: KarataColors.dim),
-                        ),
-                      )
-                    : ListView.separated(
-                        itemCount: _pending.length,
-                        separatorBuilder: (context, index) =>
-                            const Divider(height: 1, color: Color(0xFF1A181E)),
-                        itemBuilder: (context, index) {
-                          final r = _pending[index];
-                          return ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            leading: const Icon(
-                              Icons.call_made_rounded,
-                              color: KarataColors.chipInk,
-                            ),
-                            title: Text(
-                              t.redeemTotalLine(
-                                ChipDisplay.groupDigits(
-                                  (r['totalPriceAr'] as num?)?.toInt() ?? 0,
-                                ),
-                              ),
-                              style: const TextStyle(
-                                color: KarataColors.ink,
-                                fontSize: 16.5,
-                              ),
-                            ),
-                            subtitle: Text(
-                              '${r['payoutPhoneNumber']} - ${r['provider']} - ${r['pspRef']}',
-                              style: const TextStyle(
-                                color: KarataColors.dim,
-                                fontSize: 12.5,
-                              ),
-                            ),
-                            trailing: TextButton(
-                              onPressed: () => _cancel(r),
-                              child: Text(t.cancelRedemptionButton),
-                            ),
-                          );
-                        },
-                      ),
+            ]
+          : [
+              SummaryCard(
+                lines: [
+                  (
+                    label: t.owedInTotal,
+                    value: '${ChipDisplay.groupDigits(_owedAr)} Ar',
+                    emphasised: true,
+                  ),
+                ],
+              ),
+              SectionCard(
+                title: t.toSend,
+                trailingWidget: StatusPill(
+                  label: t.nPending('${_pending.length}'),
+                  height: 22,
+                  foreground: KarataColors.onGoldBadge,
+                  background: KarataColors.gold,
+                  ringColor: KarataColors.goldWash,
+                ),
+                children: [
+                  for (final r in _pending) ...[
+                    if (r != _pending.first) const CardDivider(),
+                    PendingPayoutRow(
+                      amount:
+                          '${ChipDisplay.groupDigits((r['totalPriceAr'] as num?)?.toInt() ?? 0)} Ar',
+                      phoneNumber: '${r['payoutPhoneNumber']}',
+                      provider: _providerLabel('${r['provider']}'),
+                      reference: '${r['pspRef'] ?? ''}',
+                      cancelLabel: t.cancel,
+                      onCancel: () => _cancel(r),
+                    ),
+                  ],
+                ],
               ),
             ],
-          ),
-        ),
-      ),
     );
   }
+
+  /// The API's enum, in the spelling the operators themselves use.
+  String _providerLabel(String provider) => switch (provider) {
+    'MVOLA' => 'MVola',
+    'ORANGE_MONEY' => 'Orange Money',
+    _ => provider,
+  };
 }

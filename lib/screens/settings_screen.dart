@@ -6,7 +6,19 @@ import '../chip_display.dart';
 import '../l10n/app_localizations.dart';
 import '../locale_controller.dart';
 import '../sound_settings.dart';
-import '../theme.dart';
+import '../theme/karata_colors.dart';
+import '../theme/karata_text_styles.dart';
+import '../widgets/common/karata_button.dart';
+import '../widgets/common/karata_card.dart';
+import '../widgets/common/karata_dropdown.dart';
+import '../widgets/common/karata_icons.dart';
+import '../widgets/common/karata_screen.dart';
+import '../widgets/common/karata_switch.dart';
+import '../widgets/common/karata_text_field.dart';
+import '../widgets/common/labeled_field.dart';
+import '../widgets/common/note_well.dart';
+import '../widgets/common/section_card.dart';
+import '../widgets/common/setting_row.dart';
 
 /// Everything that used to be scattered across app bars, or had no home at all: language, table
 /// sounds, how chip amounts are rendered, and the payment phone number - which until now could
@@ -38,7 +50,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _loadingPhone = true;
   bool _savingPhone = false;
   String? _phoneError;
-  String? _savedPhone;
 
   @override
   void initState() {
@@ -59,7 +70,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final phone = await _apiClient.getAccountPhoneNumber();
       if (!mounted) return;
       setState(() {
-        _savedPhone = phone;
         _phoneController.text = phone ?? '';
         _loadingPhone = false;
       });
@@ -86,10 +96,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       await _apiClient.setAccountPhoneNumber(phone);
       if (!mounted) return;
-      setState(() {
-        _savedPhone = phone;
-        _savingPhone = false;
-      });
+      setState(() => _savingPhone = false);
       final t = AppLocalizations.of(context);
       ScaffoldMessenger.of(
         context,
@@ -105,163 +112,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final t = AppLocalizations.of(context);
-    return Scaffold(
-      appBar: AppBar(title: Text(t.settings)),
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 4, 20, 32),
-          children: [
-            _SectionHeader(t.settingsGeneral),
-            _languageTile(t),
-            _soundTile(t),
-            const SizedBox(height: 20),
-            _SectionHeader(t.settingsTable),
-            _chipDisplayTiles(t),
-            const SizedBox(height: 20),
-            _SectionHeader(t.settingsAccount),
-            _phoneNumberTile(t),
-            const SizedBox(height: 12),
-            _logOutTile(t),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _languageTile(AppLocalizations t) {
-    return ValueListenableBuilder<Locale?>(
-      valueListenable: LocaleController.instance,
-      builder: (context, locale, _) {
-        return ListTile(
-          contentPadding: EdgeInsets.zero,
-          leading: const Icon(Icons.language, color: KarataColors.dim),
-          title: Text(t.language, style: _titleStyle),
-          trailing: DropdownButton<Locale?>(
-            value: locale,
-            underline: const SizedBox.shrink(),
-            dropdownColor: KarataColors.pill,
-            onChanged: LocaleController.instance.setLocale,
-            items: [
-              DropdownMenuItem(value: null, child: Text(t.systemDefault)),
-              const DropdownMenuItem(
-                value: Locale('en'),
-                child: Text('English'),
-              ),
-              const DropdownMenuItem(
-                value: Locale('fr'),
-                child: Text('Français'),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _soundTile(AppLocalizations t) {
-    return ValueListenableBuilder<bool>(
-      valueListenable: SoundSettings.instance,
-      builder: (context, enabled, _) {
-        return SwitchListTile(
-          contentPadding: EdgeInsets.zero,
-          value: enabled,
-          onChanged: SoundSettings.instance.setEnabled,
-          title: Text(t.tableSounds, style: _titleStyle),
-          subtitle: Text(t.tableSoundsSubtitle, style: _subtitleStyle),
-          secondary: Icon(
-            enabled ? Icons.volume_up : Icons.volume_off,
-            color: KarataColors.dim,
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _chipDisplayTiles(AppLocalizations t) {
-    return ValueListenableBuilder<ChipDisplaySettings>(
-      valueListenable: ChipDisplay.instance,
-      builder: (context, settings, _) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              value: settings.asMoney,
-              onChanged: ChipDisplay.instance.setAsMoney,
-              title: Text(t.chipsAsMoney, style: _titleStyle),
-              subtitle: Text(t.chipsAsMoneySubtitle, style: _subtitleStyle),
-              secondary: const Icon(Icons.payments, color: KarataColors.dim),
-            ),
-            if (settings.inMoney) ...[
-              const SizedBox(height: 8),
-              // A worked example, because the live rate only becomes concrete once you see what a
-              // real stack turns into at the table. Held back until a rate is actually known -
-              // "100 chips shows as 100" would teach the player the wrong number.
-              Text(
-                t.chipsAsMoneyExample(
-                  '100',
-                  ChipDisplay.formatWith(settings, 100),
-                ),
-                style: _subtitleStyle,
-              ),
-            ],
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _phoneNumberTile(AppLocalizations t) {
-    if (_loadingPhone) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 16),
-        child: Center(child: CircularProgressIndicator()),
-      );
-    }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        ListTile(
-          contentPadding: EdgeInsets.zero,
-          leading: const Icon(Icons.phone, color: KarataColors.dim),
-          title: Text(t.paymentPhoneNumber, style: _titleStyle),
-          subtitle: Text(
-            _savedPhone ?? t.phoneNumberNotSet,
-            style: _subtitleStyle,
-          ),
-        ),
-        Text(t.paymentPhoneNumberSubtitle, style: _subtitleStyle),
-        const SizedBox(height: 10),
-        TextField(
-          controller: _phoneController,
-          keyboardType: TextInputType.phone,
-          decoration: InputDecoration(labelText: t.paymentPhoneNumber),
-        ),
-        if (_phoneError != null) ...[
-          const SizedBox(height: 8),
-          Text(
-            _phoneError!,
-            style: const TextStyle(fontSize: 12.5, color: KarataColors.red),
-          ),
-        ],
-        const SizedBox(height: 10),
-        ElevatedButton(
-          onPressed: _savingPhone ? null : _savePhoneNumber,
-          child: _savingPhone
-              ? const SizedBox(
-                  height: 18,
-                  width: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : Text(t.savePhoneNumber),
-        ),
-      ],
-    );
-  }
-
   /// Same keys MenuScreen clears - dropping only one of them leaves a half-session that
   /// RootScreen would still try to resume.
   Future<void> _logOut() async {
@@ -272,37 +122,141 @@ class _SettingsScreenState extends State<SettingsScreen> {
     Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
   }
 
-  Widget _logOutTile(AppLocalizations t) {
-    return OutlinedButton.icon(
-      onPressed: _logOut,
-      icon: const Icon(Icons.logout, color: KarataColors.red),
-      label: Text(t.logOut, style: const TextStyle(color: KarataColors.red)),
+  @override
+  Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
+
+    return KarataScreen(
+      onBack: () => Navigator.of(context).pop(),
+      backLabel: t.back,
+      title: t.settings,
+      children: [
+        SectionCard(
+          title: t.settingsGeneral,
+          children: [_languageRow(t), const CardDivider(), _soundRow(t)],
+        ),
+        SectionCard(title: t.settingsTable, children: _chipDisplayRows(t)),
+        SectionCard(title: t.settingsAccount, children: _accountRows(t)),
+        KarataButton(
+          label: t.logOut,
+          icon: KarataIcons.logout,
+          onPressed: _logOut,
+          style: KarataButtonStyle.danger,
+          height: 50,
+        ),
+      ],
     );
   }
 
-  static const _titleStyle = TextStyle(fontSize: 15, color: KarataColors.ink);
-  static const _subtitleStyle = TextStyle(
-    fontSize: 12.5,
-    color: KarataColors.dim,
-  );
-}
-
-class _SectionHeader extends StatelessWidget {
-  final String label;
-  const _SectionHeader(this.label);
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 8, bottom: 4),
-      child: Text(
-        label.toUpperCase(),
-        style: const TextStyle(
-          fontSize: 11.5,
-          letterSpacing: 1.1,
-          color: KarataColors.dim,
+  Widget _languageRow(AppLocalizations t) {
+    return ValueListenableBuilder<Locale?>(
+      valueListenable: LocaleController.instance,
+      builder: (context, locale, _) => SettingRow(
+        icon: KarataIcons.globe,
+        title: t.language,
+        trailing: KarataDropdown<Locale?>(
+          value: locale,
+          height: 40,
+          fontSize: 14,
+          expand: false,
+          onChanged: LocaleController.instance.setLocale,
+          items: [
+            (null, t.systemDefault),
+            (const Locale('fr'), 'Français'),
+            (const Locale('en'), 'English'),
+          ],
         ),
       ),
     );
+  }
+
+  Widget _soundRow(AppLocalizations t) {
+    return ValueListenableBuilder<bool>(
+      valueListenable: SoundSettings.instance,
+      builder: (context, enabled, _) => SettingRow(
+        icon: KarataIcons.speaker,
+        title: t.tableSounds,
+        description: t.tableSoundsSubtitle,
+        trailing: KarataSwitch(
+          value: enabled,
+          semanticLabel: t.tableSounds,
+          onChanged: SoundSettings.instance.setEnabled,
+        ),
+      ),
+    );
+  }
+
+  List<Widget> _chipDisplayRows(AppLocalizations t) {
+    return [
+      ValueListenableBuilder<ChipDisplaySettings>(
+        valueListenable: ChipDisplay.instance,
+        builder: (context, settings, _) => Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SettingRow(
+              icon: KarataIcons.money,
+              title: t.chipsAsMoney,
+              description: t.chipsAsMoneySubtitle,
+              trailing: KarataSwitch(
+                value: settings.asMoney,
+                semanticLabel: t.chipsAsMoney,
+                onChanged: ChipDisplay.instance.setAsMoney,
+              ),
+            ),
+            // A worked example, because the live rate only becomes concrete once you see what a
+            // real stack turns into at the table. Held back until a rate is actually known -
+            // "100 chips shows as 100" would teach the player the wrong number.
+            if (settings.inMoney) ...[
+              const SizedBox(height: 16),
+              NoteWell(
+                text: t.chipsAsMoneyExample(
+                  '100',
+                  ChipDisplay.formatWith(settings, 100),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    ];
+  }
+
+  List<Widget> _accountRows(AppLocalizations t) {
+    if (_loadingPhone) {
+      return const [
+        Padding(
+          padding: EdgeInsets.symmetric(vertical: 16),
+          child: Center(
+            child: CircularProgressIndicator(color: KarataColors.gold),
+          ),
+        ),
+      ];
+    }
+    return [
+      LabeledField(
+        label: t.paymentPhoneNumber,
+        child: KarataTextField(
+          controller: _phoneController,
+          keyboardType: TextInputType.phone,
+          fillColor: KarataColors.backdrop,
+        ),
+      ),
+      Text(t.paymentPhoneNumberSubtitle, style: KarataText.label),
+      if (_phoneError != null)
+        Text(
+          _phoneError!,
+          style: karataText(
+            size: 13,
+            weight: 600,
+            color: KarataColors.orangeLight,
+          ),
+        ),
+      KarataButton(
+        label: t.savePhoneNumber,
+        onPressed: _savingPhone ? null : _savePhoneNumber,
+        height: 46,
+        style: KarataButtonStyle.surface,
+      ),
+    ];
   }
 }

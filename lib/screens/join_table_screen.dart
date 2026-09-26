@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
+
 import '../api/api_client.dart';
 import '../chip_display.dart';
 import '../l10n/app_localizations.dart';
-import '../theme.dart';
+import '../theme/karata_colors.dart';
+import '../theme/karata_text_styles.dart';
+import '../widgets/common/amount_field.dart';
+import '../widgets/common/karata_button.dart';
+import '../widgets/common/karata_screen.dart';
+import '../widgets/common/karata_text_field.dart';
+import '../widgets/common/labeled_field.dart';
+import '../widgets/join/table_preview_card.dart';
 
 final _uuidPattern = RegExp(
   r'[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}',
@@ -31,7 +39,7 @@ class _JoinTableScreenState extends State<JoinTableScreen> {
   // read back with. The API itself only ever speaks chips.
   final _display = ChipDisplay.instance.value;
   late final _buyInController = TextEditingController(
-    text: '${_display.entryFromChips(200)}',
+    text: AmountField.entryText(_display, 200),
   );
 
   bool _isLoading = false;
@@ -45,20 +53,19 @@ class _JoinTableScreenState extends State<JoinTableScreen> {
     super.dispose();
   }
 
-  String? _extractGameId() {
-    final match = _uuidPattern.firstMatch(_linkController.text);
-    return match?.group(0);
+  String? _extractGameId() =>
+      _uuidPattern.firstMatch(_linkController.text)?.group(0);
+
+  void _complain(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: KarataColors.red),
+    );
   }
 
   Future<void> _lookUp() async {
     final gameId = _extractGameId();
     if (gameId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context).noValidLink),
-          backgroundColor: KarataColors.red,
-        ),
-      );
+      _complain(AppLocalizations.of(context).noValidLink);
       return;
     }
 
@@ -74,17 +81,12 @@ class _JoinTableScreenState extends State<JoinTableScreen> {
         // The table creator's own buy-in, kept by the server as a suggested default - if they
         // never set one, fall back to whatever was already in the field.
         if (defaultBuyIn != null) {
-          _buyInController.text = '${_display.entryFromChips(defaultBuyIn)}';
+          _buyInController.text = AmountField.entryText(_display, defaultBuyIn);
         }
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context).tableNotFound('$e')),
-            backgroundColor: KarataColors.red,
-          ),
-        );
+        _complain(AppLocalizations.of(context).tableNotFound('$e'));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -98,15 +100,9 @@ class _JoinTableScreenState extends State<JoinTableScreen> {
     setState(() => _isLoading = true);
     try {
       if (!_alreadySeated) {
-        final entered = int.tryParse(_buyInController.text.trim());
-        final buyIn = entered == null ? null : _display.chipsFromEntry(entered);
+        final buyIn = AmountField.chipsFrom(_display, _buyInController.text);
         if (buyIn == null || buyIn <= 0) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(AppLocalizations.of(context).enterValidBuyIn),
-              backgroundColor: KarataColors.red,
-            ),
-          );
+          _complain(AppLocalizations.of(context).enterValidBuyIn);
           return;
         }
         await client.buyIn(gameId, buyIn);
@@ -123,12 +119,7 @@ class _JoinTableScreenState extends State<JoinTableScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context).couldNotSitDown('$e')),
-            backgroundColor: KarataColors.red,
-          ),
-        );
+        _complain(AppLocalizations.of(context).couldNotSitDown('$e'));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -138,141 +129,89 @@ class _JoinTableScreenState extends State<JoinTableScreen> {
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
-    final players = (_preview?['players'] as List<dynamic>? ?? []);
-    return Scaffold(
-      appBar: AppBar(),
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+    final preview = _preview;
+    final players = (preview?['players'] as List<dynamic>? ?? []);
+
+    return KarataScreen(
+      onBack: () => Navigator.of(context).pop(),
+      backLabel: t.back,
+      title: t.joinTableTitle,
+      subtitle: t.joinTableSubtitle,
+      gap: 18,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            Text(
-              t.joinTableTitle,
-              style: const TextStyle(
-                fontSize: 34,
-                fontWeight: FontWeight.w300,
-                color: KarataColors.ink,
+            Expanded(
+              child: LabeledField(
+                label: t.tableLink,
+                child: KarataTextField(
+                  controller: _linkController,
+                  hintText: t.linkHint,
+                  keyboardType: TextInputType.url,
+                  textInputAction: TextInputAction.search,
+                  onSubmitted: (_) => _isLoading ? null : _lookUp(),
+                ),
               ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              t.joinTableSubtitle,
-              style: const TextStyle(
-                fontSize: 13.5,
-                color: KarataColors.dim,
-                height: 1.45,
+            const SizedBox(width: 8),
+            SizedBox(
+              width: 96,
+              child: KarataButton(
+                label: t.find,
+                height: 50,
+                onPressed: _isLoading ? null : _lookUp,
               ),
             ),
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _linkController,
-                    style: const TextStyle(
-                      color: KarataColors.ink,
-                      fontSize: 13,
-                    ),
-                    decoration: InputDecoration(hintText: t.linkHint),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                ElevatedButton(
-                  onPressed: _isLoading ? null : _lookUp,
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(0, 56),
-                  ),
-                  child: Text(t.find),
-                ),
-              ],
-            ),
-            if (_preview != null) ...[
-              const SizedBox(height: 24),
-              Text(
-                t.foundIt,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: KarataColors.ink,
-                ),
-              ),
-              const SizedBox(height: 8),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const Icon(
-                  Icons.circle,
-                  size: 7,
-                  color: KarataColors.live,
-                ),
-                title: Text(
-                  _preview!['name'] as String? ?? '',
-                  style: const TextStyle(
-                    color: KarataColors.ink,
-                    fontSize: 16.5,
-                  ),
-                ),
-                subtitle: Text(
-                  t.blindsSeated(
-                    ChipDisplay.formatWith(
-                      _display,
-                      _preview!['blinds']?['small'] as num?,
-                    ),
-                    ChipDisplay.formatWith(
-                      _display,
-                      _preview!['blinds']?['big'] as num?,
-                    ),
-                    players.length,
-                  ),
-                  style: const TextStyle(
-                    color: KarataColors.dim,
-                    fontSize: 12.5,
-                  ),
-                ),
-              ),
-              if (!_alreadySeated) ...[
-                const SizedBox(height: 20),
-                Text(
-                  t.yourBuyIn,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: KarataColors.ink,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: _buyInController,
-                  keyboardType: TextInputType.number,
-                  style: const TextStyle(color: KarataColors.ink),
-                  decoration: InputDecoration(labelText: t.amount),
-                ),
-                const SizedBox(height: 14),
-                Text(
-                  t.youCanOnlyBuyInOnce,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: KarataColors.dim,
-                    height: 1.5,
-                  ),
-                ),
-              ],
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: _isLoading ? null : _sitDown,
-                child: _isLoading
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: KarataColors.ink,
-                        ),
-                      )
-                    : Text(_alreadySeated ? t.openTable : t.sitDown),
-              ),
-            ],
           ],
         ),
-      ),
+        if (preview != null)
+          TablePreviewCard(
+            name: preview['name'] as String? ?? '',
+            details: t.blindsSeated(
+              ChipDisplay.formatWith(
+                _display,
+                preview['blinds']?['small'] as num?,
+              ),
+              ChipDisplay.formatWith(
+                _display,
+                preview['blinds']?['big'] as num?,
+              ),
+              players.length,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (!_alreadySeated) ...[
+                  const SizedBox(height: 16),
+                  LabeledField(
+                    label: t.yourBuyIn,
+                    child: AmountField(
+                      controller: _buyInController,
+                      display: _display,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    t.youCanOnlyBuyInOnce,
+                    style: karataText(
+                      size: 12,
+                      weight: 500,
+                      color: KarataColors.inkFaint,
+                      height: 1.5,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 16),
+                KarataButton(
+                  label: _alreadySeated ? t.openTable : t.sitDown,
+                  onPressed: _isLoading ? null : _sitDown,
+                  height: 46,
+                ),
+              ],
+            ),
+          ),
+      ],
     );
   }
 }

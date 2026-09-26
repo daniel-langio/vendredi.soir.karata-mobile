@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
+
 import '../api/api_client.dart';
 import '../l10n/app_localizations.dart';
-import '../theme.dart';
+import '../theme/karata_colors.dart';
+import '../widgets/common/karata_button.dart';
+import '../widgets/common/karata_screen.dart';
+import '../widgets/common/karata_text_field.dart';
+import '../widgets/common/labeled_field.dart';
+import '../widgets/common/section_card.dart';
 
 /// Operator-only. Two independent actions - the price and the rest of the config are separate
 /// append-only ledgers server-side, so "save" for one never touches the other.
@@ -163,131 +169,92 @@ class _EconomyConfigScreenState extends State<EconomyConfigScreen> {
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
-    return Scaffold(
-      appBar: AppBar(),
-      body: SafeArea(
-        child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : ListView(
-                padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+
+    return KarataScreen(
+      onBack: () => Navigator.of(context).pop(),
+      backLabel: t.back,
+      title: t.economySettings,
+      children: _isLoading
+          ? const [
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: 60),
+                child: Center(
+                  child: CircularProgressIndicator(color: KarataColors.gold),
+                ),
+              ),
+            ]
+          : [
+              SectionCard(
+                title: t.chipPrice,
                 children: [
-                  Text(
-                    t.economySettings,
-                    style: const TextStyle(
-                      fontSize: 34,
-                      fontWeight: FontWeight.w300,
-                      color: KarataColors.ink,
+                  LabeledField(
+                    label: t.price,
+                    child: KarataTextField(
+                      controller: _priceController,
+                      keyboardType: TextInputType.number,
+                      fillColor: KarataColors.backdrop,
+                      suffixText: t.arPerChip,
                     ),
                   ),
-                  const SizedBox(height: 24),
-                  Text(
-                    t.chipPriceField,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: KarataColors.ink,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: _priceController,
-                    keyboardType: TextInputType.number,
-                    style: const TextStyle(color: KarataColors.ink),
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
+                  KarataButton(
+                    label: t.savePrice,
                     onPressed: _isSavingPrice ? null : _savePrice,
-                    child: _isSavingPrice
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: KarataColors.ink,
-                            ),
-                          )
-                        : Text(t.savePrice),
-                  ),
-                  const SizedBox(height: 32),
-                  const Divider(color: Color(0xFF1A181E)),
-                  const SizedBox(height: 24),
-                  Text(
-                    t.sellSpreadPercentField,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: KarataColors.ink,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: _spreadController,
-                    keyboardType: TextInputType.number,
-                    style: const TextStyle(color: KarataColors.ink),
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    t.rakePercentField,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: KarataColors.ink,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: _rakePercentController,
-                    keyboardType: TextInputType.number,
-                    style: const TextStyle(color: KarataColors.ink),
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    t.rakeMinField,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: KarataColors.ink,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: _rakeMinController,
-                    keyboardType: TextInputType.number,
-                    style: const TextStyle(color: KarataColors.ink),
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    t.houseReceivingPhoneNumberField,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: KarataColors.ink,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: _housePhoneController,
-                    keyboardType: TextInputType.phone,
-                    style: const TextStyle(color: KarataColors.ink),
-                    decoration: const InputDecoration(hintText: '+261...'),
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: _isSavingConfig ? null : _saveConfig,
-                    child: _isSavingConfig
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: KarataColors.ink,
-                            ),
-                          )
-                        : Text(t.saveConfig),
+                    height: 46,
+                    style: KarataButtonStyle.surface,
                   ),
                 ],
               ),
-      ),
+              SectionCard(
+                title: t.fees,
+                children: [
+                  LabeledField(
+                    label: t.sellSpreadPercentField,
+                    child: KarataTextField(
+                      controller: _spreadController,
+                      keyboardType: TextInputType.number,
+                      fillColor: KarataColors.backdrop,
+                      suffixText: '%',
+                    ),
+                  ),
+                  LabeledField(
+                    label: t.rakePercentField,
+                    child: KarataTextField(
+                      controller: _rakePercentController,
+                      keyboardType: TextInputType.number,
+                      fillColor: KarataColors.backdrop,
+                      suffixText: '%',
+                    ),
+                  ),
+                  LabeledField(
+                    label: t.rakeMinField,
+                    child: KarataTextField(
+                      controller: _rakeMinController,
+                      keyboardType: TextInputType.number,
+                      fillColor: KarataColors.backdrop,
+                      suffixText: 'Ar',
+                      hintText: t.noMinimum,
+                    ),
+                  ),
+                ],
+              ),
+              SectionCard(
+                title: t.houseAccount,
+                children: [
+                  LabeledField(
+                    label: t.receivingPhoneNumber,
+                    child: KarataTextField(
+                      controller: _housePhoneController,
+                      keyboardType: TextInputType.phone,
+                      fillColor: KarataColors.backdrop,
+                    ),
+                  ),
+                ],
+              ),
+              KarataButton(
+                label: t.saveConfig,
+                onPressed: _isSavingConfig ? null : _saveConfig,
+              ),
+            ],
     );
   }
 }

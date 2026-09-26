@@ -71,18 +71,25 @@ Object? _fixtureFor(String path) {
   return null;
 }
 
+/// Seated players for a lobby row. Named rather than blank, because the V2 table card draws each
+/// player as their initial on a coloured disc - blanks would photograph as a row of grey "?"s -
+/// and sums their stacks into the balance card's "at tables" figure.
+List<Map<String, dynamic>> _seats(List<String> names, {int chips = 180}) => [
+  for (final name in names) {'username': name, 'chips': chips},
+];
+
 final _myTables = [
   {
     'gameId': shotsGameId,
     'name': 'Vendredi Soir',
     'defaultBuyIn': 200,
-    'players': List.filled(4, const {}),
+    'players': _seats([shotsUsername, 'hanta', 'rivo', 'bot-mika']),
   },
   {
     'gameId': '2c9a7b11-1111-4111-8111-111111111111',
     'name': 'Tsena Kely',
     'defaultBuyIn': 120,
-    'players': List.filled(2, const {}),
+    'players': _seats([shotsUsername, 'naina'], chips: 68),
   },
 ];
 
@@ -91,13 +98,13 @@ final _publicTables = [
     'gameId': '3d8b6c22-2222-4222-8222-222222222222',
     'name': 'Analakely Nights',
     'defaultBuyIn': 500,
-    'players': List.filled(5, const {}),
+    'players': _seats(['rado', 'tiana', 'naina', 'fara', 'hery']),
   },
   {
     'gameId': '4e7c5d33-3333-4333-8333-333333333333',
     'name': 'Débutants',
     'defaultBuyIn': 100,
-    'players': List.filled(3, const {}),
+    'players': _seats(['soa', 'hanta', 'fara']),
   },
 ];
 

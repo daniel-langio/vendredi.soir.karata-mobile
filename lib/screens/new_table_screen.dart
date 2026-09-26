@@ -1,9 +1,24 @@
 import 'package:flutter/material.dart';
+
 import '../api/api_client.dart';
 import '../chip_display.dart';
 import '../l10n/app_localizations.dart';
 import '../table_name_generator.dart';
-import '../theme.dart';
+import '../theme/karata_colors.dart';
+import '../theme/karata_text_styles.dart';
+import '../widgets/common/amount_field.dart';
+import '../widgets/common/choice_chips_row.dart';
+import '../widgets/common/circle_icon_button.dart';
+import '../widgets/common/karata_button.dart';
+import '../widgets/common/karata_card.dart';
+import '../widgets/common/karata_dropdown.dart';
+import '../widgets/common/karata_icons.dart';
+import '../widgets/common/karata_screen.dart';
+import '../widgets/common/karata_switch.dart';
+import '../widgets/common/karata_text_field.dart';
+import '../widgets/common/labeled_field.dart';
+import '../widgets/common/section_card.dart';
+import '../widgets/common/setting_row.dart';
 
 class NewTableScreen extends StatefulWidget {
   final String serverUrl;
@@ -27,13 +42,13 @@ class _NewTableScreenState extends State<NewTableScreen> {
   // the defaults are seeded through the same conversion the entries are read back with.
   final _display = ChipDisplay.instance.value;
   late final _smallBlindController = TextEditingController(
-    text: '${_display.entryFromChips(1)}',
+    text: AmountField.entryText(_display, 1),
   );
   late final _bigBlindController = TextEditingController(
-    text: '${_display.entryFromChips(2)}',
+    text: AmountField.entryText(_display, 2),
   );
   late final _buyInController = TextEditingController(
-    text: '${_display.entryFromChips(200)}',
+    text: AmountField.entryText(_display, 200),
   );
   String _variant = 'TEXAS_HOLDEM';
   bool _isLoading = false;
@@ -42,11 +57,16 @@ class _NewTableScreenState extends State<NewTableScreen> {
   bool _cashoutEnabled = true;
   bool _enforceMinimumBuyIn = true;
   bool _autoRebuyEnabled = false;
+  int? _walletChips;
+
+  /// The multiples of the big blind the design offers as one-tap buy-ins.
+  static const _presetBigBlinds = [50, 100, 200];
 
   @override
   void initState() {
     super.initState();
     _checkOperator();
+    _loadWallet();
   }
 
   /// Whether to offer the public-table switch is the server's answer, not a username the client
@@ -64,6 +84,20 @@ class _NewTableScreenState extends State<NewTableScreen> {
     }
   }
 
+  /// The balance behind the "Max" preset and the line under the buy-in field.
+  Future<void> _loadWallet() async {
+    try {
+      final chips = await ApiClient(
+        baseUrl: widget.serverUrl,
+        token: widget.token,
+      ).getWallet();
+      if (!mounted) return;
+      setState(() => _walletChips = chips);
+    } catch (_) {
+      // Non-critical - "Max" is simply left out if we can't reach the server.
+    }
+  }
+
   @override
   void dispose() {
     _nameController.dispose();
@@ -76,8 +110,40 @@ class _NewTableScreenState extends State<NewTableScreen> {
   /// Reads one amount field as chips. Null (rather than zero) for anything unparseable, so the
   /// "fill in valid values" guard below still catches an empty or junk entry.
   int? _chipsFrom(TextEditingController controller) {
-    final entered = int.tryParse(controller.text.trim());
+    final entered = int.tryParse(
+      controller.text.trim().replaceAll(RegExp(r'[\s ]'), ''),
+    );
     return entered == null ? null : _display.chipsFromEntry(entered);
+  }
+
+  int? get _bigBlindChips {
+    final bb = _chipsFrom(_bigBlindController);
+    return bb == null || bb <= 0 ? null : bb;
+  }
+
+  /// Which preset, if any, the buy-in currently sits on - so the chips reflect a value the player
+  /// typed by hand as well as one they tapped.
+  int? get _selectedPreset {
+    final bb = _bigBlindChips;
+    final buyIn = _chipsFrom(_buyInController);
+    if (bb == null || buyIn == null) return null;
+    for (var i = 0; i < _presetBigBlinds.length; i++) {
+      if (buyIn == bb * _presetBigBlinds[i]) return i;
+    }
+    if (_walletChips != null && buyIn == _walletChips) {
+      return _presetBigBlinds.length;
+    }
+    return null;
+  }
+
+  void _applyPreset(int index) {
+    final chips = index < _presetBigBlinds.length
+        ? (_bigBlindChips ?? 0) * _presetBigBlinds[index]
+        : (_walletChips ?? 0);
+    if (chips <= 0) return;
+    setState(() {
+      _buyInController.text = AmountField.entryText(_display, chips);
+    });
   }
 
   Future<void> _create() async {
@@ -160,229 +226,200 @@ class _NewTableScreenState extends State<NewTableScreen> {
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
-    return Scaffold(
-      appBar: AppBar(),
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+
+    return KarataScreen(
+      onBack: () => Navigator.of(context).pop(),
+      backLabel: t.back,
+      title: t.newTableTitle,
+      subtitle: t.newTableSubtitle,
+      children: [
+        SectionCard(
+          title: t.table,
+          ribbon: true,
           children: [
-            Text(
-              t.newTableTitle,
-              style: const TextStyle(
-                fontSize: 34,
-                fontWeight: FontWeight.w300,
-                color: KarataColors.ink,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              t.newTableSubtitle,
-              style: const TextStyle(
-                fontSize: 13.5,
-                color: KarataColors.dim,
-                height: 1.45,
-              ),
-            ),
-            const SizedBox(height: 24),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _nameController,
-                    style: const TextStyle(color: KarataColors.ink),
-                    decoration: InputDecoration(labelText: t.name),
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.shuffle),
-                  tooltip: t.generateTableName,
+            LabeledField(
+              label: t.name,
+              child: KarataTextField(
+                controller: _nameController,
+                fillColor: KarataColors.backdrop,
+                trailing: CircleIconButton(
+                  icon: KarataIcons.shuffle,
+                  iconSize: 20,
+                  background: const Color(0x00000000),
+                  color: KarataColors.inkMuted,
                   onPressed: () => setState(
                     () => _nameController.text = generateTableName(),
                   ),
+                  semanticLabel: t.generateTableName,
                 ),
-              ],
+              ),
             ),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<String>(
-              initialValue: _variant,
-              // "Seven-Card Stud (coming soon)" is wider than a phone leaves room for; let the
-              // field own the full width and ellipsise inside it rather than overflow.
-              isExpanded: true,
-              dropdownColor: KarataColors.field,
-              style: const TextStyle(color: KarataColors.ink),
-              decoration: InputDecoration(labelText: t.gameVariant),
-              items: [
-                DropdownMenuItem(
-                  value: 'TEXAS_HOLDEM',
-                  child: Text(t.variantTexasHoldemShort),
-                ),
-                DropdownMenuItem(
-                  value: 'OMAHA',
-                  child: Text(t.variantOmahaShort),
-                ),
-                DropdownMenuItem(
-                  value: 'FIVE_CARD_DRAW',
-                  child: Text(t.variantFiveCardDrawShort),
-                ),
-                DropdownMenuItem(
-                  value: 'SEVEN_CARD_STUD',
-                  child: Text(
+            LabeledField(
+              label: t.gameVariant,
+              child: KarataDropdown<String>(
+                value: _variant,
+                items: [
+                  ('TEXAS_HOLDEM', t.variantTexasHoldemShort),
+                  ('OMAHA', t.variantOmahaShort),
+                  ('FIVE_CARD_DRAW', t.variantFiveCardDrawShort),
+                  (
+                    'SEVEN_CARD_STUD',
                     '${t.variantSevenCardStudShort} (${t.comingSoon})',
-                    style: const TextStyle(color: KarataColors.dim),
                   ),
-                ),
-              ],
-              // SEVEN_CARD_STUD is shown (dimmed) but not selectable yet - DropdownMenuItem has
-              // no per-item `enabled` flag, so this rejects the pick and leaves _variant as-is.
-              onChanged: (value) {
-                if (value == 'SEVEN_CARD_STUD') {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        '${t.variantSevenCardStudShort} - ${t.comingSoon}',
+                ],
+                // SEVEN_CARD_STUD is listed but not playable yet - DropdownMenuItem has no
+                // per-item `enabled` flag, so this rejects the pick and leaves _variant as-is.
+                onChanged: (value) {
+                  if (value == 'SEVEN_CARD_STUD') {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          '${t.variantSevenCardStudShort} - ${t.comingSoon}',
+                        ),
                       ),
-                      backgroundColor: KarataColors.pill,
-                    ),
-                  );
-                  return;
-                }
-                setState(() => _variant = value ?? _variant);
-              },
+                    );
+                    return;
+                  }
+                  setState(() => _variant = value ?? _variant);
+                },
+              ),
             ),
-            const SizedBox(height: 11),
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
-                  child: TextField(
-                    controller: _smallBlindController,
-                    keyboardType: TextInputType.number,
-                    style: const TextStyle(color: KarataColors.ink),
-                    decoration: InputDecoration(labelText: t.smallBlind),
+                  child: LabeledField(
+                    label: t.smallBlind,
+                    child: AmountField(
+                      controller: _smallBlindController,
+                      display: _display,
+                      fillColor: KarataColors.backdrop,
+                    ),
                   ),
                 ),
-                const SizedBox(width: 11),
+                const SizedBox(width: 12),
                 Expanded(
-                  child: TextField(
-                    controller: _bigBlindController,
-                    keyboardType: TextInputType.number,
-                    style: const TextStyle(color: KarataColors.ink),
-                    decoration: InputDecoration(labelText: t.bigBlind),
+                  child: LabeledField(
+                    label: t.bigBlind,
+                    child: AmountField(
+                      controller: _bigBlindController,
+                      display: _display,
+                      fillColor: KarataColors.backdrop,
+                      onChanged: (_) => setState(() {}),
+                    ),
                   ),
                 ),
               ],
-            ),
-            const SizedBox(height: 24),
-            Text(
-              t.yourBuyIn,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: KarataColors.ink,
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _buyInController,
-              keyboardType: TextInputType.number,
-              style: const TextStyle(color: KarataColors.ink),
-              decoration: InputDecoration(labelText: t.amount),
-            ),
-            if (_isOperator) ...[
-              const SizedBox(height: 8),
-              SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                value: _makePublic,
-                onChanged: _isLoading
-                    ? null
-                    : (value) => setState(() => _makePublic = value),
-                title: Text(
-                  t.makePublic,
-                  style: const TextStyle(fontSize: 14, color: KarataColors.ink),
-                ),
-                subtitle: Text(
-                  t.makePublicHint,
-                  style: const TextStyle(fontSize: 12, color: KarataColors.dim),
-                ),
-              ),
-            ],
-            if (_isOperator && _makePublic) ...[
-              SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                value: !_cashoutEnabled,
-                onChanged: _isLoading
-                    ? null
-                    : (value) => setState(() => _cashoutEnabled = !value),
-                title: Text(
-                  t.virtualChips,
-                  style: const TextStyle(fontSize: 14, color: KarataColors.ink),
-                ),
-                subtitle: Text(
-                  t.virtualChipsHint,
-                  style: const TextStyle(fontSize: 12, color: KarataColors.dim),
-                ),
-              ),
-              SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                value: _enforceMinimumBuyIn,
-                onChanged: _isLoading
-                    ? null
-                    : (value) => setState(() => _enforceMinimumBuyIn = value),
-                title: Text(
-                  t.strictMinimumBuyIn,
-                  style: const TextStyle(fontSize: 14, color: KarataColors.ink),
-                ),
-                subtitle: Text(
-                  t.strictMinimumBuyInHint,
-                  style: const TextStyle(fontSize: 12, color: KarataColors.dim),
-                ),
-              ),
-              SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                value: _autoRebuyEnabled,
-                onChanged: _isLoading
-                    ? null
-                    : (value) => setState(() => _autoRebuyEnabled = value),
-                title: Text(
-                  t.autoRebuy,
-                  style: const TextStyle(fontSize: 14, color: KarataColors.ink),
-                ),
-                subtitle: Text(
-                  t.autoRebuyHint,
-                  style: const TextStyle(fontSize: 12, color: KarataColors.dim),
-                ),
-              ),
-            ],
-            const SizedBox(height: 14),
-            Text(
-              t.newTableFooter,
-              style: const TextStyle(
-                fontSize: 12,
-                color: KarataColors.dim,
-                height: 1.5,
-              ),
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: _isLoading ? null : _create,
-              child: _isLoading
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: KarataColors.ink,
-                      ),
-                    )
-                  : Text(
-                      _isOperator && _makePublic
-                          ? t.createTable
-                          : t.createAndSitDown,
-                    ),
             ),
           ],
         ),
-      ),
+        SectionCard(
+          title: t.yourBuyIn,
+          children: [
+            LabeledField(
+              label: t.amount,
+              child: AmountField(
+                controller: _buyInController,
+                display: _display,
+                fillColor: KarataColors.backdrop,
+                onChanged: (_) => setState(() {}),
+              ),
+            ),
+            ChoiceChipsRow(
+              labels: [
+                for (final bb in _presetBigBlinds) t.bigBlindsPreset('$bb'),
+                t.maxPreset,
+              ],
+              selectedIndex: _selectedPreset,
+              onSelected: _applyPreset,
+            ),
+            Text(_buyInSummary(t), style: KarataText.label),
+          ],
+        ),
+        if (_isOperator)
+          KarataCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SettingRow(
+                  title: t.makePublic,
+                  description: t.makePublicHint,
+                  trailing: KarataSwitch(
+                    value: _makePublic,
+                    semanticLabel: t.makePublic,
+                    onChanged: _isLoading
+                        ? null
+                        : (value) => setState(() => _makePublic = value),
+                  ),
+                ),
+                if (_makePublic) ...[
+                  const SizedBox(height: 16),
+                  const CardDivider(),
+                  const SizedBox(height: 16),
+                  SettingRow(
+                    title: t.virtualChips,
+                    description: t.virtualChipsHint,
+                    trailing: KarataSwitch(
+                      value: !_cashoutEnabled,
+                      semanticLabel: t.virtualChips,
+                      onChanged: _isLoading
+                          ? null
+                          : (value) => setState(() => _cashoutEnabled = !value),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  SettingRow(
+                    title: t.strictMinimumBuyIn,
+                    description: t.strictMinimumBuyInHint,
+                    trailing: KarataSwitch(
+                      value: _enforceMinimumBuyIn,
+                      semanticLabel: t.strictMinimumBuyIn,
+                      onChanged: _isLoading
+                          ? null
+                          : (value) =>
+                                setState(() => _enforceMinimumBuyIn = value),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  SettingRow(
+                    title: t.autoRebuy,
+                    description: t.autoRebuyHint,
+                    trailing: KarataSwitch(
+                      value: _autoRebuyEnabled,
+                      semanticLabel: t.autoRebuy,
+                      onChanged: _isLoading
+                          ? null
+                          : (value) =>
+                                setState(() => _autoRebuyEnabled = value),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        Text(t.newTableFooter, style: KarataText.subtitle),
+        KarataButton(
+          label: _isOperator && _makePublic
+              ? t.createTable
+              : t.createAndSitDown,
+          onPressed: _isLoading ? null : _create,
+        ),
+      ],
     );
+  }
+
+  /// "That's 100 big blinds. Balance: 2 450 000 Ar" - both halves are only shown once they can be
+  /// stated truthfully, so an unparseable blind or an unreachable server drops its half rather
+  /// than printing a zero.
+  String _buyInSummary(AppLocalizations t) {
+    final bb = _bigBlindChips;
+    final buyIn = _chipsFrom(_buyInController);
+    final parts = <String>[
+      if (bb != null && buyIn != null && buyIn > 0)
+        t.thatsNBigBlinds('${(buyIn / bb).floor()}'),
+      if (_walletChips != null)
+        t.balanceOf(ChipDisplay.formatWith(_display, _walletChips)),
+    ];
+    return parts.join(' ');
   }
 }

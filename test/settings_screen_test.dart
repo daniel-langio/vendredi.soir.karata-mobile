@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:poker_client/chip_display.dart';
@@ -75,9 +74,7 @@ void main() {
   ) async {
     await pumpSettings(tester);
 
-    await tester.tap(
-      find.widgetWithText(SwitchListTile, 'Show chips as money'),
-    );
+    await tester.tap(switchLabelled('Show chips as money'));
     await tester.pumpAndSettle();
 
     expect(ChipDisplay.instance.value.asMoney, isFalse);
@@ -94,7 +91,7 @@ void main() {
   ) async {
     await pumpSettings(tester);
 
-    await tester.tap(find.widgetWithText(SwitchListTile, 'Table sounds'));
+    await tester.tap(switchLabelled('Table sounds'));
     await tester.pumpAndSettle();
 
     expect(SoundSettings.instance.value, isFalse);

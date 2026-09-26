@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../api/api_client.dart';
 import '../l10n/app_localizations.dart';
-import '../theme.dart';
+import '../theme/karata_colors.dart';
+import '../theme/karata_text_styles.dart';
+import '../widgets/common/inline_prompt.dart';
+import '../widgets/common/karata_button.dart';
+import '../widgets/common/karata_form_field.dart';
+import '../widgets/common/karata_screen.dart';
+import '../widgets/common/labeled_field.dart';
+import '../widgets/common/password_reveal_button.dart';
 
 class RegisterScreen extends StatefulWidget {
   final String serverUrl;
@@ -31,6 +39,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
+  bool _revealPassword = false;
 
   @override
   void dispose() {
@@ -47,7 +56,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() => _isLoading = true);
     try {
       final client = ApiClient(baseUrl: widget.serverUrl);
-      final token = await client.register(username, password, promoCode: widget.promoCode);
+      final token = await client.register(
+        username,
+        password,
+        promoCode: widget.promoCode,
+      );
 
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('server_url', widget.serverUrl);
@@ -60,15 +73,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
         Navigator.of(context).pushNamedAndRemoveUntil(
           widget.redirectTarget ?? '/menu',
           (route) => false,
-          arguments: {'serverUrl': widget.serverUrl, 'token': token, 'username': username},
+          arguments: {
+            'serverUrl': widget.serverUrl,
+            'token': token,
+            'username': username,
+          },
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text(AppLocalizations.of(context).couldNotCreateAccount('$e')),
-              backgroundColor: KarataColors.red),
+            content: Text(
+              AppLocalizations.of(context).couldNotCreateAccount('$e'),
+            ),
+            backgroundColor: KarataColors.red,
+          ),
         );
       }
     } finally {
@@ -79,62 +99,71 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
-    return Scaffold(
-      appBar: AppBar(),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  t.createAccount,
-                  style: const TextStyle(
-                      fontSize: 34, fontWeight: FontWeight.w300, color: KarataColors.ink),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  t.registerSubtitle,
-                  style: const TextStyle(fontSize: 13.5, color: KarataColors.dim, height: 1.45),
-                ),
-                if (widget.promoCode != null && widget.promoCode!.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    t.promoCodeWillApply(widget.promoCode!),
-                    style: const TextStyle(fontSize: 13, color: KarataColors.live, height: 1.4),
-                  ),
-                ],
-                const SizedBox(height: 26),
-                TextFormField(
-                  controller: _usernameController,
-                  decoration: InputDecoration(labelText: t.username),
-                  validator: (v) =>
-                      (v == null || v.trim().length < 3) ? t.usernameTooShort : null,
-                ),
-                const SizedBox(height: 11),
-                TextFormField(
-                  controller: _passwordController,
-                  obscureText: true,
-                  decoration: InputDecoration(labelText: t.password),
-                  validator: (v) => (v == null || v.length < 6) ? t.passwordTooShort : null,
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: _isLoading ? null : _submit,
-                  child: _isLoading
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: KarataColors.ink),
-                        )
-                      : Text(t.createAccount),
-                ),
-              ],
+    final promoCode = widget.promoCode;
+
+    return Form(
+      key: _formKey,
+      child: KarataScreen(
+        onBack: () => Navigator.of(context).pop(),
+        backLabel: t.back,
+        title: t.createAccount,
+        subtitle: t.registerSubtitle,
+        gap: 18,
+        children: [
+          if (promoCode != null && promoCode.isNotEmpty)
+            Text(
+              t.promoCodeWillApply(promoCode),
+              style: karataText(
+                size: 13,
+                weight: 600,
+                color: KarataColors.tealLight,
+                height: 1.4,
+              ),
+            ),
+          LabeledField(
+            label: t.username,
+            child: KarataFormField(
+              controller: _usernameController,
+              hintText: t.usernameHint,
+              textInputAction: TextInputAction.next,
+              validator: (v) => (v == null || v.trim().length < 3)
+                  ? t.usernameTooShort
+                  : null,
             ),
           ),
-        ),
+          LabeledField(
+            label: t.password,
+            child: KarataFormField(
+              controller: _passwordController,
+              hintText: t.passwordHint,
+              obscureText: !_revealPassword,
+              textInputAction: TextInputAction.done,
+              onSubmitted: (_) => _isLoading ? null : _submit(),
+              trailing: PasswordRevealButton(
+                revealed: _revealPassword,
+                semanticLabel: t.showPassword,
+                onPressed: () =>
+                    setState(() => _revealPassword = !_revealPassword),
+              ),
+              validator: (v) =>
+                  (v == null || v.length < 6) ? t.passwordTooShort : null,
+            ),
+          ),
+          // The design puts a 4px breather between the last field and the action.
+          const SizedBox(height: 4),
+          KarataButton(
+            label: t.createAccount,
+            onPressed: _isLoading ? null : _submit,
+          ),
+          InlinePrompt(
+            question: t.alreadyHaveAnAccount,
+            linkLabel: t.logIn,
+            onPressed: () => Navigator.of(context).pushReplacementNamed(
+              '/login',
+              arguments: {'serverUrl': widget.serverUrl},
+            ),
+          ),
+        ],
       ),
     );
   }

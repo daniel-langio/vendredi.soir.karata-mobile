@@ -27,7 +27,8 @@ import 'package:poker_client/screens/settings_screen.dart';
 import 'package:poker_client/screens/table_screen.dart';
 import 'package:poker_client/screens/welcome_screen.dart';
 import 'package:poker_client/sound_settings.dart';
-import 'package:poker_client/theme.dart';
+import 'package:poker_client/theme/karata_text_styles.dart';
+import 'package:poker_client/theme/karata_theme.dart';
 
 import 'fake_server.dart';
 
@@ -256,10 +257,20 @@ void _ignoreAudioPluginNoise() {
 /// The files come from the Flutter SDK's own artifact cache rather than a download or a vendored
 /// copy: they are already on any machine that can run this test, CI included.
 Future<void> _loadRealFonts() async {
+  // Karata's own typeface, straight out of the assets the app ships. Without this the test VM
+  // draws every glyph as a filled box, and with a Roboto substitute the shots would show the
+  // right layout in the wrong voice - Bricolage Grotesque's proportions are a large part of what
+  // the V2 design looks like.
+  await (FontLoader(kKarataFont)..addFont(
+    File('assets/fonts/BricolageGrotesque.ttf')
+        .readAsBytes()
+        .then(ByteData.sublistView),
+  )).load();
+
   final cache = _materialFontsDir();
   if (cache == null) {
     printOnFailure(
-      'Flutter SDK fonts not found - screenshots will render text as boxes.',
+      'Flutter SDK fonts not found - icon glyphs will render as boxes.',
     );
     return;
   }
@@ -267,24 +278,17 @@ Future<void> _loadRealFonts() async {
   Future<ByteData> read(String name) async =>
       ByteData.sublistView(await File('${cache.path}/$name').readAsBytes());
 
-  // Registered under the name the app's theme asks for, not under "Roboto".
-  //
-  // karataTheme() names 'SF Pro Text', which does not exist on Android - the device quietly
-  // falls back to its own UI font, which is Roboto. flutter_test has no such fallback: an
-  // unknown family lands on the placeholder font that draws every glyph as a filled box, which
-  // is what these images looked like before. Registering the SDK's Roboto under that name does
-  // by hand exactly what the phone does by itself, so a shot shows the typography a player sees.
-  for (final family in const ['SF Pro Text', 'Roboto']) {
-    final loader = FontLoader(family);
-    for (final weight in const [
-      'Roboto-Regular.ttf',
-      'Roboto-Medium.ttf',
-      'Roboto-Bold.ttf',
-    ]) {
-      loader.addFont(read(weight));
-    }
-    await loader.load();
+  // Roboto still has to be present as the fallback family: it carries the card suits and any
+  // glyph Bricolage Grotesque does not cover.
+  final roboto = FontLoader('Roboto');
+  for (final weight in const [
+    'Roboto-Regular.ttf',
+    'Roboto-Medium.ttf',
+    'Roboto-Bold.ttf',
+  ]) {
+    roboto.addFont(read(weight));
   }
+  await roboto.load();
 
   await (FontLoader(
     'MaterialIcons',
