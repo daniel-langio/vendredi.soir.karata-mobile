@@ -18,6 +18,9 @@ class TableSeat extends StatelessWidget {
     this.actionLabel,
     this.dimmed = false,
     this.width = 110,
+    this.avatarDiameter = 56,
+    this.nameSize = 12,
+    this.stackSize = 13,
     this.cards,
   });
 
@@ -30,6 +33,12 @@ class TableSeat extends StatelessWidget {
   final String? actionLabel;
   final bool dimmed;
   final double width;
+
+  /// The seat's own scale. The wide table draws a bigger avatar with bigger type under it, which
+  /// is the only way the two seats differ.
+  final double avatarDiameter;
+  final double nameSize;
+  final double stackSize;
 
   /// A revealed hand at showdown, shown in place of the avatar.
   final Widget? cards;
@@ -54,7 +63,7 @@ class TableSeat extends StatelessWidget {
                 children: [
                   Avatar(
                     name: username,
-                    diameter: 56,
+                    diameter: avatarDiameter,
                     ringColor: const Color(0x40FFFFFF),
                   ),
                   if (badge)
@@ -73,14 +82,14 @@ class TableSeat extends StatelessWidget {
               username,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: karataText(size: 12, weight: 600),
+              style: karataText(size: nameSize, weight: 600),
             ),
             Text(
               stack,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: karataText(
-                size: 13,
+                size: stackSize,
                 weight: 800,
                 color: KarataColors.white,
               ),

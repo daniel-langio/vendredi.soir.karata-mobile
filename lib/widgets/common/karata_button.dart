@@ -74,6 +74,7 @@ class KarataButton extends StatefulWidget {
     this.expand = true,
     this.raised = true,
     this.fontSize = 16,
+    this.horizontalPadding = 14,
   });
 
   final String label;
@@ -84,6 +85,10 @@ class KarataButton extends StatefulWidget {
 
   /// Whether the button stretches to its parent's width, as it does at the foot of a screen.
   final bool expand;
+
+  /// The breathing room on either side of the label when the button hugs it. 14 everywhere the
+  /// phone draws one; the wide layout's own pills are roomier, up to the 32 on a lobby tile.
+  final double horizontalPadding;
 
   /// The label's size. 16 everywhere except the compact row actions inside a card, which the
   /// design drops to 13.
@@ -139,7 +144,7 @@ class _KarataButtonState extends State<KarataButton> {
     // whole button.
     if (!widget.expand) {
       content = Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14),
+        padding: EdgeInsets.symmetric(horizontal: widget.horizontalPadding),
         child: content,
       );
     }

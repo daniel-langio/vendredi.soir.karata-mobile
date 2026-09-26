@@ -8,6 +8,7 @@ import '../game_sounds.dart';
 import '../l10n/app_localizations.dart';
 import '../theme/karata_colors.dart';
 import '../theme/karata_text_styles.dart';
+import '../widgets/common/breakpoints.dart';
 import '../widgets/common/karata_backdrop.dart';
 import '../widgets/common/karata_button.dart';
 import '../widgets/common/karata_card.dart';
@@ -21,6 +22,7 @@ import '../widgets/table/seat_data.dart';
 import '../widgets/table/table_action_bar.dart';
 import '../widgets/table/table_controls.dart';
 import '../widgets/table/table_menu_sheet.dart';
+import '../widgets/table/table_metrics.dart';
 import '../widgets/table/table_surface.dart';
 import '../widgets/table/table_top_bar.dart';
 import '../widgets/table/turn_status_bar.dart';
@@ -541,6 +543,7 @@ class _TableScreenState extends State<TableScreen> {
 
     final t = AppLocalizations.of(context);
     final gameName = _game?['name'] as String? ?? '';
+    final wide = KarataLayout.isWide(context);
 
     final scaffold = Scaffold(
       backgroundColor: Colors.transparent,
@@ -569,10 +572,19 @@ class _TableScreenState extends State<TableScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 12),
                         child: _pausedBanner(t),
                       ),
-                    Expanded(child: _surface(t)),
+                    Expanded(child: _surface(t, wide)),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: _controls(t),
+                      // Artboard 03 holds the action bar to 660px of its 1100px canvas rather
+                      // than letting it run the width of the felt.
+                      child: Center(
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            maxWidth: wide ? 660 : double.infinity,
+                          ),
+                          child: _controls(t),
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -606,7 +618,7 @@ class _TableScreenState extends State<TableScreen> {
   }
 
   /// The felt and everything on it, assembled from the current deal.
-  Widget _surface(AppLocalizations t) {
+  Widget _surface(AppLocalizations t, bool wide) {
     final deal = _currentDeal;
     final outcome = deal?['outcome'] as Map<String, dynamic>?;
     final revealedHands = <String, Map<String, dynamic>>{
@@ -630,7 +642,9 @@ class _TableScreenState extends State<TableScreen> {
               .map((c) => c?.toString())
               .toList(),
       winningCards: winningCards,
+      metrics: wide ? TableMetrics.wide : TableMetrics.phone,
       pot: ChipDisplay.instance.format(deal?['pot'] as num?),
+      potAmount: (deal?['pot'] as num?)?.toInt(),
       handLabel: _handRank(outcome),
       heroCards: _myCards.map((c) => c?.toString()).toList(),
       heroDimmed: _you?['status'] == 'FOLDED',
@@ -675,6 +689,8 @@ class _TableScreenState extends State<TableScreen> {
       actionLabel: label,
       dimmed: folded,
       isDealer: player['dealer'] == true,
+      // What they have in front of them this street. Folded seats have pushed nothing in.
+      bet: folded || lastAction == null ? null : lastActionAmount(lastAction),
       // `holeCards`, not `cards`: the showdown payload names the two cards a player turned over
       // separately from the community cards they were read against.
       revealedCards: revealed == null

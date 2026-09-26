@@ -54,6 +54,22 @@ abstract final class KarataIcons {
   // Lobby -------------------------------------------------------------------
   static const plus = KarataIconData([PathShape('M12 5 V19 M5 12 H19')]);
 
+  /// The sidebar's lobby entry, drawn as a table seen from above.
+  ///
+  /// Only the wide layout has a sidebar, so this and [wallet] appear nowhere in the phone
+  /// mockups - the phone reaches both screens from the lobby itself rather than from a nav rail.
+  static const lobby = KarataIconData([
+    RectShape(3, 4, 18, 16, radius: 3),
+    PathShape('M3 10 H21'),
+  ]);
+
+  /// The sidebar's wallet entry: a billfold with a card in it. Distinct from [money], which is
+  /// the banknote used on the settings screen's "show chips as money" row.
+  static const wallet = KarataIconData([
+    RectShape(3, 6, 18, 14, radius: 3),
+    PathShape('M3 10 H21 M16 15 H17'),
+  ]);
+
   /// Join with link.
   static const link = KarataIconData([
     PathShape('M10 14 A4 4 0 0 0 16 14 L19 11 A4 4 0 0 0 13 5 L12 6'),

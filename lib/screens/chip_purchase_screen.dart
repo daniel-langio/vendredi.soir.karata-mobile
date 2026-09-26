@@ -8,6 +8,7 @@ import '../l10n/app_localizations.dart';
 import '../theme/karata_colors.dart';
 import '../theme/karata_text_styles.dart';
 import '../widgets/common/amount_field.dart';
+import '../widgets/common/breakpoints.dart';
 import '../widgets/common/choice_chips_row.dart';
 import '../widgets/common/karata_button.dart';
 import '../widgets/common/karata_screen.dart';
@@ -15,6 +16,11 @@ import '../widgets/common/karata_text_field.dart';
 import '../widgets/common/labeled_field.dart';
 import '../widgets/common/segmented_tabs.dart';
 import '../widgets/wallet/payment_notice.dart';
+import '../widgets/common/circle_icon_button.dart';
+import '../widgets/common/karata_icons.dart';
+import '../widgets/common/section_card.dart';
+import '../widgets/desktop/desktop_shell.dart';
+import '../widgets/desktop/desktop_sidebar.dart';
 import '../widgets/wallet/step_heading.dart';
 import '../widgets/wallet/summary_card.dart';
 
@@ -48,6 +54,12 @@ class ChipPurchaseScreen extends StatefulWidget {
 }
 
 class _ChipPurchaseScreenState extends State<ChipPurchaseScreen> {
+  /// What every route this screen pushes needs to keep the session alive across it.
+  Map<String, dynamic> get _sessionArgs => {
+    'serverUrl': widget.serverUrl,
+    'token': widget.token,
+    'username': widget.username,
+  };
   late final ApiClient _apiClient;
   final _quantityController = TextEditingController(text: '1');
   final _phoneController = TextEditingController();
@@ -227,30 +239,76 @@ class _ChipPurchaseScreenState extends State<ChipPurchaseScreen> {
     final t = AppLocalizations.of(context);
     final status = _purchase?['status'] as String?;
 
+    const spinner = Padding(
+      padding: EdgeInsets.symmetric(vertical: 60),
+      child: Center(child: CircularProgressIndicator(color: KarataColors.gold)),
+    );
+    final rows = _isLoadingPrice
+        ? const <Widget>[spinner]
+        : switch (status) {
+            null => _form(t),
+            'PENDING_PAYMENT' => _waiting(t),
+            _ => _done(t),
+          };
+
+    // The first-run deposit keeps the phone's frame at every width: it is a gate, and the wide
+    // frame is a sidebar that would walk straight around it. The mockups draw no wide version
+    // of it either.
+    if (!widget.onboarding && KarataLayout.isWide(context)) {
+      return DesktopShell(
+        // Deposit has no entry of its own; artboard 26 keeps the wallet lit behind it.
+        current: DesktopNav.wallet,
+        sessionArgs: _sessionArgs,
+        username: widget.username,
+        title: t.buyChips,
+        subtitle: t.depositSubtitle,
+        actions: [
+          CircleIconButton(
+            icon: KarataIcons.back,
+            onPressed: () => Navigator.of(context).pop(),
+            semanticLabel: t.back,
+          ),
+        ],
+        child: _isLoadingPrice || status != null
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: rows,
+              )
+            : _wideForm(t),
+      );
+    }
+
     return KarataScreen(
       // No way back during onboarding: there is nothing behind it but the form they just left.
       onBack: widget.onboarding ? null : () => Navigator.of(context).pop(),
       backLabel: t.back,
       title: widget.onboarding ? t.onboardingTitle : t.buyChips,
       subtitle: widget.onboarding ? t.onboardingSubtitle : t.depositSubtitle,
-      children: _isLoadingPrice
-          ? const [
-              Padding(
-                padding: EdgeInsets.symmetric(vertical: 60),
-                child: Center(
-                  child: CircularProgressIndicator(color: KarataColors.gold),
-                ),
-              ),
-            ]
-          : switch (status) {
-              null => _form(t),
-              'PENDING_PAYMENT' => _waiting(t),
-              _ => _done(t),
-            },
+      children: rows,
+    );
+  }
+
+  /// Artboard 26: what to pay on the left, how to pay it on the right.
+  Widget _wideForm(AppLocalizations t) {
+    return DesktopColumns(
+      left: [
+        // The phone lists these three rows down the page; the wide drawing gathers them into a
+        // card of their own.
+        SectionCard(title: t.amount, ribbon: true, children: _amountRows(t)),
+        _summaryCard(t),
+      ],
+      right: _paymentRows(t),
     );
   }
 
   List<Widget> _form(AppLocalizations t) => [
+    ..._amountRows(t),
+    _summaryCard(t),
+    ..._paymentRows(t),
+  ];
+
+  /// How much, from which provider.
+  List<Widget> _amountRows(AppLocalizations t) => [
     LabeledField(
       label: t.amount,
       child: AmountField(
@@ -282,25 +340,31 @@ class _ChipPurchaseScreenState extends State<ChipPurchaseScreen> {
         onChanged: (i) => setState(() => _provider = _providers[i]),
       ),
     ),
-    SummaryCard(
-      lines: [
-        (
-          label: t.chipsYouGet,
-          value: ChipDisplay.formatWith(_display, _quantity),
-          emphasised: false,
-        ),
-        (
-          label: t.fee,
-          value: '${ChipDisplay.groupDigits(_feeAr)} Ar',
-          emphasised: false,
-        ),
-        (
-          label: t.youPay,
-          value: '${ChipDisplay.groupDigits(_totalPriceAr)} Ar',
-          emphasised: true,
-        ),
-      ],
-    ),
+  ];
+
+  /// What that comes to, once the fee is added.
+  Widget _summaryCard(AppLocalizations t) => SummaryCard(
+    lines: [
+      (
+        label: t.chipsYouGet,
+        value: ChipDisplay.formatWith(_display, _quantity),
+        emphasised: false,
+      ),
+      (
+        label: t.fee,
+        value: '${ChipDisplay.groupDigits(_feeAr)} Ar',
+        emphasised: false,
+      ),
+      (
+        label: t.youPay,
+        value: '${ChipDisplay.groupDigits(_totalPriceAr)} Ar',
+        emphasised: true,
+      ),
+    ],
+  );
+
+  /// Sending the money, then telling the house you have.
+  List<Widget> _paymentRows(AppLocalizations t) => [
     StepHeading(number: 1, label: t.sendThePayment),
     PaymentNotice(
       sentence: t.payInstructions('{amount}', '{phone}'),
