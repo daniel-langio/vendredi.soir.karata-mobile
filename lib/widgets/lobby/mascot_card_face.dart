@@ -18,6 +18,12 @@ class MascotCardFace extends StatelessWidget {
     required this.palette,
     this.width = 84,
     this.height = 118,
+    this.radius = 9,
+    this.rankSize = 17,
+    this.cornerSuitSize = 12,
+    this.pipSize = 42,
+    this.cornerInset = const Offset(7, 6),
+    this.centrePip = false,
   });
 
   final String rank;
@@ -26,13 +32,27 @@ class MascotCardFace extends StatelessWidget {
   final double width;
   final double height;
 
+  /// The corner radius, the two type sizes, the big suit in the middle, and how far the corner
+  /// index is inset. All default to the phone's own 84x118 card; the wide layout draws the same
+  /// card at 92x128 on a lobby tile and 110x152 behind the auth screens, and the design scales
+  /// the printing on it by hand rather than proportionally at each.
+  final double radius;
+  final double rankSize;
+  final double cornerSuitSize;
+  final double pipSize;
+  final Offset cornerInset;
+
+  /// Whether the big suit is centred on the card. The phone's card sits it slightly up and left
+  /// of centre, which is where the mockup puts it; every wide drawing centres it exactly.
+  final bool centrePip;
+
   @override
   Widget build(BuildContext context) {
     return Container(
       width: width,
       height: height,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(9),
+        borderRadius: BorderRadius.circular(radius),
         border: Border.all(color: palette.rim, width: 2),
         gradient: cssLinearGradient(
           angleDegrees: 150,
@@ -49,26 +69,45 @@ class MascotCardFace extends StatelessWidget {
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(7),
+        borderRadius: BorderRadius.circular(radius - 2),
         child: Stack(
           children: [
             const Positioned.fill(child: HatchOverlay()),
+            if (centrePip)
+              Positioned.fill(
+                child: Center(
+                  child: KarataIcon(suit, size: pipSize, color: palette.ink),
+                ),
+              )
+            else
+              Positioned(
+                left: 19,
+                top: 36,
+                child: KarataIcon(suit, size: pipSize, color: palette.ink),
+              ),
             Positioned(
-              left: 19,
-              top: 36,
-              child: KarataIcon(suit, size: 42, color: palette.ink),
+              left: cornerInset.dx,
+              top: cornerInset.dy,
+              child: _CornerIndex(
+                rank: rank,
+                suit: suit,
+                ink: palette.ink,
+                rankSize: rankSize,
+                suitSize: cornerSuitSize,
+              ),
             ),
             Positioned(
-              left: 7,
-              top: 6,
-              child: _CornerIndex(rank: rank, suit: suit, ink: palette.ink),
-            ),
-            Positioned(
-              right: 7,
-              bottom: 6,
+              right: cornerInset.dx,
+              bottom: cornerInset.dy,
               child: Transform.rotate(
                 angle: 3.14159265,
-                child: _CornerIndex(rank: rank, suit: suit, ink: palette.ink),
+                child: _CornerIndex(
+                  rank: rank,
+                  suit: suit,
+                  ink: palette.ink,
+                  rankSize: rankSize,
+                  suitSize: cornerSuitSize,
+                ),
               ),
             ),
           ],
@@ -84,11 +123,15 @@ class _CornerIndex extends StatelessWidget {
     required this.rank,
     required this.suit,
     required this.ink,
+    required this.rankSize,
+    required this.suitSize,
   });
 
   final String rank;
   final KarataIconData suit;
   final Color ink;
+  final double rankSize;
+  final double suitSize;
 
   @override
   Widget build(BuildContext context) {
@@ -97,10 +140,10 @@ class _CornerIndex extends StatelessWidget {
       children: [
         Text(
           rank,
-          style: karataText(size: 17, weight: 800, color: ink, height: 1),
+          style: karataText(size: rankSize, weight: 800, color: ink, height: 1),
         ),
         const SizedBox(height: 1),
-        KarataIcon(suit, size: 12, color: ink),
+        KarataIcon(suit, size: suitSize, color: ink),
       ],
     );
   }

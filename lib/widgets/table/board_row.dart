@@ -11,6 +11,7 @@ class BoardRow extends StatelessWidget {
     required this.cards,
     this.winningCards = const {},
     this.cardWidth = 52,
+    this.gap = 5,
   });
 
   /// One entry per board slot. The API sends a fixed-size array padded with nulls for the streets
@@ -24,6 +25,9 @@ class BoardRow extends StatelessWidget {
 
   final double cardWidth;
 
+  /// The space between two slots: 5 on the phone, 8 on the wider board.
+  final double gap;
+
   @override
   Widget build(BuildContext context) {
     final showdown = winningCards.isNotEmpty;
@@ -31,7 +35,7 @@ class BoardRow extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         for (var i = 0; i < cards.length; i++) ...[
-          if (i > 0) const SizedBox(width: 5),
+          if (i > 0) SizedBox(width: gap),
           if (cards[i] case final card?)
             PlayingCard(
               code: CardCode(card),

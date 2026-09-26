@@ -5,12 +5,16 @@ import '../chip_display.dart';
 import '../l10n/app_localizations.dart';
 import '../theme/karata_colors.dart';
 import '../theme/karata_text_styles.dart';
+import '../widgets/common/breakpoints.dart';
 import '../widgets/common/circle_icon_button.dart';
 import '../widgets/common/karata_card.dart';
 import '../widgets/common/karata_icons.dart';
 import '../widgets/common/karata_screen.dart';
 import '../widgets/common/section_card.dart';
 import '../widgets/common/status_pill.dart';
+import '../widgets/desktop/desktop_shell.dart';
+import '../widgets/desktop/desktop_sidebar.dart';
+import '../widgets/desktop/wide_pending_table.dart';
 import '../widgets/wallet/pending_payout_row.dart';
 import '../widgets/wallet/summary_card.dart';
 
@@ -34,6 +38,12 @@ class PendingRedemptionsScreen extends StatefulWidget {
 }
 
 class _PendingRedemptionsScreenState extends State<PendingRedemptionsScreen> {
+  /// What every route this screen pushes needs to keep the session alive across it.
+  Map<String, dynamic> get _sessionArgs => {
+    'serverUrl': widget.serverUrl,
+    'token': widget.token,
+    'username': widget.username,
+  };
   late final ApiClient _apiClient;
   List<Map<String, dynamic>> _pending = [];
   bool _isLoading = true;
@@ -112,6 +122,8 @@ class _PendingRedemptionsScreenState extends State<PendingRedemptionsScreen> {
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
 
+    if (KarataLayout.isWide(context)) return _wide(t);
+
     return KarataScreen(
       onBack: () => Navigator.of(context).pop(),
       backLabel: t.back,
@@ -178,6 +190,95 @@ class _PendingRedemptionsScreenState extends State<PendingRedemptionsScreen> {
                 ],
               ),
             ],
+    );
+  }
+
+  /// Artboard 28: the two totals as stat cards, and the payouts themselves as a table.
+  Widget _wide(AppLocalizations t) {
+    return DesktopShell(
+      current: DesktopNav.pending,
+      sessionArgs: _sessionArgs,
+      username: widget.username,
+      title: t.pendingRedemptions,
+      subtitle: t.pendingRedemptionsSubtitle,
+      actions: [
+        CircleIconButton(
+          icon: KarataIcons.refresh,
+          onPressed: _isLoading ? null : _load,
+          semanticLabel: t.refresh,
+        ),
+      ],
+      child: _isLoading
+          ? const Padding(
+              padding: EdgeInsets.symmetric(vertical: 60),
+              child: Center(
+                child: CircularProgressIndicator(color: KarataColors.gold),
+              ),
+            )
+          : _pending.isEmpty
+          ? KarataCard(
+              child: Text(
+                t.noPendingRedemptions,
+                textAlign: TextAlign.center,
+                style: KarataText.subtitle,
+              ),
+            )
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      width: 280,
+                      child: SummaryCard(
+                        lines: [
+                          (
+                            label: t.owedInTotal,
+                            value: '${ChipDisplay.groupDigits(_owedAr)} Ar',
+                            emphasised: true,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    SizedBox(
+                      width: 200,
+                      child: SummaryCard(
+                        lines: [
+                          (
+                            label: t.requests,
+                            value: '${_pending.length}',
+                            emphasised: true,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 28),
+                WidePendingTable(
+                  columnLabels: [
+                    t.columnAmount,
+                    t.columnPhone,
+                    t.columnProvider,
+                    t.columnReference,
+                  ],
+                  cancelLabel: t.cancel,
+                  rows: [
+                    for (final r in _pending)
+                      (
+                        amount:
+                            '${ChipDisplay.groupDigits((r['totalPriceAr'] as num?)?.toInt() ?? 0)} Ar',
+                        phoneNumber: '${r['payoutPhoneNumber']}',
+                        provider: _providerLabel('${r['provider']}'),
+                        reference: '${r['pspRef'] ?? ''}',
+                        onCancel: () => _cancel(r),
+                      ),
+                  ],
+                ),
+              ],
+            ),
     );
   }
 

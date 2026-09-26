@@ -48,9 +48,14 @@ import 'fake_server.dart';
 ///    download and no vendored binary in the repo.
 ///  * A server. See [fakeKarata].
 void main() {
-  // A tall phone, which is what this UI was drawn for. Logical 412x915 is a common Android size;
-  // at 2x the PNGs land at 824x1830, big enough to inspect and small enough to attach.
-  const size = Size(412, 915);
+  // The two layouts the app draws. A tall phone - logical 412x915 is a common Android size - and
+  // the desktop canvas the V2 mockups were drawn on, which is what a browser and a wide Android
+  // window get. At 2x the phone PNGs land at 824x1830 and the wide ones at 2560x1720, big enough
+  // to inspect and small enough to attach.
+  const viewports = <String, Size>{
+    'phone': Size(412, 915),
+    'wide': Size(1280, 860),
+  };
   const pixelRatio = 2.0;
 
   setUpAll(() async {
@@ -68,29 +73,36 @@ void main() {
     await SoundSettings.instance.load();
   });
 
-  for (final locale in const [Locale('en'), Locale('fr')]) {
-    for (final screen in _screens) {
-      testWidgets('${locale.languageCode}/${screen.name}', (tester) async {
-        tester.view.physicalSize = size * pixelRatio;
-        tester.view.devicePixelRatio = pixelRatio;
-        addTearDown(tester.view.reset);
+  for (final MapEntry(key: viewport, value: size) in viewports.entries) {
+    for (final locale in const [Locale('en'), Locale('fr')]) {
+      for (final screen in _screens) {
+        testWidgets('$viewport/${locale.languageCode}/${screen.name}', (
+          tester,
+        ) async {
+          tester.view.physicalSize = size * pixelRatio;
+          tester.view.devicePixelRatio = pixelRatio;
+          addTearDown(tester.view.reset);
 
-        // The rate every amount is shown at. Set directly rather than fetched, so a screen that
-        // never calls /economy/price still photographs with money on like the shipped default.
-        ChipDisplay.instance.value = ChipDisplay.instance.value.copyWith(
-          arPerChip: 100,
-        );
+          // The rate every amount is shown at. Set directly rather than fetched, so a screen
+          // that never calls /economy/price still photographs with money on like the shipped
+          // default.
+          ChipDisplay.instance.value = ChipDisplay.instance.value.copyWith(
+            arPerChip: 100,
+          );
 
-        await http.runWithClient(() async {
-          await tester.pumpWidget(_app(locale, screen.build()));
-          await screen.settle(tester);
-        }, fakeKarata);
+          await http.runWithClient(() async {
+            await tester.pumpWidget(_app(locale, screen.build()));
+            await screen.settle(tester);
+          }, fakeKarata);
 
-        await expectLater(
-          find.byType(MaterialApp),
-          matchesGoldenFile('shots/${locale.languageCode}/${screen.name}.png'),
-        );
-      });
+          await expectLater(
+            find.byType(MaterialApp),
+            matchesGoldenFile(
+              'shots/$viewport/${locale.languageCode}/${screen.name}.png',
+            ),
+          );
+        });
+      }
     }
   }
 }

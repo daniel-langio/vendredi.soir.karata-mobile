@@ -3,10 +3,13 @@ import 'package:flutter/material.dart';
 import '../api/api_client.dart';
 import '../l10n/app_localizations.dart';
 import '../theme/karata_colors.dart';
+import '../widgets/common/breakpoints.dart';
 import '../widgets/common/karata_button.dart';
 import '../widgets/common/karata_screen.dart';
 import '../widgets/common/karata_switch.dart';
 import '../widgets/common/setting_row.dart';
+import '../widgets/desktop/desktop_shell.dart';
+import '../widgets/desktop/desktop_sidebar.dart';
 import '../widgets/common/karata_text_field.dart';
 import '../widgets/common/labeled_field.dart';
 import '../widgets/common/section_card.dart';
@@ -30,6 +33,12 @@ class EconomyConfigScreen extends StatefulWidget {
 }
 
 class _EconomyConfigScreenState extends State<EconomyConfigScreen> {
+  /// What every route this screen pushes needs to keep the session alive across it.
+  Map<String, dynamic> get _sessionArgs => {
+    'serverUrl': widget.serverUrl,
+    'token': widget.token,
+    'username': widget.username,
+  };
   late final ApiClient _apiClient;
   final _priceController = TextEditingController();
   final _spreadController = TextEditingController();
@@ -176,108 +185,160 @@ class _EconomyConfigScreenState extends State<EconomyConfigScreen> {
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
+    final wide = KarataLayout.isWide(context);
+
+    if (_isLoading) {
+      const spinner = Padding(
+        padding: EdgeInsets.symmetric(vertical: 60),
+        child: Center(
+          child: CircularProgressIndicator(color: KarataColors.gold),
+        ),
+      );
+      return wide
+          ? DesktopShell(
+              current: DesktopNav.economy,
+              sessionArgs: _sessionArgs,
+              username: widget.username,
+              title: t.economySettings,
+              subtitle: t.economyConfigSubtitle,
+              child: spinner,
+            )
+          : KarataScreen(
+              onBack: () => Navigator.of(context).pop(),
+              backLabel: t.back,
+              title: t.economySettings,
+              children: const [spinner],
+            );
+    }
+
+    // The wide drawing leads the form with the kente stripe across the top of its first card;
+    // the phone's does not.
+    final chipPrice = _chipPriceCard(t, ribbon: wide);
+    final fees = _feesCard(t);
+    final registration = _registrationCard(t);
+    final houseAccount = _houseAccountCard(t);
+    final save = KarataButton(
+      label: t.saveConfig,
+      onPressed: _isSavingConfig ? null : _saveConfig,
+    );
+
+    if (wide) {
+      return DesktopShell(
+        current: DesktopNav.economy,
+        sessionArgs: _sessionArgs,
+        username: widget.username,
+        title: t.economySettings,
+        subtitle: t.economyConfigSubtitle,
+        // Artboard 29 puts chip price and the house account down the left and fees down the
+        // right. Registration is the one card it does not draw - it postdates the artboard - so
+        // it goes above the save button rather than into a column of its own.
+        child: DesktopColumns(
+          left: [chipPrice, houseAccount],
+          right: [fees, registration, save],
+        ),
+      );
+    }
 
     return KarataScreen(
       onBack: () => Navigator.of(context).pop(),
       backLabel: t.back,
       title: t.economySettings,
-      children: _isLoading
-          ? const [
-              Padding(
-                padding: EdgeInsets.symmetric(vertical: 60),
-                child: Center(
-                  child: CircularProgressIndicator(color: KarataColors.gold),
-                ),
-              ),
-            ]
-          : [
-              SectionCard(
-                title: t.chipPrice,
-                children: [
-                  LabeledField(
-                    label: t.price,
-                    child: KarataTextField(
-                      controller: _priceController,
-                      keyboardType: TextInputType.number,
-                      fillColor: KarataColors.backdrop,
-                      suffixText: t.arPerChip,
-                    ),
-                  ),
-                  KarataButton(
-                    label: t.savePrice,
-                    onPressed: _isSavingPrice ? null : _savePrice,
-                    height: 46,
-                    style: KarataButtonStyle.surface,
-                  ),
-                ],
-              ),
-              SectionCard(
-                title: t.fees,
-                children: [
-                  LabeledField(
-                    label: t.sellSpreadPercentField,
-                    child: KarataTextField(
-                      controller: _spreadController,
-                      keyboardType: TextInputType.number,
-                      fillColor: KarataColors.backdrop,
-                      suffixText: '%',
-                    ),
-                  ),
-                  LabeledField(
-                    label: t.rakePercentField,
-                    child: KarataTextField(
-                      controller: _rakePercentController,
-                      keyboardType: TextInputType.number,
-                      fillColor: KarataColors.backdrop,
-                      suffixText: '%',
-                    ),
-                  ),
-                  LabeledField(
-                    label: t.rakeMinField,
-                    child: KarataTextField(
-                      controller: _rakeMinController,
-                      keyboardType: TextInputType.number,
-                      fillColor: KarataColors.backdrop,
-                      suffixText: 'Ar',
-                      hintText: t.noMinimum,
-                    ),
-                  ),
-                ],
-              ),
-              SectionCard(
-                title: t.registration,
-                children: [
-                  SettingRow(
-                    title: t.enforceDeposit,
-                    description: t.enforceDepositHint,
-                    trailing: KarataSwitch(
-                      value: _enforceDeposit,
-                      semanticLabel: t.enforceDeposit,
-                      onChanged: _isSavingConfig
-                          ? null
-                          : (value) => setState(() => _enforceDeposit = value),
-                    ),
-                  ),
-                ],
-              ),
-              SectionCard(
-                title: t.houseAccount,
-                children: [
-                  LabeledField(
-                    label: t.receivingPhoneNumber,
-                    child: KarataTextField(
-                      controller: _housePhoneController,
-                      keyboardType: TextInputType.phone,
-                      fillColor: KarataColors.backdrop,
-                    ),
-                  ),
-                ],
-              ),
-              KarataButton(
-                label: t.saveConfig,
-                onPressed: _isSavingConfig ? null : _saveConfig,
-              ),
-            ],
+      children: [chipPrice, fees, registration, houseAccount, save],
+    );
+  }
+
+  Widget _chipPriceCard(AppLocalizations t, {required bool ribbon}) {
+    return SectionCard(
+      title: t.chipPrice,
+      ribbon: ribbon,
+      children: [
+        LabeledField(
+          label: t.price,
+          child: KarataTextField(
+            controller: _priceController,
+            keyboardType: TextInputType.number,
+            fillColor: KarataColors.backdrop,
+            suffixText: t.arPerChip,
+          ),
+        ),
+        KarataButton(
+          label: t.savePrice,
+          onPressed: _isSavingPrice ? null : _savePrice,
+          height: 46,
+          style: KarataButtonStyle.surface,
+        ),
+      ],
+    );
+  }
+
+  Widget _feesCard(AppLocalizations t) {
+    return SectionCard(
+      title: t.fees,
+      children: [
+        LabeledField(
+          label: t.sellSpreadPercentField,
+          child: KarataTextField(
+            controller: _spreadController,
+            keyboardType: TextInputType.number,
+            fillColor: KarataColors.backdrop,
+            suffixText: '%',
+          ),
+        ),
+        LabeledField(
+          label: t.rakePercentField,
+          child: KarataTextField(
+            controller: _rakePercentController,
+            keyboardType: TextInputType.number,
+            fillColor: KarataColors.backdrop,
+            suffixText: '%',
+          ),
+        ),
+        LabeledField(
+          label: t.rakeMinField,
+          child: KarataTextField(
+            controller: _rakeMinController,
+            keyboardType: TextInputType.number,
+            fillColor: KarataColors.backdrop,
+            suffixText: 'Ar',
+            hintText: t.noMinimum,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _registrationCard(AppLocalizations t) {
+    return SectionCard(
+      title: t.registration,
+      children: [
+        SettingRow(
+          title: t.enforceDeposit,
+          description: t.enforceDepositHint,
+          trailing: KarataSwitch(
+            value: _enforceDeposit,
+            semanticLabel: t.enforceDeposit,
+            onChanged: _isSavingConfig
+                ? null
+                : (value) => setState(() => _enforceDeposit = value),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _houseAccountCard(AppLocalizations t) {
+    return SectionCard(
+      title: t.houseAccount,
+      children: [
+        LabeledField(
+          label: t.receivingPhoneNumber,
+          child: KarataTextField(
+            controller: _housePhoneController,
+            keyboardType: TextInputType.phone,
+            fillColor: KarataColors.backdrop,
+          ),
+        ),
+      ],
     );
   }
 }

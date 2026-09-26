@@ -8,12 +8,18 @@ import '../l10n/app_localizations.dart';
 import '../theme/karata_colors.dart';
 import '../theme/karata_text_styles.dart';
 import '../widgets/common/amount_field.dart';
+import '../widgets/common/breakpoints.dart';
+import '../widgets/common/circle_icon_button.dart';
+import '../widgets/common/karata_icons.dart';
+import '../widgets/common/section_card.dart';
 import '../widgets/common/choice_chips_row.dart';
 import '../widgets/common/karata_button.dart';
 import '../widgets/common/karata_screen.dart';
 import '../widgets/common/karata_text_field.dart';
 import '../widgets/common/labeled_field.dart';
 import '../widgets/common/segmented_tabs.dart';
+import '../widgets/desktop/desktop_shell.dart';
+import '../widgets/desktop/desktop_sidebar.dart';
 import '../widgets/wallet/summary_card.dart';
 
 class ChipRedemptionScreen extends StatefulWidget {
@@ -33,6 +39,12 @@ class ChipRedemptionScreen extends StatefulWidget {
 }
 
 class _ChipRedemptionScreenState extends State<ChipRedemptionScreen> {
+  /// What every route this screen pushes needs to keep the session alive across it.
+  Map<String, dynamic> get _sessionArgs => {
+    'serverUrl': widget.serverUrl,
+    'token': widget.token,
+    'username': widget.username,
+  };
   late final ApiClient _apiClient;
   final _quantityController = TextEditingController(text: '1');
   final _phoneController = TextEditingController();
@@ -178,30 +190,71 @@ class _ChipRedemptionScreenState extends State<ChipRedemptionScreen> {
     final t = AppLocalizations.of(context);
     final status = _redemption?['status'] as String?;
 
+    const spinner = Padding(
+      padding: EdgeInsets.symmetric(vertical: 60),
+      child: Center(child: CircularProgressIndicator(color: KarataColors.gold)),
+    );
+    final rows = _isLoadingPrice
+        ? const <Widget>[spinner]
+        : switch (status) {
+            null => _form(t),
+            'PENDING_PAYOUT' => _message(t, t.waitingForPayout, busy: true),
+            'COMPLETED' => _message(t, t.redemptionPaidOut),
+            _ => _message(t, t.redemptionCancelled),
+          };
+
+    if (KarataLayout.isWide(context)) {
+      return DesktopShell(
+        // Withdraw has no entry of its own; artboard 27 keeps the wallet lit behind it.
+        current: DesktopNav.wallet,
+        sessionArgs: _sessionArgs,
+        username: widget.username,
+        title: t.redeemChips,
+        subtitle: t.withdrawSubtitle,
+        actions: [
+          CircleIconButton(
+            icon: KarataIcons.back,
+            onPressed: () => Navigator.of(context).pop(),
+            semanticLabel: t.back,
+          ),
+        ],
+        child: _isLoadingPrice || status != null
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: rows,
+              )
+            : DesktopColumns(
+                // `minmax(0, 1.3fr) minmax(0, 1fr)` - the form gets the wider column.
+                leftFlex: 13,
+                rightFlex: 10,
+                left: [
+                  SectionCard(
+                    title: t.amount,
+                    ribbon: true,
+                    children: _amountRows(t),
+                  ),
+                ],
+                right: _payoutRows(t),
+              ),
+      );
+    }
+
     return KarataScreen(
       onBack: () => Navigator.of(context).pop(),
       backLabel: t.back,
       title: t.redeemChips,
       subtitle: t.withdrawSubtitle,
-      children: _isLoadingPrice
-          ? const [
-              Padding(
-                padding: EdgeInsets.symmetric(vertical: 60),
-                child: Center(
-                  child: CircularProgressIndicator(color: KarataColors.gold),
-                ),
-              ),
-            ]
-          : switch (status) {
-              null => _form(t),
-              'PENDING_PAYOUT' => _message(t, t.waitingForPayout, busy: true),
-              'COMPLETED' => _message(t, t.redemptionPaidOut),
-              _ => _message(t, t.redemptionCancelled),
-            },
+      children: rows,
     );
   }
 
   List<Widget> _form(AppLocalizations t) => [
+    ..._amountRows(t),
+    ..._payoutRows(t),
+  ];
+
+  /// How much to take out, by which route.
+  List<Widget> _amountRows(AppLocalizations t) => [
     LabeledField(
       label: t.amount,
       child: AmountField(
@@ -236,6 +289,10 @@ class _ChipRedemptionScreenState extends State<ChipRedemptionScreen> {
         hintText: '+261...',
       ),
     ),
+  ];
+
+  /// What comes back, and the button that asks for it.
+  List<Widget> _payoutRows(AppLocalizations t) => [
     SummaryCard(
       lines: [
         (

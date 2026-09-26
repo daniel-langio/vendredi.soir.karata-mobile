@@ -7,6 +7,7 @@ import '../table_name_generator.dart';
 import '../theme/karata_colors.dart';
 import '../theme/karata_text_styles.dart';
 import '../widgets/common/amount_field.dart';
+import '../widgets/common/breakpoints.dart';
 import '../widgets/common/choice_chips_row.dart';
 import '../widgets/common/circle_icon_button.dart';
 import '../widgets/common/karata_button.dart';
@@ -19,6 +20,8 @@ import '../widgets/common/karata_text_field.dart';
 import '../widgets/common/labeled_field.dart';
 import '../widgets/common/section_card.dart';
 import '../widgets/common/setting_row.dart';
+import '../widgets/desktop/desktop_shell.dart';
+import '../widgets/desktop/desktop_sidebar.dart';
 
 class NewTableScreen extends StatefulWidget {
   final String serverUrl;
@@ -37,6 +40,12 @@ class NewTableScreen extends StatefulWidget {
 }
 
 class _NewTableScreenState extends State<NewTableScreen> {
+  /// What every route this screen pushes needs to keep the session alive across it.
+  Map<String, dynamic> get _sessionArgs => {
+    'serverUrl': widget.serverUrl,
+    'token': widget.token,
+    'username': widget.username,
+  };
   final _nameController = TextEditingController(text: generateTableName());
   // Blinds and buy-in are asked for in whatever unit the player reads the rest of the app in, so
   // the defaults are seeded through the same conversion the entries are read back with.
@@ -227,117 +236,113 @@ class _NewTableScreenState extends State<NewTableScreen> {
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
 
-    return KarataScreen(
-      onBack: () => Navigator.of(context).pop(),
-      backLabel: t.back,
-      title: t.newTableTitle,
-      subtitle: t.newTableSubtitle,
+    final tableCard = SectionCard(
+      title: t.table,
+      ribbon: true,
       children: [
-        SectionCard(
-          title: t.table,
-          ribbon: true,
+        LabeledField(
+          label: t.name,
+          child: KarataTextField(
+            controller: _nameController,
+            fillColor: KarataColors.backdrop,
+            trailing: CircleIconButton(
+              icon: KarataIcons.shuffle,
+              iconSize: 20,
+              background: const Color(0x00000000),
+              color: KarataColors.inkMuted,
+              onPressed: () =>
+                  setState(() => _nameController.text = generateTableName()),
+              semanticLabel: t.generateTableName,
+            ),
+          ),
+        ),
+        LabeledField(
+          label: t.gameVariant,
+          child: KarataDropdown<String>(
+            value: _variant,
+            items: [
+              ('TEXAS_HOLDEM', t.variantTexasHoldemShort),
+              ('OMAHA', t.variantOmahaShort),
+              ('FIVE_CARD_DRAW', t.variantFiveCardDrawShort),
+              (
+                'SEVEN_CARD_STUD',
+                '${t.variantSevenCardStudShort} (${t.comingSoon})',
+              ),
+            ],
+            // SEVEN_CARD_STUD is listed but not playable yet - DropdownMenuItem has no
+            // per-item `enabled` flag, so this rejects the pick and leaves _variant as-is.
+            onChanged: (value) {
+              if (value == 'SEVEN_CARD_STUD') {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      '${t.variantSevenCardStudShort} - ${t.comingSoon}',
+                    ),
+                  ),
+                );
+                return;
+              }
+              setState(() => _variant = value ?? _variant);
+            },
+          ),
+        ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            LabeledField(
-              label: t.name,
-              child: KarataTextField(
-                controller: _nameController,
-                fillColor: KarataColors.backdrop,
-                trailing: CircleIconButton(
-                  icon: KarataIcons.shuffle,
-                  iconSize: 20,
-                  background: const Color(0x00000000),
-                  color: KarataColors.inkMuted,
-                  onPressed: () => setState(
-                    () => _nameController.text = generateTableName(),
-                  ),
-                  semanticLabel: t.generateTableName,
+            Expanded(
+              child: LabeledField(
+                label: t.smallBlind,
+                child: AmountField(
+                  controller: _smallBlindController,
+                  display: _display,
+                  fillColor: KarataColors.backdrop,
                 ),
               ),
             ),
-            LabeledField(
-              label: t.gameVariant,
-              child: KarataDropdown<String>(
-                value: _variant,
-                items: [
-                  ('TEXAS_HOLDEM', t.variantTexasHoldemShort),
-                  ('OMAHA', t.variantOmahaShort),
-                  ('FIVE_CARD_DRAW', t.variantFiveCardDrawShort),
-                  (
-                    'SEVEN_CARD_STUD',
-                    '${t.variantSevenCardStudShort} (${t.comingSoon})',
-                  ),
-                ],
-                // SEVEN_CARD_STUD is listed but not playable yet - DropdownMenuItem has no
-                // per-item `enabled` flag, so this rejects the pick and leaves _variant as-is.
-                onChanged: (value) {
-                  if (value == 'SEVEN_CARD_STUD') {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          '${t.variantSevenCardStudShort} - ${t.comingSoon}',
-                        ),
-                      ),
-                    );
-                    return;
-                  }
-                  setState(() => _variant = value ?? _variant);
-                },
+            const SizedBox(width: 12),
+            Expanded(
+              child: LabeledField(
+                label: t.bigBlind,
+                child: AmountField(
+                  controller: _bigBlindController,
+                  display: _display,
+                  fillColor: KarataColors.backdrop,
+                  onChanged: (_) => setState(() {}),
+                ),
               ),
-            ),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: LabeledField(
-                    label: t.smallBlind,
-                    child: AmountField(
-                      controller: _smallBlindController,
-                      display: _display,
-                      fillColor: KarataColors.backdrop,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: LabeledField(
-                    label: t.bigBlind,
-                    child: AmountField(
-                      controller: _bigBlindController,
-                      display: _display,
-                      fillColor: KarataColors.backdrop,
-                      onChanged: (_) => setState(() {}),
-                    ),
-                  ),
-                ),
-              ],
             ),
           ],
         ),
-        SectionCard(
-          title: t.yourBuyIn,
-          children: [
-            LabeledField(
-              label: t.amount,
-              child: AmountField(
-                controller: _buyInController,
-                display: _display,
-                fillColor: KarataColors.backdrop,
-                onChanged: (_) => setState(() {}),
-              ),
-            ),
-            ChoiceChipsRow(
-              labels: [
-                for (final bb in _presetBigBlinds) t.bigBlindsPreset('$bb'),
-                t.maxPreset,
-              ],
-              selectedIndex: _selectedPreset,
-              onSelected: _applyPreset,
-            ),
-            Text(_buyInSummary(t), style: KarataText.label),
-          ],
+      ],
+    );
+
+    final buyInCard = SectionCard(
+      title: t.yourBuyIn,
+      children: [
+        LabeledField(
+          label: t.amount,
+          child: AmountField(
+            controller: _buyInController,
+            display: _display,
+            fillColor: KarataColors.backdrop,
+            onChanged: (_) => setState(() {}),
+          ),
         ),
-        if (_isOperator)
-          KarataCard(
+        ChoiceChipsRow(
+          labels: [
+            for (final bb in _presetBigBlinds) t.bigBlindsPreset('$bb'),
+            t.maxPreset,
+          ],
+          selectedIndex: _selectedPreset,
+          onSelected: _applyPreset,
+        ),
+        Text(_buyInSummary(t), style: KarataText.label),
+      ],
+    );
+
+    final publicCard = !_isOperator
+        ? null
+        : KarataCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -396,15 +401,37 @@ class _NewTableScreenState extends State<NewTableScreen> {
                 ],
               ],
             ),
-          ),
-        Text(t.newTableFooter, style: KarataText.subtitle),
-        KarataButton(
-          label: _isOperator && _makePublic
-              ? t.createTable
-              : t.createAndSitDown,
-          onPressed: _isLoading ? null : _create,
+          );
+
+    final footer = Text(t.newTableFooter, style: KarataText.subtitle);
+    final create = KarataButton(
+      label: _isOperator && _makePublic ? t.createTable : t.createAndSitDown,
+      onPressed: _isLoading ? null : _create,
+    );
+
+    if (KarataLayout.isWide(context)) {
+      return DesktopShell(
+        current: DesktopNav.newTable,
+        sessionArgs: _sessionArgs,
+        username: widget.username,
+        title: t.newTableTitle,
+        subtitle: t.newTableSubtitle,
+        child: DesktopColumns(
+          // `minmax(0, 1.3fr) minmax(0, 1fr)` - the table's own settings get the wider column.
+          leftFlex: 13,
+          rightFlex: 10,
+          left: [tableCard, ?publicCard],
+          right: [buyInCard, footer, create],
         ),
-      ],
+      );
+    }
+
+    return KarataScreen(
+      onBack: () => Navigator.of(context).pop(),
+      backLabel: t.back,
+      title: t.newTableTitle,
+      subtitle: t.newTableSubtitle,
+      children: [tableCard, buyInCard, ?publicCard, footer, create],
     );
   }
 

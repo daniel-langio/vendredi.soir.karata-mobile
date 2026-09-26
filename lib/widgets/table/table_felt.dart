@@ -9,12 +9,13 @@ import '../../theme/karata_colors.dart';
 /// sized to the box rather than [BoxShape.circle], which would round it to whichever side is
 /// shorter.
 class TableFelt extends StatelessWidget {
-  const TableFelt({super.key, required this.size});
+  const TableFelt({super.key, required this.size, this.railThickness = 14});
 
   final Size size;
 
-  /// How far the felt is inset inside the rail, from the mockup's two ovals.
-  static const railThickness = 14.0;
+  /// How far the felt is inset inside the rail, from the mockup's two ovals. 14 on the phone; the
+  /// wide table's rail is drawn heavier, at 22.
+  final double railThickness;
 
   static BorderRadius _oval(Size size) =>
       BorderRadius.all(Radius.elliptical(size.width / 2, size.height / 2));

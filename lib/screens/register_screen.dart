@@ -7,12 +7,14 @@ import 'auth_redirect.dart';
 import '../l10n/app_localizations.dart';
 import '../theme/karata_colors.dart';
 import '../theme/karata_text_styles.dart';
+import '../widgets/common/breakpoints.dart';
 import '../widgets/common/inline_prompt.dart';
 import '../widgets/common/karata_button.dart';
 import '../widgets/common/karata_form_field.dart';
 import '../widgets/common/karata_screen.dart';
 import '../widgets/common/labeled_field.dart';
 import '../widgets/common/password_reveal_button.dart';
+import '../widgets/desktop/auth_split.dart';
 
 class RegisterScreen extends StatefulWidget {
   final String serverUrl;
@@ -111,70 +113,77 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final t = AppLocalizations.of(context);
     final promoCode = widget.promoCode;
 
+    // The wide drawing is the same form in the same order; only the frame around it changes.
+    final fields = <Widget>[
+      if (promoCode != null && promoCode.isNotEmpty)
+        Text(
+          t.promoCodeWillApply(promoCode),
+          style: karataText(
+            size: 13,
+            weight: 600,
+            color: KarataColors.tealLight,
+            height: 1.4,
+          ),
+        ),
+      LabeledField(
+        label: t.username,
+        child: KarataFormField(
+          controller: _usernameController,
+          hintText: t.usernameHint,
+          textInputAction: TextInputAction.next,
+          validator: (v) =>
+              (v == null || v.trim().length < 3) ? t.usernameTooShort : null,
+        ),
+      ),
+      LabeledField(
+        label: t.password,
+        child: KarataFormField(
+          controller: _passwordController,
+          hintText: t.passwordHint,
+          obscureText: !_revealPassword,
+          textInputAction: TextInputAction.done,
+          onSubmitted: (_) => _isLoading ? null : _submit(),
+          trailing: PasswordRevealButton(
+            revealed: _revealPassword,
+            semanticLabel: t.showPassword,
+            onPressed: () => setState(() => _revealPassword = !_revealPassword),
+          ),
+          validator: (v) =>
+              (v == null || v.length < 6) ? t.passwordTooShort : null,
+        ),
+      ),
+      // The design puts a 4px breather between the last field and the action.
+      const SizedBox(height: 4),
+      KarataButton(
+        label: t.createAccount,
+        onPressed: _isLoading ? null : _submit,
+      ),
+      InlinePrompt(
+        question: t.alreadyHaveAnAccount,
+        linkLabel: t.logIn,
+        onPressed: () => Navigator.of(context).pushReplacementNamed(
+          authRouteWithRedirect('/login', widget.redirectTarget),
+          arguments: {'serverUrl': widget.serverUrl},
+        ),
+      ),
+    ];
+
     return Form(
       key: _formKey,
-      child: KarataScreen(
-        onBack: () => Navigator.of(context).pop(),
-        backLabel: t.back,
-        title: t.createAccount,
-        subtitle: t.registerSubtitle,
-        gap: 18,
-        children: [
-          if (promoCode != null && promoCode.isNotEmpty)
-            Text(
-              t.promoCodeWillApply(promoCode),
-              style: karataText(
-                size: 13,
-                weight: 600,
-                color: KarataColors.tealLight,
-                height: 1.4,
-              ),
+      child: KarataLayout.isWide(context)
+          ? AuthSplitLayout(
+              title: t.createAccount,
+              subtitle: t.registerSubtitle,
+              children: fields,
+            )
+          : KarataScreen(
+              onBack: () => Navigator.of(context).pop(),
+              backLabel: t.back,
+              title: t.createAccount,
+              subtitle: t.registerSubtitle,
+              gap: 18,
+              children: fields,
             ),
-          LabeledField(
-            label: t.username,
-            child: KarataFormField(
-              controller: _usernameController,
-              hintText: t.usernameHint,
-              textInputAction: TextInputAction.next,
-              validator: (v) => (v == null || v.trim().length < 3)
-                  ? t.usernameTooShort
-                  : null,
-            ),
-          ),
-          LabeledField(
-            label: t.password,
-            child: KarataFormField(
-              controller: _passwordController,
-              hintText: t.passwordHint,
-              obscureText: !_revealPassword,
-              textInputAction: TextInputAction.done,
-              onSubmitted: (_) => _isLoading ? null : _submit(),
-              trailing: PasswordRevealButton(
-                revealed: _revealPassword,
-                semanticLabel: t.showPassword,
-                onPressed: () =>
-                    setState(() => _revealPassword = !_revealPassword),
-              ),
-              validator: (v) =>
-                  (v == null || v.length < 6) ? t.passwordTooShort : null,
-            ),
-          ),
-          // The design puts a 4px breather between the last field and the action.
-          const SizedBox(height: 4),
-          KarataButton(
-            label: t.createAccount,
-            onPressed: _isLoading ? null : _submit,
-          ),
-          InlinePrompt(
-            question: t.alreadyHaveAnAccount,
-            linkLabel: t.logIn,
-            onPressed: () => Navigator.of(context).pushReplacementNamed(
-              authRouteWithRedirect('/login', widget.redirectTarget),
-              arguments: {'serverUrl': widget.serverUrl},
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

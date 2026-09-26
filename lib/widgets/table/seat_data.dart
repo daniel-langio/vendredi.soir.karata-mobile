@@ -11,6 +11,7 @@ class SeatData {
     this.dimmed = false,
     this.isDealer = false,
     this.revealedCards,
+    this.bet,
   });
 
   final String username;
@@ -28,4 +29,9 @@ class SeatData {
 
   /// The hand shown at showdown, if this player's cards were revealed.
   final List<String?>? revealedCards;
+
+  /// What this seat has in front of them this street, in chips, or null when they have nothing
+  /// in. The wide table draws it as chips pushed onto the felt between the seat and the pot; the
+  /// phone leaves it to the "Bet 35" badge under the avatar, which both layouts show.
+  final int? bet;
 }
