@@ -7,8 +7,8 @@ import '../common/hatch_overlay.dart';
 /// A card that exists but has not been shown: an opponent's hole cards, or a board slot the deal
 /// has not reached yet.
 ///
-/// Drawn in the same gold weave as the lobby's decorative cards, so a face-down card reads as
-/// part of the same deck rather than as an empty slot.
+/// Drawn as a silver weave rather than a gold one: gold on this table marks a winning card, and
+/// a hand still face down has won nothing yet.
 class CardBack extends StatelessWidget {
   const CardBack({super.key, this.width = 52});
 
@@ -24,13 +24,13 @@ class CardBack extends StatelessWidget {
       height: height,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(radius),
-        border: Border.all(color: KarataColors.goldDeep, width: 1.5),
+        border: Border.all(color: KarataColors.cardBackDeep, width: 1.5),
         gradient: cssLinearGradient(
           angleDegrees: 150,
           colors: const [
-            KarataColors.gold,
-            KarataColors.goldDeep,
-            Color(0xFF7A5410),
+            KarataColors.cardBackLight,
+            KarataColors.cardBack,
+            KarataColors.cardBackDeep,
           ],
           stops: const [0, 0.45, 1],
         ),
