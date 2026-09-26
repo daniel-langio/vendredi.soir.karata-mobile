@@ -141,14 +141,14 @@ class _MenuScreenState extends State<MenuScreen> {
   Future<void> _openDeposit() async {
     await Navigator.of(
       context,
-    ).pushNamed('/chips/buy', arguments: _sessionArgs);
+    ).pushNamed('/economy/buy', arguments: _sessionArgs);
     _loadWallet();
   }
 
   Future<void> _openWithdraw() async {
     await Navigator.of(
       context,
-    ).pushNamed('/chips/redeem', arguments: _sessionArgs);
+    ).pushNamed('/economy/redeem', arguments: _sessionArgs);
     _loadWallet();
   }
 

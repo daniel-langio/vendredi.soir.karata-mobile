@@ -51,7 +51,7 @@ class MyApp extends StatelessWidget {
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
           ],
-          onGenerateRoute: _onGenerateRoute,
+          onGenerateRoute: karataOnGenerateRoute,
           // This UI is drawn as a phone screen. On a wide browser window it just looked like that
           // same phone layout stretched edge to edge, so cap it and centre it there; a native
           // build is already phone-shaped and wants the full window.
@@ -101,7 +101,12 @@ class _Session {
   }
 }
 
-Route<dynamic>? _onGenerateRoute(RouteSettings settings) {
+/// Resolves every route name the app pushes.
+///
+/// Public so a test can assert that the names screens actually push are names this recognises -
+/// a mistyped one is silently inert at runtime, which is how the lobby's deposit and withdraw
+/// buttons once did nothing at all.
+Route<dynamic>? karataOnGenerateRoute(RouteSettings settings) {
   final uri = Uri.parse(settings.name ?? '/');
   final segments = uri.pathSegments;
   final session = _Session.fromArguments(settings.arguments);
