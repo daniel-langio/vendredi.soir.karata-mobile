@@ -658,9 +658,11 @@ class _TableScreenState extends State<TableScreen> {
       actionLabel: label,
       dimmed: folded,
       isDealer: player['dealer'] == true,
+      // `holeCards`, not `cards`: the showdown payload names the two cards a player turned over
+      // separately from the community cards they were read against.
       revealedCards: revealed == null
           ? null
-          : (revealed['cards'] as List<dynamic>? ?? [])
+          : (revealed['holeCards'] as List<dynamic>? ?? [])
                 .map((c) => c?.toString())
                 .toList(),
     );

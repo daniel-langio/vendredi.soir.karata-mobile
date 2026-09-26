@@ -178,6 +178,16 @@ final _screens = <_Screen>[
     frames: 12,
   ),
   _Screen(
+    '07b-table-showdown',
+    () => TableScreen(
+      serverUrl: _session['serverUrl']!,
+      token: _session['token']!,
+      username: _session['username']!,
+      gameId: shotsShowdownGameId,
+    ),
+    frames: 12,
+  ),
+  _Screen(
     '08-economy',
     () => EconomyScreen(
       serverUrl: _session['serverUrl']!,
@@ -262,10 +272,11 @@ Future<void> _loadRealFonts() async {
   // right layout in the wrong voice - Bricolage Grotesque's proportions are a large part of what
   // the V2 design looks like.
   await (FontLoader(kKarataFont)..addFont(
-    File('assets/fonts/BricolageGrotesque.ttf')
-        .readAsBytes()
-        .then(ByteData.sublistView),
-  )).load();
+        File(
+          'assets/fonts/BricolageGrotesque.ttf',
+        ).readAsBytes().then(ByteData.sublistView),
+      ))
+      .load();
 
   final cache = _materialFontsDir();
   if (cache == null) {

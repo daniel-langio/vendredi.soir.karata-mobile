@@ -9,6 +9,9 @@ const shotsServerUrl = 'https://shots.karata/poker';
 
 const shotsUsername = 'eli';
 const shotsGameId = '7f3c1e5a-4b2d-4c8e-9a10-6d5b2f8e1c44';
+
+/// A second table id, served at showdown rather than mid-flop.
+const shotsShowdownGameId = '7f3c1e5a-4b2d-4c8e-9a10-6d5b2f8e1c55';
 const _dealId = 'a1b2c3d4-0000-4000-8000-000000000001';
 
 /// A stand-in for the karata backend, so every screen can be photographed full of plausible data
@@ -63,6 +66,7 @@ Object? _fixtureFor(String path) {
       return _pendingRedemptions;
   }
   if (path == '/poker/games/$shotsGameId') return gameInPlay();
+  if (path == '/poker/games/$shotsShowdownGameId') return gameAtShowdown();
   if (path == '/poker/deals/$_dealId/hand/me') {
     return {
       'cards': ['AS', 'KS'],
@@ -201,3 +205,43 @@ Map<String, dynamic> gameInPlay() => {
     'outcome': null,
   },
 };
+
+/// The same table at showdown: the board complete, two hands turned over, and a winner named.
+///
+/// Photographed as its own screen because a showdown exercises parts of the table nothing else
+/// reaches - revealed opponent hands, the winning-card highlight, the outcome banner - and those
+/// are exactly the parts that can break without any other shot noticing.
+Map<String, dynamic> gameAtShowdown() {
+  final game = gameInPlay();
+  final deal = Map<String, dynamic>.from(
+    game['currentDeal'] as Map<String, dynamic>,
+  );
+  deal['phase'] = 'SHOWDOWN';
+  deal['activePlayerId'] = null;
+  deal['communityCards'] = ['AS', 'TD', '7C', 'AH', '2C'];
+  deal['pot'] = 246;
+  deal['outcome'] = {
+    'winners': [
+      {'username': shotsUsername, 'amount': 246, 'handRank': 'Pair of aces'},
+    ],
+    'revealedHands': [
+      {
+        'playerId': 'p1',
+        'username': shotsUsername,
+        'holeCards': ['AC', 'KS'],
+        'handRank': 'Pair of aces',
+        'winner': true,
+      },
+      {
+        'playerId': 'p2',
+        'username': 'hanta',
+        'holeCards': ['QD', 'JH'],
+        'handRank': 'Ace high',
+        'winner': false,
+      },
+    ],
+    'winningCards': ['AS', 'AH', 'AC'],
+  };
+  game['currentDeal'] = deal;
+  return game;
+}
