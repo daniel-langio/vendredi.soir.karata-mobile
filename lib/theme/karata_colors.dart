@@ -77,12 +77,6 @@ abstract final class KarataColors {
 
   // Playing cards -----------------------------------------------------------
   static const cardFace = Color(0xFFFBFAF7);
-
-  /// The back of a card nobody has turned over. Silver rather than gold, so a hand still face
-  /// down never reads as something already won - the gold on this table means a winning card.
-  static const cardBackLight = Color(0xFFD8D9E2);
-  static const cardBack = Color(0xFF9FA1B4);
-  static const cardBackDeep = Color(0xFF63657A);
   static const cardBackTop = Color(0xFFFBE7A1);
   static const cardMuted = Color(0xFFA3A2B6);
 
