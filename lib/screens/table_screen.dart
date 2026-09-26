@@ -238,8 +238,14 @@ class _TableScreenState extends State<TableScreen> {
   /// seated when the hand started - so this is safe to offer at any point, not just at showdown.
   Future<void> _sitDown() async {
     final t = AppLocalizations.of(context);
+    // The field takes the same unit the player reads the rest of the table in - chips normally,
+    // Ariary once "show chips as money" is on - rather than silently asking for chips under a
+    // money-flavoured UI. The API only ever speaks chips, so a money entry is converted back below
+    // at the very rate every other amount on screen is rendered with.
+    final display = ChipDisplay.instance.value;
+    final defaultBuyIn = (_game?['defaultBuyIn'] as num?)?.toInt() ?? 200;
     final buyInController = TextEditingController(
-      text: '${_game?['defaultBuyIn'] ?? 200}',
+      text: '${display.entryFromChips(defaultBuyIn)}',
     );
     final confirmed = await showDialog<bool>(
       context: context,
@@ -248,7 +254,7 @@ class _TableScreenState extends State<TableScreen> {
         content: TextField(
           controller: buyInController,
           keyboardType: TextInputType.number,
-          decoration: InputDecoration(labelText: t.chips),
+          decoration: InputDecoration(labelText: t.amount),
         ),
         actions: [
           TextButton(
@@ -264,7 +270,8 @@ class _TableScreenState extends State<TableScreen> {
     );
     if (confirmed != true) return;
 
-    final buyIn = int.tryParse(buyInController.text.trim());
+    final entered = int.tryParse(buyInController.text.trim());
+    final buyIn = entered == null ? null : display.chipsFromEntry(entered);
     if (buyIn == null || buyIn <= 0) {
       _showError((t) => t.enterValidBuyIn);
       return;
@@ -1070,15 +1077,21 @@ class _TableScreenState extends State<TableScreen> {
     final raiseType = currentRoundBet == 0 ? 'BET' : 'RAISE';
     final sizerOpen = _selectedActionType == raiseType;
     final raiseAmount = sizerOpen ? _sizerAmount : minRaise;
+    // callAmount arrives already capped to this player's stack, so a short stack facing more than
+    // it owns calls all-in for less rather than being left with folding as its only legal move
+    // (the part it can't cover goes to a side pot it isn't eligible for). Saying "Tapis" makes
+    // that plain, since the amount alone doesn't tell you it's everything you have.
+    final allInCall = callAmount > 0 && callAmount >= maxRaise;
     final callLabel = callAmount == 0
         ? t.check
-        : t.call(ChipDisplay.instance.format(callAmount));
-    final raiseLabel = currentRoundBet == 0
-        ? t.bet(ChipDisplay.instance.format(raiseAmount))
-        : t.raise(ChipDisplay.instance.format(raiseAmount));
-    // Both mirror real backend rejections (TexasHoldemRules.isActionLegal) - a call needs enough
-    // chips to cover it in full (no side-pot/all-in-for-less support yet), and a raise/bet must
-    // meet the table's minimum, which a short stack sometimes can't - gray those out instead of
+        : (allInCall ? t.allIn : t.callVerb);
+    final callAmountLabel = callAmount == 0
+        ? null
+        : ChipDisplay.instance.format(callAmount);
+    final raiseLabel = currentRoundBet == 0 ? t.betVerb : t.raiseVerb;
+    final raiseAmountLabel = ChipDisplay.instance.format(raiseAmount);
+    // Mirrors a real backend rejection (TexasHoldemRules.isActionLegal): a raise or bet has to
+    // meet the table's minimum, which a short stack sometimes can't - gray it out rather than
     // letting the request fail server-side.
     final canCall = callAmount == 0 || maxRaise >= callAmount;
     final canRaise = maxRaise > 0 && maxRaise >= minRaise;
@@ -1099,6 +1112,7 @@ class _TableScreenState extends State<TableScreen> {
         Expanded(
           child: ActButton(
             label: callLabel,
+            amount: callAmountLabel,
             enabled: mine && canCall,
             solid: mine,
             onPressed: () {
@@ -1113,6 +1127,7 @@ class _TableScreenState extends State<TableScreen> {
         Expanded(
           child: ActButton(
             label: raiseLabel,
+            amount: raiseAmountLabel,
             enabled: mine && canRaise,
             onPressed: () {
               _sounds.click();
@@ -1390,10 +1405,7 @@ class _TableScreenState extends State<TableScreen> {
             padding: const EdgeInsets.only(top: 6),
             child: Row(
               children: [
-                if (isDealer) ...[
-                  const DealerChip(),
-                  const SizedBox(width: 8),
-                ],
+                if (isDealer) ...[const DealerChip(), const SizedBox(width: 8)],
                 if (_isMyTurn) ...[
                   TurnBadge(label: t.onTheClock),
                   const SizedBox(width: 8),
@@ -1482,4 +1494,3 @@ class _MutedHoleCard extends StatelessWidget {
     );
   }
 }
-

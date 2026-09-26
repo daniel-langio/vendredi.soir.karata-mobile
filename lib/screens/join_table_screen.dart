@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../api/api_client.dart';
+import '../chip_display.dart';
 import '../l10n/app_localizations.dart';
 import '../theme.dart';
 
@@ -25,7 +26,13 @@ class JoinTableScreen extends StatefulWidget {
 
 class _JoinTableScreenState extends State<JoinTableScreen> {
   final _linkController = TextEditingController();
-  final _buyInController = TextEditingController(text: '200');
+  // The buy-in is asked for in whatever unit the player reads the rest of the app in, so both the
+  // default and the table's suggested buy-in are seeded through the same conversion the entry is
+  // read back with. The API itself only ever speaks chips.
+  final _display = ChipDisplay.instance.value;
+  late final _buyInController = TextEditingController(
+    text: '${_display.entryFromChips(200)}',
+  );
 
   bool _isLoading = false;
   Map<String, dynamic>? _preview;
@@ -66,7 +73,9 @@ class _JoinTableScreenState extends State<JoinTableScreen> {
         _alreadySeated = players.any((p) => p['username'] == widget.username);
         // The table creator's own buy-in, kept by the server as a suggested default - if they
         // never set one, fall back to whatever was already in the field.
-        if (defaultBuyIn != null) _buyInController.text = '$defaultBuyIn';
+        if (defaultBuyIn != null) {
+          _buyInController.text = '${_display.entryFromChips(defaultBuyIn)}';
+        }
       });
     } catch (e) {
       if (mounted) {
@@ -89,7 +98,8 @@ class _JoinTableScreenState extends State<JoinTableScreen> {
     setState(() => _isLoading = true);
     try {
       if (!_alreadySeated) {
-        final buyIn = int.tryParse(_buyInController.text.trim());
+        final entered = int.tryParse(_buyInController.text.trim());
+        final buyIn = entered == null ? null : _display.chipsFromEntry(entered);
         if (buyIn == null || buyIn <= 0) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -202,8 +212,14 @@ class _JoinTableScreenState extends State<JoinTableScreen> {
                 ),
                 subtitle: Text(
                   t.blindsSeated(
-                    '${_preview!['blinds']?['small']}',
-                    '${_preview!['blinds']?['big']}',
+                    ChipDisplay.formatWith(
+                      _display,
+                      _preview!['blinds']?['small'] as num?,
+                    ),
+                    ChipDisplay.formatWith(
+                      _display,
+                      _preview!['blinds']?['big'] as num?,
+                    ),
                     players.length,
                   ),
                   style: const TextStyle(
@@ -227,7 +243,7 @@ class _JoinTableScreenState extends State<JoinTableScreen> {
                   controller: _buyInController,
                   keyboardType: TextInputType.number,
                   style: const TextStyle(color: KarataColors.ink),
-                  decoration: InputDecoration(labelText: t.chips),
+                  decoration: InputDecoration(labelText: t.amount),
                 ),
                 const SizedBox(height: 14),
                 Text(

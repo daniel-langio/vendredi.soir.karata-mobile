@@ -10,12 +10,15 @@ import 'api/api_client.dart';
 /// player-editable - unlike the toggle, a stale or made-up rate would misrepresent real money.
 @immutable
 class ChipDisplaySettings {
-  const ChipDisplaySettings({this.asMoney = false, this.arPerChip = 1});
+  const ChipDisplaySettings({this.asMoney = true, this.arPerChip = 0});
 
-  /// Render chips as money rather than as a bare chip count.
+  /// Render chips as money rather than as a bare chip count. On by default: the chips are bought
+  /// with real money and cashed back out to it, so Ariary is the unit players actually reason in.
   final bool asMoney;
 
-  /// Ariary one chip is worth, per the server's current global price.
+  /// Ariary one chip is worth, per the server's current global price. Zero until a real rate has
+  /// been fetched - the placeholder 1:1 it used to hold was itself a made-up rate, harmless only
+  /// while money display was opt-in, and a lie on a stack the moment it is the default.
   final int arPerChip;
 
   ChipDisplaySettings copyWith({bool? asMoney, int? arPerChip}) =>
@@ -23,6 +26,22 @@ class ChipDisplaySettings {
         asMoney: asMoney ?? this.asMoney,
         arPerChip: arPerChip ?? this.arPerChip,
       );
+
+  /// Whether amounts are both read *and typed* in Ariary. A rate of zero would make the
+  /// conversion meaningless (every entry would come out as no chips at all), so the app quietly
+  /// stays on chips until a usable rate is known rather than asking for money it can't convert.
+  bool get inMoney => asMoney && arPerChip > 0;
+
+  /// Chips for a number the player typed into a field. Every amount field in the app runs its
+  /// entry through here, so what is typed always means the same thing as what the rest of the
+  /// screen shows - the API itself only ever speaks chips.
+  int chipsFromEntry(num entered) =>
+      inMoney ? (entered / arPerChip).round() : entered.toInt();
+
+  /// The reverse, for prefilling a field (a suggested buy-in, a default quantity) in whatever
+  /// unit that field is currently asking for.
+  int entryFromChips(num chips) =>
+      inMoney ? (chips * arPerChip).round() : chips.toInt();
 }
 
 class ChipDisplay extends ValueNotifier<ChipDisplaySettings> {
@@ -36,7 +55,7 @@ class ChipDisplay extends ValueNotifier<ChipDisplaySettings> {
   /// the rate needs a logged-in session's ApiClient, see [refreshRateFromServer].
   Future<void> load() async {
     final prefs = await SharedPreferences.getInstance();
-    value = value.copyWith(asMoney: prefs.getBool(_asMoneyKey) ?? false);
+    value = value.copyWith(asMoney: prefs.getBool(_asMoneyKey) ?? true);
   }
 
   Future<void> setAsMoney(bool asMoney) async {
@@ -50,26 +69,38 @@ class ChipDisplay extends ValueNotifier<ChipDisplaySettings> {
   /// means the previous rate (or the 1:1 default) stays in place rather than surfacing an error.
   Future<void> refreshRateFromServer(ApiClient apiClient) async {
     try {
-      final price = await apiClient.getChipPrice();
-      value = value.copyWith(arPerChip: (price['arPerChip'] as num).toInt());
+      applyRate(await apiClient.getChipPrice());
     } catch (_) {
       // Keep whatever rate is already in memory.
     }
   }
 
+  /// Adopts the rate out of a `GET /economy/price` body a screen has already fetched for its own
+  /// reasons (the deposit/withdrawal screens both need it), so those screens convert with exactly
+  /// the rate they quote instead of paying for a second round trip to stay in sync.
+  void applyRate(Map<String, dynamic> price) {
+    value = value.copyWith(arPerChip: (price['arPerChip'] as num).toInt());
+  }
+
   /// Formats a chip count for display under the current setting. With money off this is the plain
   /// digits the table has always shown, so turning the setting off restores the old look exactly.
+  ///
+  /// Keys off [ChipDisplaySettings.inMoney] rather than the toggle alone, so the seconds between
+  /// launch and the first rate fetch show honest chip counts instead of every stack converted at
+  /// a placeholder rate. The wording around them still follows the toggle (see AppLocalizations):
+  /// the player asked for a wallet, the app just can't price it yet.
   String format(num? chips) => formatWith(value, chips);
 
   static String formatWith(ChipDisplaySettings settings, num? chips) {
     final amount = chips?.toInt() ?? 0;
-    if (!settings.asMoney) return amount.toString();
-    return '${_group(amount * settings.arPerChip)} Ar';
+    if (!settings.inMoney) return amount.toString();
+    return '${groupDigits(amount * settings.arPerChip)} Ar';
   }
 
-  /// Groups thousands with a space, the usual Ariary style. Chip counts are shown
-  /// ungrouped, so this only ever runs on the money path where the numbers get long.
-  static String _group(int value) {
+  /// Groups thousands with a space, the usual Ariary style. Chip counts are shown ungrouped, so
+  /// this only runs on amounts that are genuinely money - the converted balances here, and the
+  /// real Ariary totals the deposit/withdrawal screens quote, which are in Ar in either mode.
+  static String groupDigits(int value) {
     final digits = value.abs().toString();
     final buffer = StringBuffer(value < 0 ? '-' : '');
     for (var i = 0; i < digits.length; i++) {

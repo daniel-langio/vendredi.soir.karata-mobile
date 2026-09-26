@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../api/api_client.dart';
+import '../chip_display.dart';
 import '../l10n/app_localizations.dart';
 import '../theme.dart';
 
@@ -147,7 +148,11 @@ class _PendingRedemptionsScreenState extends State<PendingRedemptionsScreen> {
                               color: KarataColors.chipInk,
                             ),
                             title: Text(
-                              t.redeemTotalLine('${r['totalPriceAr']}'),
+                              t.redeemTotalLine(
+                                ChipDisplay.groupDigits(
+                                  (r['totalPriceAr'] as num?)?.toInt() ?? 0,
+                                ),
+                              ),
                               style: const TextStyle(
                                 color: KarataColors.ink,
                                 fontSize: 16.5,

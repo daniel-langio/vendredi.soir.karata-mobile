@@ -12,6 +12,9 @@ import 'test_helpers.dart';
 void main() {
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
+    // The display settings are a singleton, so a rate left behind by one test would leak into the
+    // next - reset to the shipped defaults before each.
+    ChipDisplay.instance.value = const ChipDisplaySettings();
     await ChipDisplay.instance.load();
     await SoundSettings.instance.load();
   });
@@ -45,23 +48,46 @@ void main() {
   });
 
   testWidgets(
-    'the worked example appears only once money display is on, with no editable rate field',
+    'the worked example waits for a real rate, which no field here can invent',
     (tester) async {
       await pumpSettings(tester);
 
+      // Money display ships on, but every request here gets a 400, so no rate is known - and an
+      // example is worse than no example if it prices a stack at a rate nobody quoted.
+      expect(ChipDisplay.instance.value.asMoney, isTrue);
       expect(find.textContaining('shows as'), findsNothing);
 
-      await tester.tap(
-        find.widgetWithText(SwitchListTile, 'Show chips as money'),
+      // The rate arrives from the server, never from a field the player fills in.
+      ChipDisplay.instance.value = ChipDisplay.instance.value.copyWith(
+        arPerChip: 50,
       );
       await tester.pumpAndSettle();
 
-      // The rate itself comes from the server, not a field the player fills in - unreachable here
-      // (every request gets a 400), so it falls back to the 1:1 default.
-      expect(find.textContaining('100 chips shows as 100 Ar'), findsOneWidget);
-      expect(ChipDisplay.instance.value.asMoney, isTrue);
+      expect(
+        find.textContaining('100 chips shows as 5 000 Ar'),
+        findsOneWidget,
+      );
     },
   );
+
+  testWidgets('a player who turns money display off is taken at their word', (
+    tester,
+  ) async {
+    await pumpSettings(tester);
+
+    await tester.tap(
+      find.widgetWithText(SwitchListTile, 'Show chips as money'),
+    );
+    await tester.pumpAndSettle();
+
+    expect(ChipDisplay.instance.value.asMoney, isFalse);
+    await ChipDisplay.instance.load();
+    expect(
+      ChipDisplay.instance.value.asMoney,
+      isFalse,
+      reason: 'the default only applies to a player who never chose',
+    );
+  });
 
   testWidgets('muting sound persists so the next table starts silent', (
     tester,

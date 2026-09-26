@@ -195,10 +195,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               subtitle: Text(t.chipsAsMoneySubtitle, style: _subtitleStyle),
               secondary: const Icon(Icons.payments, color: KarataColors.dim),
             ),
-            if (settings.asMoney) ...[
+            if (settings.inMoney) ...[
               const SizedBox(height: 8),
               // A worked example, because the live rate only becomes concrete once you see what a
-              // real stack turns into at the table.
+              // real stack turns into at the table. Held back until a rate is actually known -
+              // "100 chips shows as 100" would teach the player the wrong number.
               Text(
                 t.chipsAsMoneyExample(
                   '100',
