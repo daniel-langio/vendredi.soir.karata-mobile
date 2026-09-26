@@ -15,6 +15,7 @@ import '../widgets/common/amount_field.dart';
 import '../widgets/common/karata_icons.dart';
 import '../widgets/table/bet_sizer_row.dart';
 import '../widgets/table/last_action_label.dart';
+import '../widgets/table/outcome_banner.dart';
 import '../widgets/table/seat_action_badge.dart';
 import '../widgets/table/seat_data.dart';
 import '../widgets/table/table_action_bar.dart';
@@ -616,13 +617,15 @@ class _TableScreenState extends State<TableScreen> {
               .toList(),
       winningCards: winningCards,
       pot: ChipDisplay.instance.format(deal?['pot'] as num?),
-      handLabel: outcome?['handName']?.toString(),
+      handLabel: _handRank(outcome),
       heroCards: _myCards.map((c) => c?.toString()).toList(),
       heroDimmed: _you?['status'] == 'FOLDED',
       heroIsDealer: _you?['dealer'] == true,
       selectedHeroCards: _selectedDiscardIndices,
       onHeroCardTap: _phase == 'DRAW' && _isMyTurn ? _toggleDiscard : null,
-      banner: outcome == null ? null : _outcomeBanner(outcome, t),
+      banner: outcome == null
+          ? null
+          : OutcomeBanner(outcome: outcome, myUsername: widget.username),
     );
   }
 
@@ -680,21 +683,12 @@ class _TableScreenState extends State<TableScreen> {
     };
   }
 
-  Widget _outcomeBanner(Map<String, dynamic> outcome, AppLocalizations t) {
-    final iWon = _isUserWinner(outcome, widget.username);
-    return KarataCard(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      color: iWon ? KarataColors.gold : KarataColors.surfaceRaised,
-      child: Text(
-        outcome['summary']?.toString() ?? '',
-        textAlign: TextAlign.center,
-        style: karataText(
-          size: 14,
-          weight: 800,
-          color: iWon ? KarataColors.onGoldBadge : KarataColors.ink,
-        ),
-      ),
-    );
+  /// The name of the winning hand - "Pair of aces" - which the payload hangs off the winner
+  /// rather than off the outcome itself.
+  String? _handRank(Map<String, dynamic>? outcome) {
+    final winners = outcome?['winners'] as List<dynamic>? ?? const [];
+    if (winners.isEmpty) return null;
+    return (winners.first as Map<String, dynamic>)['handRank']?.toString();
   }
 
   /// The pot line, the two round buttons, the sizer and the action buttons.
