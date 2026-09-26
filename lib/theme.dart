@@ -42,6 +42,13 @@ class KarataColors {
   ];
 }
 
+/// The UI typeface, named in one place because a ButtonStyle's textStyle *replaces* the default
+/// rather than merging with it - so every explicit textStyle below has to name the family again
+/// or its button quietly drops off the app's font. Invisible today (this name does not exist on
+/// Android, and the fallback happens to be what everything else lands on too) and not invisible
+/// at all the day this becomes a real brand font.
+const kUiFont = 'SF Pro Text';
+
 ThemeData karataTheme() {
   return ThemeData(
     useMaterial3: true,
@@ -52,7 +59,7 @@ ThemeData karataTheme() {
       secondary: KarataColors.chipInk,
       error: KarataColors.red,
     ),
-    fontFamily: 'SF Pro Text',
+    fontFamily: kUiFont,
     appBarTheme: const AppBarTheme(
       backgroundColor: KarataColors.page,
       foregroundColor: KarataColors.ink,
@@ -80,7 +87,7 @@ ThemeData karataTheme() {
         foregroundColor: KarataColors.ink,
         minimumSize: const Size.fromHeight(56),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
-        textStyle: const TextStyle(fontSize: 16),
+        textStyle: const TextStyle(fontSize: 16, fontFamily: kUiFont),
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
@@ -89,7 +96,7 @@ ThemeData karataTheme() {
         side: const BorderSide(color: KarataColors.pillLine),
         minimumSize: const Size.fromHeight(56),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
-        textStyle: const TextStyle(fontSize: 16),
+        textStyle: const TextStyle(fontSize: 16, fontFamily: kUiFont),
       ),
     ),
     textButtonTheme: TextButtonThemeData(

@@ -720,7 +720,9 @@ class AppLocalizations {
       'live': 'En direct',
       'reconnecting': 'Reconnexion',
       'lastUpdateAgo': 'Dernière mise à jour il y a {secs} s',
-      'yourTurnLeft': 'À vous de jouer — {secs} s restantes',
+      // Trimmed of "restantes": this sits in a row with the dealer chip and the turn badge, and
+      // the countdown is the part that must survive, not the last word of the sentence.
+      'yourTurnLeft': 'À vous de jouer — {secs} s',
       'waitingOn': 'En attente de {username}',
       'tableClosed': 'CETTE TABLE EST FERMÉE',
       'waitingForDraw': 'En attente de la pioche...',

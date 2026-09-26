@@ -51,7 +51,6 @@ class _EconomyConfigScreenState extends State<EconomyConfigScreen> {
 
   Future<void> _load() async {
     setState(() => _isLoading = true);
-    final t = AppLocalizations.of(context);
     try {
       final price = await _apiClient.getChipPrice();
       final config = await _apiClient.getEconomyConfig();
@@ -65,6 +64,9 @@ class _EconomyConfigScreenState extends State<EconomyConfigScreen> {
       });
     } catch (e) {
       if (mounted) {
+        // Resolved here rather than before the await: this loader runs from initState, and
+        // looking up an inherited widget that early trips a framework assertion.
+        final t = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(t.couldNotLoadPrice('$e')),

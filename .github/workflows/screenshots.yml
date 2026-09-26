@@ -1,0 +1,47 @@
+name: Screenshots
+
+# Photographs every screen in the app, in English and French, and attaches the PNGs to the run as
+# a downloadable artifact. Meant for design work: point a designer at the latest run and they can
+# see the whole app as it is today without installing anything or being handed a build.
+#
+# The shots are generated, never committed - `test_screenshots/shots/` is gitignored - so this
+# workflow is the only place they come from, and they cannot go stale against the code.
+#
+# Run by hand only, for now: Actions -> Screenshots -> Run workflow, or
+# `gh workflow run screenshots.yml --ref <branch>`. Nothing here compares against a baseline, so
+# it gates nothing and blocks nothing; it fails only if a screen throws while being drawn. If it
+# earns its keep, adding `pull_request:` below would put that picture next to every diff.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  screenshots:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4.1.6
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.41.2'
+          channel: 'stable'
+          cache: true
+
+      - run: flutter pub get
+
+      # --update-goldens is what makes matchesGoldenFile write a PNG instead of comparing against
+      # one. There is no baseline to compare against by design; see test_screenshots/.
+      - name: Take the screenshots
+        run: flutter test test_screenshots --update-goldens
+
+      - uses: actions/upload-artifact@v4
+        # Upload whatever was produced even when a screen failed to draw: a partial set plus a red
+        # job says more than a red job alone.
+        if: always()
+        with:
+          name: karata-screens-${{ github.sha }}
+          path: test_screenshots/shots/
+          if-no-files-found: error
+          retention-days: 30
