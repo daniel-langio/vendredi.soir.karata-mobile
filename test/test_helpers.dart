@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:poker_client/l10n/app_localizations.dart';
+import 'package:poker_client/main.dart';
 import 'package:poker_client/theme/karata_theme.dart';
 import 'package:poker_client/widgets/common/karata_switch.dart';
 import 'package:poker_client/widgets/common/labeled_field.dart';
@@ -19,6 +20,24 @@ Widget wrapForTest(Widget child) {
       GlobalWidgetsLocalizations.delegate,
     ],
     home: child,
+  );
+}
+
+/// The whole app, routed the way it is in production, entered at [initialRoute].
+///
+/// Distinct from [wrapForTest], which mounts one screen directly: this one goes through
+/// karataOnGenerateRoute, which is what a test of deep links and redirects has to exercise.
+Widget wrapRoutedForTest(String initialRoute) {
+  return MaterialApp(
+    theme: karataTheme(),
+    supportedLocales: AppLocalizations.supportedLocales,
+    localizationsDelegates: const [
+      AppLocalizations.delegate,
+      GlobalMaterialLocalizations.delegate,
+      GlobalWidgetsLocalizations.delegate,
+    ],
+    onGenerateRoute: karataOnGenerateRoute,
+    initialRoute: initialRoute,
   );
 }
 

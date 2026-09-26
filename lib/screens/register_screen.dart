@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../api/api_client.dart';
+import 'auth_redirect.dart';
 import '../l10n/app_localizations.dart';
 import '../theme/karata_colors.dart';
 import '../theme/karata_text_styles.dart';
@@ -159,7 +160,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             question: t.alreadyHaveAnAccount,
             linkLabel: t.logIn,
             onPressed: () => Navigator.of(context).pushReplacementNamed(
-              '/login',
+              authRouteWithRedirect('/login', widget.redirectTarget),
               arguments: {'serverUrl': widget.serverUrl},
             ),
           ),

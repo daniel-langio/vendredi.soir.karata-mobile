@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:poker_client/main.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:poker_client/screens/auth_redirect.dart';
 import 'package:poker_client/screens/chip_purchase_screen.dart';
 import 'package:poker_client/screens/chip_redemption_screen.dart';
 import 'package:poker_client/screens/economy_config_screen.dart';
@@ -8,9 +10,11 @@ import 'package:poker_client/screens/economy_screen.dart';
 import 'package:poker_client/screens/join_table_screen.dart';
 import 'package:poker_client/screens/menu_screen.dart';
 import 'package:poker_client/screens/new_table_screen.dart';
+import 'package:poker_client/screens/login_screen.dart';
 import 'package:poker_client/screens/pending_redemptions_screen.dart';
 import 'package:poker_client/screens/settings_screen.dart';
 import 'package:poker_client/screens/table_screen.dart';
+import 'test_helpers.dart';
 
 /// Every route name a screen pushes, and the screen it is meant to reach.
 ///
@@ -69,6 +73,48 @@ void main() {
         screen,
         reason: '"$name" should reach $screen, not ${page.runtimeType}',
       );
+    });
+  });
+
+  testWidgets('a redirect survives the route it was carried on', (
+    tester,
+  ) async {
+    // _RequireSession sends anyone without a session to /login carrying where they were headed,
+    // so that authenticating lands them there rather than on the lobby.
+    SharedPreferences.setMockInitialValues({});
+    const target = '/table/7f3c1e5a-4b2d-4c8e-9a10-6d5b2f8e1c44';
+    final encoded = Uri.encodeQueryComponent(target);
+
+    await tester.pumpWidget(wrapRoutedForTest('/login?redirect=$encoded'));
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.widget<LoginScreen>(find.byType(LoginScreen)).redirectTarget,
+      target,
+      reason: 'logging in would land on the lobby instead of the table',
+    );
+  });
+
+  group('switching between the two auth forms', () {
+    test('carries the redirect across', () {
+      expect(
+        authRouteWithRedirect('/register', '/economy/buy'),
+        '/register?redirect=%2Feconomy%2Fbuy',
+      );
+    });
+
+    test('and the route it builds is one the app recognises', () {
+      // The encoding has to survive the round trip, or the redirect silently becomes a 404 that
+      // falls through to the lobby.
+      final built = authRouteWithRedirect('/login', '/table/abc-123');
+      final parsed = Uri.parse(built);
+      expect(parsed.path, '/login');
+      expect(parsed.queryParameters['redirect'], '/table/abc-123');
+    });
+
+    test('leaves a plain form alone when there is nowhere to go back to', () {
+      expect(authRouteWithRedirect('/login', null), '/login');
+      expect(authRouteWithRedirect('/login', ''), '/login');
     });
   });
 
