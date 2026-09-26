@@ -65,6 +65,9 @@ class TableSurface extends StatelessWidget {
 
   static const _seatWidth = 110.0;
 
+  /// The board's own height, from the card width the row is drawn at.
+  static const _boardHeight = 52 * 1.385;
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -87,6 +90,7 @@ class TableSurface extends StatelessWidget {
           feltHeight,
         );
         final positions = SeatLayout.forOpponents(opponents.length);
+        final boardTop = felt.top + felt.height * 0.31;
 
         return Stack(
           clipBehavior: Clip.none,
@@ -96,18 +100,33 @@ class TableSurface extends StatelessWidget {
               top: felt.top,
               child: TableFelt(size: felt.size),
             ),
-            // The board and the pot, a little above the felt's centre so they clear the hero's
-            // cards below.
+            // The board is anchored, not flowed. Everything that comes and goes around it - the
+            // outcome banner above, the pot and the hand's name below - is placed relative to it
+            // rather than stacked with it, so the cards never shift as those appear. Together
+            // with the board keeping all five slots whatever has been dealt, that leaves the
+            // centre of the felt still while a hand plays out.
             Positioned(
               left: felt.left,
-              top: felt.top + felt.height * 0.31,
+              top: boardTop,
+              width: felt.width,
+              child: Center(
+                child: BoardRow(cards: board, winningCards: winningCards),
+              ),
+            ),
+            if (banner != null)
+              Positioned(
+                left: felt.left,
+                width: felt.width,
+                bottom: area.height - boardTop + 10,
+                child: banner!,
+              ),
+            Positioned(
+              left: felt.left,
+              top: boardTop + _boardHeight + 12,
               width: felt.width,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (banner != null) ...[banner!, const SizedBox(height: 10)],
-                  BoardRow(cards: board, winningCards: winningCards),
-                  const SizedBox(height: 12),
                   PotAmount(pot),
                   if (handLabel != null) ...[
                     const SizedBox(height: 6),

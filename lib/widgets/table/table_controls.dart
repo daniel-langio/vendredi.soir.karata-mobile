@@ -21,7 +21,7 @@ class TableControls extends StatelessWidget {
     required this.emoteLabel,
     this.sizer,
     this.message,
-    this.clock,
+    required this.status,
   });
 
   /// What sits between the two round buttons. The pot lives on the felt, under the board it
@@ -41,11 +41,26 @@ class TableControls extends StatelessWidget {
   /// Shown in place of the buttons - "Waiting for the draw", "Table closed".
   final String? message;
 
-  /// How long you have left to act, shown only while the clock is on you.
-  final Widget? clock;
+  /// Whose turn it is and how long they have left - and, being the one line that is always on
+  /// screen here, the natural home for anything else the table needs to say.
+  final Widget status;
+
+  /// The height the tallest arrangement needs - round buttons, clock, sizer and three actions.
+  ///
+  /// Reserved whatever is actually showing, because this block sits under the felt and the felt
+  /// is sized from the space left over: letting it shrink for a one-button state would move the
+  /// table itself every time the hand changed phase.
+  static const reservedHeight = 180.0;
 
   @override
   Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: reservedHeight),
+      child: Align(alignment: Alignment.bottomCenter, child: _content(context)),
+    );
+  }
+
+  Widget _content(BuildContext context) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -79,6 +94,8 @@ class TableControls extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 10),
+        status,
+        const SizedBox(height: 10),
         if (message != null)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 14),
@@ -93,7 +110,6 @@ class TableControls extends StatelessWidget {
             ),
           )
         else ...[
-          if (clock != null) ...[clock!, const SizedBox(height: 10)],
           if (sizer != null) ...[
             Opacity(opacity: actionsEnabled ? 1 : 0.4, child: sizer!),
             const SizedBox(height: 10),

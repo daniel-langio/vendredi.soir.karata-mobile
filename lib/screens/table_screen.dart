@@ -23,7 +23,7 @@ import '../widgets/table/table_controls.dart';
 import '../widgets/table/table_menu_sheet.dart';
 import '../widgets/table/table_surface.dart';
 import '../widgets/table/table_top_bar.dart';
-import '../widgets/table/turn_clock_bar.dart';
+import '../widgets/table/turn_status_bar.dart';
 import '../widgets/table/variant_info_dialog.dart';
 
 class TableScreen extends StatefulWidget {
@@ -721,6 +721,7 @@ class _TableScreenState extends State<TableScreen> {
         onHandStrength: null,
         onEmote: null,
         centreLabel: common.centreLabel,
+        status: _turnStatus(t),
         handStrengthLabel: common.handStrengthLabel,
         emoteLabel: common.emoteLabel,
       );
@@ -743,6 +744,7 @@ class _TableScreenState extends State<TableScreen> {
         onHandStrength: null,
         onEmote: null,
         centreLabel: common.centreLabel,
+        status: _turnStatus(t),
         handStrengthLabel: common.handStrengthLabel,
         emoteLabel: common.emoteLabel,
       );
@@ -764,6 +766,7 @@ class _TableScreenState extends State<TableScreen> {
         onHandStrength: _openVariantInfo,
         onEmote: null,
         centreLabel: common.centreLabel,
+        status: _turnStatus(t),
         handStrengthLabel: common.handStrengthLabel,
         emoteLabel: common.emoteLabel,
       );
@@ -785,6 +788,7 @@ class _TableScreenState extends State<TableScreen> {
         onHandStrength: _openVariantInfo,
         onEmote: null,
         centreLabel: common.centreLabel,
+        status: _turnStatus(t),
         handStrengthLabel: common.handStrengthLabel,
         emoteLabel: common.emoteLabel,
       );
@@ -794,10 +798,11 @@ class _TableScreenState extends State<TableScreen> {
       actionsEnabled: _isMyTurn,
       actions: _bettingActions(t),
       sizer: _betSizer(t),
-      clock: _turnClock(t),
+
       onHandStrength: _openVariantInfo,
       onEmote: null,
       centreLabel: common.centreLabel,
+      status: _turnStatus(t),
       handStrengthLabel: common.handStrengthLabel,
       emoteLabel: common.emoteLabel,
     );
@@ -889,14 +894,20 @@ class _TableScreenState extends State<TableScreen> {
     ];
   }
 
-  /// The countdown, while the clock is on this player.
+  /// Whose turn it is, and how long they have left.
   ///
-  /// Only shown for your own turn: being auto-folded is the consequence that matters, and a bar
-  /// for somebody else's clock is noise you cannot act on.
-  Widget? _turnClock(AppLocalizations t) {
-    if (!_isMyTurn) return null;
+  /// Always returns a bar. It is the only line on screen at a fixed place under the felt, so it
+  /// doubles as where the table says what it is waiting for - and a row that came and went would
+  /// resize the controls and shift the felt above them.
+  Widget _turnStatus(AppLocalizations t) {
     final deadline = _turnDeadline;
-    if (deadline == null) return null;
+    final active = _players.firstWhere(
+      (p) => p['playerId']?.toString() == _activePlayerId,
+      orElse: () => null,
+    );
+    if (deadline == null || active == null || _phase == 'SHOWDOWN') {
+      return const TurnStatusBar();
+    }
 
     // The window is measured from when this client first saw the turn, so the bar drains from
     // full however late in the turn the screen was opened.
@@ -905,13 +916,15 @@ class _TableScreenState extends State<TableScreen> {
       _turnWindowKey = key;
       _turnWindowStart = DateTime.now();
     }
-    final start = _turnWindowStart!;
     final remaining = deadline.difference(DateTime.now());
-    final total = deadline.difference(start);
     final left = remaining.isNegative ? Duration.zero : remaining;
+    final total = deadline.difference(_turnWindowStart!);
 
-    return TurnClockBar(
-      label: t.yourTurnLeft(left.inSeconds),
+    return TurnStatusBar(
+      isYours: _isMyTurn,
+      label: _isMyTurn
+          ? t.yourTurnLeft(left.inSeconds)
+          : t.waitingOn('${active['username'] ?? ''}'),
       remaining: left,
       fraction: total.inMilliseconds <= 0
           ? 0
