@@ -7,17 +7,12 @@ name: Screenshots
 # The shots are generated, never committed - `test_screenshots/shots/` is gitignored - so this
 # workflow is the only place they come from, and they cannot go stale against the code.
 #
-# Runs on pull requests too, so a change that overflows a row or drops a font shows up as a
-# picture next to the diff rather than as a bug report weeks later. It is deliberately not a
-# gate: nothing here compares against a baseline, so it can flag nothing and fail nothing. It
-# fails only if a screen throws while being drawn, which is worth failing over.
+# Run by hand only, for now: Actions -> Screenshots -> Run workflow, or
+# `gh workflow run screenshots.yml --ref <branch>`. Nothing here compares against a baseline, so
+# it gates nothing and blocks nothing; it fails only if a screen throws while being drawn. If it
+# earns its keep, adding `pull_request:` below would put that picture next to every diff.
 
 on:
-  push:
-    branches:
-      - main
-      - preprod
-  pull_request:
   workflow_dispatch:
 
 jobs:

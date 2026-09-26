@@ -6,9 +6,14 @@ Photographs of every screen in the app, in English and French, for design work.
 flutter test test_screenshots --update-goldens
 ```
 
-The PNGs land in `test_screenshots/shots/<locale>/`, 824x1830 each. They are gitignored: the
-`Screenshots` workflow regenerates them on every push and pull request and attaches them to the
-run as a downloadable artifact, so what a designer opens is always the app as it is today.
+The PNGs land in `test_screenshots/shots/<locale>/`, 824x1830 each. They are gitignored, so the
+only way to get a set is to generate one - which is what keeps them from going stale against the
+code.
+
+To produce a set without a checkout, run the `Screenshots` workflow by hand (Actions ->
+Screenshots -> Run workflow, or `gh workflow run screenshots.yml --ref <branch>`) and download the
+artifact it attaches to the run. It is manual-only for now: it gates nothing, and nobody needs a
+fresh set on every push.
 
 ## Why it is built this way
 
