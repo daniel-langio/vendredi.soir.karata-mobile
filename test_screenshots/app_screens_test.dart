@@ -27,6 +27,7 @@ import 'package:poker_client/screens/settings_screen.dart';
 import 'package:poker_client/screens/table_screen.dart';
 import 'package:poker_client/screens/welcome_screen.dart';
 import 'package:poker_client/sound_settings.dart';
+import 'package:poker_client/widgets/common/segmented_tabs.dart';
 import 'package:poker_client/theme/karata_text_styles.dart';
 import 'package:poker_client/theme/karata_theme.dart';
 
@@ -122,11 +123,20 @@ class _Screen {
   /// settle and finish its entry animation; TableScreen wants fewer (see [_screens]).
   final int frames;
 
-  const _Screen(this.name, this.build, {this.frames = 40});
+  /// Something to do once the screen has settled, before the shutter - tapping into a tab, say.
+  final Future<void> Function(WidgetTester)? then;
+
+  const _Screen(this.name, this.build, {this.frames = 40, this.then});
 
   Future<void> settle(WidgetTester tester) async {
     for (var i = 0; i < frames; i++) {
       await tester.pump(const Duration(milliseconds: 50));
+    }
+    if (then != null) {
+      await then!(tester);
+      for (var i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 50));
+      }
     }
   }
 }
@@ -147,6 +157,25 @@ final _screens = <_Screen>[
       serverUrl: _session['serverUrl']!,
       token: _session['token']!,
       username: _session['username']!,
+    ),
+  ),
+  _Screen(
+    '04b-menu-your-tables',
+    () => MenuScreen(
+      serverUrl: _session['serverUrl']!,
+      token: _session['token']!,
+      username: _session['username']!,
+    ),
+    // The private list is where a table's mascot cards are silver rather than gold, and nothing
+    // else photographs that.
+    // By position, not by label: this shot is taken in both languages.
+    then: (tester) async => tester.tap(
+      find
+          .descendant(
+            of: find.byType(SegmentedTabs),
+            matching: find.byType(GestureDetector),
+          )
+          .at(1),
     ),
   ),
   _Screen(

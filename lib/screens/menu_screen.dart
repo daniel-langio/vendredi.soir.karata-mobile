@@ -13,6 +13,7 @@ import '../widgets/common/karata_icons.dart';
 import '../widgets/common/segmented_tabs.dart';
 import '../widgets/lobby/lobby_table_card.dart';
 import '../widgets/lobby/profile_header.dart';
+import '../widgets/lobby/mascot_palette.dart';
 import '../widgets/lobby/table_mascot.dart';
 import '../widgets/wallet/balance_card.dart';
 
@@ -331,6 +332,7 @@ class _MenuScreenState extends State<MenuScreen> {
       actionLabel: _showPublic ? t.sitDown : t.open,
       onPressed: () => _openTable(table.gameId),
       decoration: TableMascot.forTable(table.name),
+      palette: table.isPublic ? MascotPalette.gold : MascotPalette.silver,
     );
   }
 

@@ -75,6 +75,14 @@ abstract final class KarataColors {
   static const green = Color(0xFF2E8F58);
   static const greenDeep = Color(0xFF2D5E42);
 
+  /// The silver a private table's mascot cards are cut from, against the gold of a public one.
+  static const silverBright = Color(0xFFF4F5FA);
+  static const silver = Color(0xFFC2C5D4);
+  static const silverDeep = Color(0xFF8E91A6);
+
+  /// Ink on a silver face, matching what [onAccent] is to gold.
+  static const onSilver = Color(0xFF3A3D52);
+
   // Playing cards -----------------------------------------------------------
   static const cardFace = Color(0xFFFBFAF7);
   static const cardBackTop = Color(0xFFFBE7A1);

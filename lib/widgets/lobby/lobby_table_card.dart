@@ -8,6 +8,7 @@ import '../common/karata_button.dart';
 import '../common/karata_icon.dart';
 import '../common/status_pill.dart';
 import 'fanned_cards.dart';
+import 'mascot_palette.dart';
 
 /// A table in the lobby list: its name, whether it has room, the buy-in, who is already sitting
 /// there, and the button that joins it.
@@ -22,6 +23,7 @@ class LobbyTableCard extends StatelessWidget {
     required this.actionLabel,
     required this.onPressed,
     required this.decoration,
+    required this.palette,
     this.seatsOpen = true,
   });
 
@@ -38,6 +40,9 @@ class LobbyTableCard extends StatelessWidget {
   /// The two cards fanned into the right edge. Varied per row so a list of tables does not read
   /// as the same picture repeated.
   final ((String, KarataIconData), (String, KarataIconData)) decoration;
+
+  /// The metal those cards are cut from - gold for a public table, silver for your own.
+  final MascotPalette palette;
 
   final bool seatsOpen;
 
@@ -73,7 +78,11 @@ class LobbyTableCard extends StatelessWidget {
               Positioned(
                 right: -30,
                 top: 26,
-                child: FannedCards(left: decoration.$1, right: decoration.$2),
+                child: FannedCards(
+                  left: decoration.$1,
+                  right: decoration.$2,
+                  palette: palette,
+                ),
               ),
               ConstrainedBox(
                 constraints: const BoxConstraints(minHeight: minHeight),

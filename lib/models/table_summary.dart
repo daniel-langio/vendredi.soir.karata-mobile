@@ -12,6 +12,9 @@ class TableSummary {
   final String name;
   final int? defaultBuyIn;
 
+  /// Whether the house hosts this table and anyone may sit down, as opposed to one of your own.
+  final bool isPublic;
+
   /// The seated players, in seat order. The lobby shows the first few as avatars.
   final List<SeatedPlayer> players;
 
@@ -20,6 +23,7 @@ class TableSummary {
     required this.name,
     required this.defaultBuyIn,
     required this.players,
+    this.isPublic = false,
   });
 
   int get seated => players.length;
@@ -38,6 +42,7 @@ class TableSummary {
     gameId: j['gameId'] as String,
     name: j['name'] as String? ?? 'Table',
     defaultBuyIn: (j['defaultBuyIn'] as num?)?.toInt(),
+    isPublic: j['isPublic'] == true,
     players: [
       for (final p in (j['players'] as List<dynamic>? ?? const []))
         (

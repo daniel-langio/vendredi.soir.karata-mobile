@@ -101,12 +101,14 @@ final _publicTables = [
   {
     'gameId': '3d8b6c22-2222-4222-8222-222222222222',
     'name': 'Analakely Nights',
+    'isPublic': true,
     'defaultBuyIn': 500,
     'players': _seats(['rado', 'tiana', 'naina', 'fara', 'hery']),
   },
   {
     'gameId': '4e7c5d33-3333-4333-8333-333333333333',
     'name': 'Débutants',
+    'isPublic': true,
     'defaultBuyIn': 100,
     'players': _seats(['soa', 'hanta', 'fara']),
   },
