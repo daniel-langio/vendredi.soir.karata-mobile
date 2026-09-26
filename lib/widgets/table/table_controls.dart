@@ -21,6 +21,7 @@ class TableControls extends StatelessWidget {
     required this.emoteLabel,
     this.sizer,
     this.message,
+    this.clock,
   });
 
   /// What sits between the two round buttons. The pot lives on the felt, under the board it
@@ -39,6 +40,9 @@ class TableControls extends StatelessWidget {
 
   /// Shown in place of the buttons - "Waiting for the draw", "Table closed".
   final String? message;
+
+  /// How long you have left to act, shown only while the clock is on you.
+  final Widget? clock;
 
   @override
   Widget build(BuildContext context) {
@@ -89,6 +93,7 @@ class TableControls extends StatelessWidget {
             ),
           )
         else ...[
+          if (clock != null) ...[clock!, const SizedBox(height: 10)],
           if (sizer != null) ...[
             Opacity(opacity: actionsEnabled ? 1 : 0.4, child: sizer!),
             const SizedBox(height: 10),

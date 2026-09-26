@@ -23,6 +23,7 @@ import '../widgets/table/table_controls.dart';
 import '../widgets/table/table_menu_sheet.dart';
 import '../widgets/table/table_surface.dart';
 import '../widgets/table/table_top_bar.dart';
+import '../widgets/table/turn_clock_bar.dart';
 import '../widgets/table/variant_info_dialog.dart';
 
 class TableScreen extends StatefulWidget {
@@ -51,6 +52,12 @@ class _TableScreenState extends State<TableScreen> {
   Map<String, dynamic>? _game;
   List<dynamic> _myCards = [];
   bool _isLoading = false;
+
+  // Purely cosmetic bookkeeping for the countdown's bar: the deadline itself is always the
+  // server's value, and this only remembers when this client first saw the current turn, so the
+  // bar has a start point to drain from rather than jumping on the first tick.
+  String? _turnWindowKey;
+  DateTime? _turnWindowStart;
 
   /// What the bet/raise box currently holds. The V2 design keeps the sizer on screen rather than
   /// behind a toggle, so this is always live rather than only while a panel is open.
@@ -133,6 +140,13 @@ class _TableScreenState extends State<TableScreen> {
   /// hasn't since fully dropped out) rather than just watching - e.g. someone who opened an
   /// invite link without ever sitting down, or who left mid-hand and that hand has since ended.
   bool get _isPlaying => _players.any((p) => p['username'] == widget.username);
+
+  /// The server's authoritative deadline for whoever is on the clock - see
+  /// DealService.enforceTurnTimeout on the backend, which auto-folds past this point.
+  DateTime? get _turnDeadline {
+    final raw = _currentDeal?['turnDeadline'] as String?;
+    return raw == null ? null : DateTime.parse(raw).toLocal();
+  }
 
   Future<void> _refresh({bool showSpinner = false}) async {
     if (showSpinner && mounted) setState(() => _isLoading = true);
@@ -780,6 +794,7 @@ class _TableScreenState extends State<TableScreen> {
       actionsEnabled: _isMyTurn,
       actions: _bettingActions(t),
       sizer: _betSizer(t),
+      clock: _turnClock(t),
       onHandStrength: _openVariantInfo,
       onEmote: null,
       centreLabel: common.centreLabel,
@@ -872,6 +887,36 @@ class _TableScreenState extends State<TableScreen> {
         style: KarataButtonStyle.primary,
       ),
     ];
+  }
+
+  /// The countdown, while the clock is on this player.
+  ///
+  /// Only shown for your own turn: being auto-folded is the consequence that matters, and a bar
+  /// for somebody else's clock is noise you cannot act on.
+  Widget? _turnClock(AppLocalizations t) {
+    if (!_isMyTurn) return null;
+    final deadline = _turnDeadline;
+    if (deadline == null) return null;
+
+    // The window is measured from when this client first saw the turn, so the bar drains from
+    // full however late in the turn the screen was opened.
+    final key = '$_dealId:$_phase:$_activePlayerId';
+    if (_turnWindowKey != key) {
+      _turnWindowKey = key;
+      _turnWindowStart = DateTime.now();
+    }
+    final start = _turnWindowStart!;
+    final remaining = deadline.difference(DateTime.now());
+    final total = deadline.difference(start);
+    final left = remaining.isNegative ? Duration.zero : remaining;
+
+    return TurnClockBar(
+      label: t.yourTurnLeft(left.inSeconds),
+      remaining: left,
+      fraction: total.inMilliseconds <= 0
+          ? 0
+          : left.inMilliseconds / total.inMilliseconds,
+    );
   }
 
   /// The pot fractions, and the box holding what a bet would actually be.
