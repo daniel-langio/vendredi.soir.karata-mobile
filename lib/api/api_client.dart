@@ -437,6 +437,7 @@ class ApiClient {
     required int rakePercent,
     required int rakeMin,
     required String houseReceivingPhoneNumber,
+    required bool enforceDepositOnRegistration,
   }) async {
     final response = await http.post(
       Uri.parse('$_rootUrl/economy/config'),
@@ -446,6 +447,9 @@ class ApiClient {
         'rakePercent': rakePercent,
         'rakeMin': rakeMin,
         'houseReceivingPhoneNumber': houseReceivingPhoneNumber,
+        // Required, not optional: each write is a whole new config row, so omitting this would
+        // silently switch enforcement off rather than leave it as it was.
+        'enforceDepositOnRegistration': enforceDepositOnRegistration,
       }),
     );
     if (response.statusCode == 201) {

@@ -1,94 +1,69 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+
 import '../../chip_display.dart';
 import '../../l10n/app_localizations.dart';
-import '../../theme.dart';
-import 'pop_in.dart';
+import '../../theme/karata_colors.dart';
+import '../../theme/karata_text_styles.dart';
 
-/// Picks the phrasing that agrees with who actually won - see AppLocalizations.won.
-String _wonLine(
-  AppLocalizations t,
-  int winnerCount,
-  bool iWon,
-  String names,
-  String amount,
-) {
-  if (winnerCount > 1) return t.wonBySeveral(names, amount);
-  return iWon ? t.wonByYou(amount) : t.won(names, amount);
-}
-
+/// Announces who took the pot, over the board they won it on.
+///
+/// Sized to its own text rather than to the felt: it is a sentence, and a pill stretched across
+/// the whole table reads as a section header for the board beneath it.
 class OutcomeBanner extends StatelessWidget {
-  final Map<String, dynamic> outcome;
-  final String myUsername;
   const OutcomeBanner({
     super.key,
     required this.outcome,
     required this.myUsername,
   });
 
+  final Map<String, dynamic> outcome;
+  final String myUsername;
+
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
-    final winners = outcome['winners'] as List<dynamic>? ?? [];
-    if (winners.isEmpty) return const SizedBox();
+    final winners = outcome['winners'] as List<dynamic>? ?? const [];
+    if (winners.isEmpty) return const SizedBox.shrink();
+
     final iWon = winners.any((w) => w['username'] == myUsername);
     final names = winners
-        .map(
-          (w) => w['username'] == myUsername ? t.you : w['username'].toString(),
-        )
+        .map((w) => w['username'] == myUsername ? t.you : '${w['username']}')
         .join(' & ');
     final total = winners.fold<int>(
       0,
       (sum, w) => sum + ((w['amount'] as num?)?.toInt() ?? 0),
     );
-    final rank = (winners.first as Map<String, dynamic>)['handRank'] as String?;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        // This widget only exists in the tree once a hand reaches showdown, so a constant popKey
-        // is enough - it pops in exactly once per showdown, on first mount, and won't replay on
-        // the polling rebuilds that follow while the same outcome is still showing.
-        PopIn(
-          popKey: 'winner-pill',
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-            decoration: BoxDecoration(
-              color: KarataColors.winnerGold,
-              borderRadius: BorderRadius.circular(999),
+    final amount = ChipDisplay.instance.format(total);
+
+    // Picks the phrasing that agrees with who actually won - see AppLocalizations.won.
+    final line = winners.length > 1
+        ? t.wonBySeveral(names, amount)
+        : (iWon ? t.wonByYou(amount) : t.won(names, amount));
+
+    return Center(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: iWon ? KarataColors.gold : KarataColors.surfaceRaised,
+          borderRadius: BorderRadius.circular(999),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x59000000),
+              blurRadius: 12,
+              offset: Offset(0, 4),
             ),
-            child: Text(
-              t.winnerTag,
-              style: const TextStyle(
-                color: KarataColors.winnerGoldInk,
-                fontSize: 10.5,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 0.5,
-              ),
-            ),
+          ],
+        ),
+        child: Text(
+          line,
+          textAlign: TextAlign.center,
+          style: karataText(
+            size: 14,
+            weight: 800,
+            color: iWon ? KarataColors.onGoldBadge : KarataColors.ink,
           ),
         ),
-        const SizedBox(height: 6),
-        Text(
-          _wonLine(
-            t,
-            winners.length,
-            iWon,
-            names,
-            ChipDisplay.instance.format(total),
-          ),
-          style: const TextStyle(
-            color: KarataColors.ink,
-            fontSize: 14.5,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        if (rank != null) ...[
-          const SizedBox(height: 4),
-          Text(
-            rank,
-            style: const TextStyle(color: KarataColors.dim, fontSize: 12.5),
-          ),
-        ],
-      ],
+      ),
     );
   }
 }

@@ -32,6 +32,12 @@ class ChipDisplaySettings {
   /// stays on chips until a usable rate is known rather than asking for money it can't convert.
   bool get inMoney => asMoney && arPerChip > 0;
 
+  /// The unit shown at the right edge of an amount field, or null when there is nothing useful to
+  /// put there. The V2 design prints "Ar" inside every money field; in chip mode the number is
+  /// already a chip count and the field's own label says so, so the slot stays empty rather than
+  /// repeating the word.
+  String? get unitLabel => inMoney ? 'Ar' : null;
+
   /// Chips for a number the player typed into a field. Every amount field in the app runs its
   /// entry through here, so what is typed always means the same thing as what the rest of the
   /// screen shows - the API itself only ever speaks chips.
@@ -92,9 +98,17 @@ class ChipDisplay extends ValueNotifier<ChipDisplaySettings> {
   String format(num? chips) => formatWith(value, chips);
 
   static String formatWith(ChipDisplaySettings settings, num? chips) {
+    final unit = settings.unitLabel;
+    final amount = amountOnly(settings, chips);
+    return unit == null ? amount : '$amount $unit';
+  }
+
+  /// The digits alone, with no unit after them. The V2 balance card prints "Ar" separately at
+  /// two-thirds the size of the figure, so it needs the number on its own.
+  static String amountOnly(ChipDisplaySettings settings, num? chips) {
     final amount = chips?.toInt() ?? 0;
     if (!settings.inMoney) return amount.toString();
-    return '${groupDigits(amount * settings.arPerChip)} Ar';
+    return groupDigits(amount * settings.arPerChip);
   }
 
   /// Groups thousands with a space, the usual Ariary style. Chip counts are shown ungrouped, so

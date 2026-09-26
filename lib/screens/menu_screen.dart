@@ -1,32 +1,21 @@
 import 'package:flutter/material.dart';
+
 import '../api/api_client.dart';
 import '../chip_display.dart';
 import '../l10n/app_localizations.dart';
-import '../theme.dart';
-
-/// One row in either home-screen list. Both `/games/mine` and `/games/public` return the full game
-/// representation, which already carries the seated players - so the player count shown here costs
-/// no extra field on the API and no second request.
-class TableSummary {
-  final String gameId;
-  final String name;
-  final int? defaultBuyIn;
-  final int seated;
-
-  const TableSummary({
-    required this.gameId,
-    required this.name,
-    required this.defaultBuyIn,
-    required this.seated,
-  });
-
-  factory TableSummary.fromJson(Map<String, dynamic> j) => TableSummary(
-    gameId: j['gameId'] as String,
-    name: j['name'] as String? ?? 'Table',
-    defaultBuyIn: (j['defaultBuyIn'] as num?)?.toInt(),
-    seated: (j['players'] as List<dynamic>? ?? const []).length,
-  );
-}
+import '../models/table_summary.dart';
+import '../theme/karata_colors.dart';
+import '../theme/karata_text_styles.dart';
+import '../widgets/common/circle_icon_button.dart';
+import '../widgets/common/karata_backdrop.dart';
+import '../widgets/common/karata_button.dart';
+import '../widgets/common/karata_icons.dart';
+import '../widgets/common/segmented_tabs.dart';
+import '../widgets/lobby/lobby_table_card.dart';
+import '../widgets/lobby/profile_header.dart';
+import '../widgets/lobby/mascot_palette.dart';
+import '../widgets/lobby/table_mascot.dart';
+import '../widgets/wallet/balance_card.dart';
 
 class MenuScreen extends StatefulWidget {
   final String serverUrl;
@@ -51,6 +40,7 @@ class _MenuScreenState extends State<MenuScreen> {
   bool _loadingTables = true;
   String? _tablesError;
   int? _walletChips;
+  int? _atTablesChips;
 
   /// Which of the two table lists the tab selector is showing. Public tables lead: they're the
   /// ones a player with no table of their own can actually sit down at.
@@ -71,7 +61,7 @@ class _MenuScreenState extends State<MenuScreen> {
       if (!mounted) return;
       setState(() => _walletChips = chips);
     } catch (_) {
-      // Non-critical - the balance badge just stays hidden if we can't reach the server.
+      // Non-critical - the balance card just shows a dash if we can't reach the server.
     }
   }
 
@@ -91,6 +81,13 @@ class _MenuScreenState extends State<MenuScreen> {
       setState(() {
         _mine = results[0].map(TableSummary.fromJson).toList();
         _public = results[1].map(TableSummary.fromJson).toList();
+        // What the player already has in front of them elsewhere, which the balance card shows
+        // beside the wallet balance. Summed from the tables they are actually seated at, so a
+        // table they merely host does not count towards it.
+        _atTablesChips = _mine.fold<int>(
+          0,
+          (total, table) => total + (table.stackOf(widget.username) ?? 0),
+        );
         _loadingTables = false;
       });
     } catch (e) {
@@ -102,15 +99,15 @@ class _MenuScreenState extends State<MenuScreen> {
     }
   }
 
-  Future<void> _openSettings() async {
-    await Navigator.of(context).pushNamed('/settings', arguments: _sessionArgs);
-  }
-
   Map<String, dynamic> get _sessionArgs => {
     'serverUrl': widget.serverUrl,
     'token': widget.token,
     'username': widget.username,
   };
+
+  Future<void> _openSettings() async {
+    await Navigator.of(context).pushNamed('/settings', arguments: _sessionArgs);
+  }
 
   void _openTable(String gameId) {
     Navigator.of(
@@ -137,210 +134,139 @@ class _MenuScreenState extends State<MenuScreen> {
     _loadWallet();
   }
 
-  Future<void> _openEconomy() async {
+  Future<void> _openWallet() async {
     await Navigator.of(context).pushNamed('/economy', arguments: _sessionArgs);
+    _loadWallet();
+  }
+
+  Future<void> _openDeposit() async {
+    await Navigator.of(
+      context,
+    ).pushNamed('/economy/buy', arguments: _sessionArgs);
+    _loadWallet();
+  }
+
+  Future<void> _openWithdraw() async {
+    await Navigator.of(
+      context,
+    ).pushNamed('/economy/redeem', arguments: _sessionArgs);
     _loadWallet();
   }
 
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
+
     return Scaffold(
-      appBar: AppBar(
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: _openSettings,
-            tooltip: t.settings,
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
+      backgroundColor: Colors.transparent,
+      body: KarataBackdrop(
+        child: SafeArea(
+          child: ValueListenableBuilder<ChipDisplaySettings>(
+            valueListenable: ChipDisplay.instance,
+            builder: (context, chipSettings, _) => RefreshIndicator(
+              onRefresh: _loadTables,
+              color: KarataColors.gold,
+              backgroundColor: KarataColors.surface,
+              child: ListView(
+                padding: const EdgeInsets.only(bottom: 28),
                 children: [
-                  const CircleAvatar(
-                    radius: 28,
-                    backgroundColor: KarataColors.pill,
-                    child: Icon(Icons.person, color: KarataColors.ink),
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8, top: 6),
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: CircleIconButton(
+                        icon: KarataIcons.brightness,
+                        iconSize: 22,
+                        background: const Color(0x00000000),
+                        onPressed: _openSettings,
+                        semanticLabel: t.settings,
+                      ),
+                    ),
                   ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: ProfileHeader(
+                      username: widget.username,
+                      caption: t.signInHint,
+                    ),
+                  ),
+                  const SizedBox(height: 22),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: BalanceCard(
+                      radius: 16,
+                      balanceLabel: t.balance,
+                      balance: _walletChips == null
+                          ? '—'
+                          : ChipDisplay.amountOnly(chipSettings, _walletChips),
+                      unit: chipSettings.unitLabel,
+                      atTablesLabel: t.atTables,
+                      atTables: _atTablesChips == null
+                          ? '—'
+                          : ChipDisplay.amountOnly(
+                              chipSettings,
+                              _atTablesChips,
+                            ),
+                      depositLabel: t.deposit,
+                      withdrawLabel: t.withdraw,
+                      onDeposit: _openDeposit,
+                      onWithdraw: _openWithdraw,
+                      onTap: _openWallet,
+                    ),
+                  ),
+                  const SizedBox(height: 31),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
                       children: [
-                        Text(
-                          widget.username,
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w500,
-                            color: KarataColors.ink,
+                        Expanded(
+                          child: KarataButton(
+                            label: t.createTable,
+                            icon: KarataIcons.plus,
+                            onPressed: _createTable,
+                            height: 50,
+                            raised: false,
+                            style: KarataButtonStyle.surface,
                           ),
                         ),
-                        Text(
-                          t.signInHint,
-                          style: const TextStyle(
-                            fontSize: 12.5,
-                            color: KarataColors.dim,
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: KarataButton(
+                            label: t.joinWithLink,
+                            icon: KarataIcons.link,
+                            onPressed: _joinTable,
+                            height: 50,
+                            style: KarataButtonStyle.secondary,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  if (_walletChips != null)
-                    // Flexible, because the balance is the one item here whose width is not
-                    // ours to predict: as money it runs to "2 450 000 Ar", which at 30px bold is
-                    // wider than the phone once the avatar and name have taken their share.
-                    Flexible(
-                      child: Tooltip(
-                        message: t.walletBalance,
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(999),
-                          onTap: _openEconomy,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 10,
-                            ),
-                            decoration: BoxDecoration(
-                              color: KarataColors.chipBg,
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(
-                                  Icons.monetization_on_rounded,
-                                  color: KarataColors.chipInk,
-                                  size: 24,
-                                ),
-                                const SizedBox(width: 8),
-                                Flexible(
-                                  child: ValueListenableBuilder<ChipDisplaySettings>(
-                                    valueListenable: ChipDisplay.instance,
-                                    // Scaled down rather than ellipsised: a balance with its tail
-                                    // cut off is worse than a smaller one you can still read.
-                                    builder: (context, chipSettings, _) =>
-                                        FittedBox(
-                                          fit: BoxFit.scaleDown,
-                                          alignment: Alignment.centerRight,
-                                          child: Text(
-                                            ChipDisplay.formatWith(
-                                              chipSettings,
-                                              _walletChips,
-                                            ),
-                                            style: const TextStyle(
-                                              fontSize: 30,
-                                              fontWeight: FontWeight.bold,
-                                              color: KarataColors.chipInk,
-                                            ),
-                                          ),
-                                        ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+                  const SizedBox(height: 24),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: SegmentedTabs(
+                      labels: [t.publicTables, t.yourTables],
+                      selectedIndex: _showPublic ? 0 : 1,
+                      onChanged: (i) => setState(() => _showPublic = i == 0),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Text(
+                      _showPublic ? t.anyoneCanSitDown : t.syncedToYourAccount,
+                      style: karataText(
+                        size: 13,
+                        weight: 500,
+                        color: KarataColors.inkMuted,
                       ),
                     ),
+                  ),
+                  const SizedBox(height: 14),
+                  ..._tableList(t, chipSettings),
                 ],
               ),
-              const SizedBox(height: 28),
-              ElevatedButton.icon(
-                onPressed: _createTable,
-                icon: const Text(
-                  '♠',
-                  style: TextStyle(color: KarataColors.dim),
-                ),
-                label: Text(t.createTable),
-              ),
-              const SizedBox(height: 11),
-              OutlinedButton.icon(
-                onPressed: _joinTable,
-                icon: const Icon(Icons.subdirectory_arrow_right, size: 18),
-                label: Text(t.joinWithLink),
-              ),
-              const SizedBox(height: 32),
-              _tableTabs(t),
-              const SizedBox(height: 16),
-              Expanded(
-                child: _loadingTables && _mine.isEmpty && _public.isEmpty
-                    ? const Center(child: CircularProgressIndicator())
-                    : RefreshIndicator(
-                        onRefresh: _loadTables,
-                        child: ValueListenableBuilder<ChipDisplaySettings>(
-                          valueListenable: ChipDisplay.instance,
-                          builder: (context, chipSettings, _) => ListView(
-                            children: [
-                              if (_tablesError != null)
-                                _note(t.couldNotLoadTables(_tablesError!)),
-                              if (_showPublic) ...[
-                                _sectionHint(t.anyoneCanSitDown),
-                                if (_public.isEmpty && _tablesError == null)
-                                  _note(t.noPublicTables),
-                                _publicTableCards(chipSettings),
-                              ] else ...[
-                                _sectionHint(t.syncedToYourAccount),
-                                if (_mine.isEmpty && _tablesError == null)
-                                  _note(t.noTablesYet),
-                                ..._mine.map(
-                                  (table) => _tableTile(table, chipSettings),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                      ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _tableTabs(AppLocalizations t) => Container(
-    padding: const EdgeInsets.all(3),
-    decoration: BoxDecoration(
-      color: KarataColors.pill,
-      borderRadius: BorderRadius.circular(11),
-      border: Border.all(color: KarataColors.pillLine),
-    ),
-    child: Row(
-      children: [
-        _tableTab(t.publicTables, true),
-        _tableTab(t.yourTables, false),
-      ],
-    ),
-  );
-
-  Widget _tableTab(String label, bool selectsPublic) {
-    final selected = _showPublic == selectsPublic;
-    return Expanded(
-      child: GestureDetector(
-        // Opaque, so the whole half stays tappable rather than only the glyphs in it.
-        behavior: HitTestBehavior.opaque,
-        onTap: selected
-            ? null
-            : () => setState(() => _showPublic = selectsPublic),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 9),
-          decoration: BoxDecoration(
-            color: selected ? KarataColors.pillLine : Colors.transparent,
-            borderRadius: BorderRadius.circular(9),
-          ),
-          alignment: Alignment.center,
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: selected ? KarataColors.ink : KarataColors.dim,
             ),
           ),
         ),
@@ -348,222 +274,79 @@ class _MenuScreenState extends State<MenuScreen> {
     );
   }
 
-  /// Just the explanatory line under the list - the selected tab above already names it, so
-  /// repeating the title here only said "Public tables" twice in a row.
-  Widget _sectionHint(String hint) => Padding(
-    padding: const EdgeInsets.only(bottom: 4),
-    child: Text(
-      hint,
-      style: const TextStyle(fontSize: 12.5, color: KarataColors.dim),
-    ),
-  );
+  List<Widget> _tableList(AppLocalizations t, ChipDisplaySettings chips) {
+    final tables = _showPublic ? _public : _mine;
+
+    if (_loadingTables && _mine.isEmpty && _public.isEmpty) {
+      return const [
+        Padding(
+          padding: EdgeInsets.symmetric(vertical: 40),
+          child: Center(
+            child: CircularProgressIndicator(color: KarataColors.gold),
+          ),
+        ),
+      ];
+    }
+
+    final rows = <Widget>[];
+    if (_tablesError != null) {
+      rows.add(_note(t.couldNotLoadTables(_tablesError!)));
+    } else if (tables.isEmpty) {
+      rows.add(_note(_showPublic ? t.noPublicTables : t.noTablesYet));
+    }
+
+    for (var i = 0; i < tables.length; i++) {
+      if (i > 0) rows.add(const SizedBox(height: 16));
+      rows.add(
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: _card(tables[i], t, chips),
+        ),
+      );
+    }
+    return rows;
+  }
+
+  Widget _card(
+    TableSummary table,
+    AppLocalizations t,
+    ChipDisplaySettings chips,
+  ) {
+    final String seated;
+    if (table.seated == 0) {
+      seated = t.seatedCountNone;
+    } else if (table.seated == 1) {
+      seated = t.seatedCountOne;
+    } else {
+      seated = t.seatedCount('${table.seated}');
+    }
+
+    return LobbyTableCard(
+      name: table.name,
+      statusLabel: t.seatsOpen,
+      buyInLabel: table.defaultBuyIn == null
+          ? '—'
+          : t.buyInOf(ChipDisplay.formatWith(chips, table.defaultBuyIn)),
+      playerNames: table.playerNames,
+      playerCountLabel: seated,
+      actionLabel: _showPublic ? t.sitDown : t.open,
+      onPressed: () => _openTable(table.gameId),
+      decoration: TableMascot.forTable(table.name),
+      palette: table.isPublic ? MascotPalette.gold : MascotPalette.silver,
+    );
+  }
 
   Widget _note(String message) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 16),
+    padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
     child: Text(
       message,
       textAlign: TextAlign.center,
-      style: const TextStyle(color: KarataColors.dim),
+      style: karataText(
+        size: 14,
+        weight: 500,
+        color: KarataColors.inkMuted,
+        height: 1.45,
+      ),
     ),
   );
-
-  Widget _tableTile(TableSummary table, ChipDisplaySettings chipSettings) {
-    final t = AppLocalizations.of(context);
-    final String seated;
-    if (table.seated == 0) {
-      seated = t.seatedCountNone;
-    } else if (table.seated == 1) {
-      seated = t.seatedCountOne;
-    } else {
-      seated = t.seatedCount('${table.seated}');
-    }
-    final details = [
-      if (table.defaultBuyIn != null)
-        t.buyInOf(ChipDisplay.formatWith(chipSettings, table.defaultBuyIn)),
-      seated,
-    ].join(' · ');
-
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: const Icon(Icons.circle, size: 7, color: KarataColors.live),
-      title: Text(
-        table.name,
-        style: const TextStyle(color: KarataColors.ink, fontSize: 16.5),
-      ),
-      subtitle: Text(
-        details,
-        style: const TextStyle(color: KarataColors.dim, fontSize: 12.5),
-      ),
-      trailing: TextButton(
-        onPressed: () => _openTable(table.gameId),
-        child: Text(t.open),
-      ),
-      onTap: () => _openTable(table.gameId),
-    );
-  }
-
-  static const _publicTableSuits = ['♠', '♥', '♦', '♣'];
-
-  Widget _publicTableCards(ChipDisplaySettings chipSettings) {
-    final cards = <Widget>[];
-    for (var i = 0; i < _public.length; i++) {
-      if (i > 0) cards.add(const SizedBox(height: 14));
-      cards.add(_publicTableCard(_public[i], i, chipSettings));
-    }
-    return Column(children: cards);
-  }
-
-  Widget _publicTableCard(
-    TableSummary table,
-    int index,
-    ChipDisplaySettings chipSettings,
-  ) {
-    final t = AppLocalizations.of(context);
-    final String seated;
-    if (table.seated == 0) {
-      seated = t.seatedCountNone;
-    } else if (table.seated == 1) {
-      seated = t.seatedCountOne;
-    } else {
-      seated = t.seatedCount('${table.seated}');
-    }
-    final subtitle = [
-      if (table.defaultBuyIn != null)
-        t.buyInOf(ChipDisplay.formatWith(chipSettings, table.defaultBuyIn)),
-      seated,
-    ].join(' · ');
-    final buyInLabel = table.defaultBuyIn != null
-        ? ChipDisplay.formatWith(chipSettings, table.defaultBuyIn)
-        : '—';
-
-    return PublicTableCard(
-      name: table.name,
-      subtitle: subtitle,
-      buyInLabel: buyInLabel,
-      suit: _publicTableSuits[index % _publicTableSuits.length],
-      accent: KarataColors
-          .publicTableAccents[index % KarataColors.publicTableAccents.length],
-      onTap: () => _openTable(table.gameId),
-    );
-  }
-}
-
-/// A public table shown as a large colored card: suit glyph and an "open" affordance up top,
-/// name/occupancy and buy-in on the bottom row. Colors cycle across [KarataColors.publicTableAccents]
-/// so adjacent cards read as distinct at a glance.
-class PublicTableCard extends StatelessWidget {
-  final String name;
-  final String subtitle;
-  final String buyInLabel;
-  final String suit;
-  final Color accent;
-  final VoidCallback onTap;
-
-  const PublicTableCard({
-    super.key,
-    required this.name,
-    required this.subtitle,
-    required this.buyInLabel,
-    required this.suit,
-    required this.accent,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: accent,
-      borderRadius: BorderRadius.circular(28),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(28),
-        onTap: onTap,
-        child: Container(
-          constraints: const BoxConstraints(minHeight: 132),
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.14),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Text(
-                      suit,
-                      style: const TextStyle(
-                        color: KarataColors.cardInk,
-                        fontSize: 19,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  Container(
-                    width: 32,
-                    height: 32,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.12),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.north_east,
-                      color: KarataColors.cardInk,
-                      size: 15,
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: KarataColors.cardInk,
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            height: 1.1,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          subtitle,
-                          style: TextStyle(
-                            color: KarataColors.cardInk.withValues(alpha: 0.62),
-                            fontSize: 12.5,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    buyInLabel,
-                    style: TextStyle(
-                      color: KarataColors.cardInk,
-                      fontSize: buyInLabel.length > 3 ? 26 : 32,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }

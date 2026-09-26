@@ -1,14 +1,23 @@
 import 'package:flutter/material.dart';
+
 import '../api/api_client.dart';
 import '../chip_display.dart';
 import '../l10n/app_localizations.dart';
-import '../theme.dart';
+import '../theme/karata_colors.dart';
+import '../theme/karata_text_styles.dart';
+import '../widgets/common/circle_icon_button.dart';
+import '../widgets/common/karata_card.dart';
+import '../widgets/common/karata_icon.dart';
+import '../widgets/common/karata_icons.dart';
+import '../widgets/common/karata_screen.dart';
+import '../widgets/common/section_card.dart';
+import '../widgets/common/setting_row.dart';
+import '../widgets/common/status_pill.dart';
+import '../widgets/wallet/balance_card.dart';
 
-/// Landing page for the chip economy: the current global price, and the two things a player can
-/// do with it (buy/redeem). Replaces the old marketplace's listing browser - there is nothing to
-/// browse anymore, just one global rate. Operator-only affordances (moving the price/config,
-/// seeing what payouts are still owed) show up as app bar actions rather than a FAB, since there
-/// isn't a single "create" action anymore.
+/// The player's wallet: what they hold, what is tied up at tables, and the two things they can do
+/// with it. Operator-only affordances - the payouts still owed, and the economy's own settings -
+/// sit in a "House" card below rather than in the app bar.
 class EconomyScreen extends StatefulWidget {
   final String serverUrl;
   final String token;
@@ -28,6 +37,9 @@ class EconomyScreen extends StatefulWidget {
 class _EconomyScreenState extends State<EconomyScreen> {
   late final ApiClient _apiClient;
   Map<String, dynamic>? _price;
+  int? _walletChips;
+  int? _atTablesChips;
+  int _pendingCount = 0;
   bool _isLoading = true;
 
   /// Answered by the server (`operator` on GET /account) rather than by comparing the username to
@@ -53,8 +65,24 @@ class _EconomyScreenState extends State<EconomyScreen> {
     setState(() => _isLoading = true);
     try {
       final price = await _apiClient.getChipPrice();
+      final wallet = await _apiClient.getWallet();
+      final mine = await _apiClient.listMyTables();
       if (!mounted) return;
-      setState(() => _price = price);
+      setState(() {
+        _price = price;
+        _walletChips = wallet;
+        // What the player has in front of them elsewhere, summed from the tables they are
+        // actually seated at.
+        _atTablesChips = mine.fold<int>(0, (total, game) {
+          for (final p in (game['players'] as List<dynamic>? ?? const [])) {
+            final player = p as Map<String, dynamic>;
+            if (player['username'] == widget.username) {
+              return total + ((player['chips'] as num?)?.toInt() ?? 0);
+            }
+          }
+          return total;
+        });
+      });
     } catch (e) {
       if (mounted) {
         // Resolved here rather than before the await: this loader runs from initState, and
@@ -74,7 +102,12 @@ class _EconomyScreenState extends State<EconomyScreen> {
   Future<void> _loadIsOperator() async {
     try {
       final isOperator = await _apiClient.isOperator();
-      if (mounted) setState(() => _isOperator = isOperator);
+      if (!mounted) return;
+      setState(() => _isOperator = isOperator);
+      if (!isOperator) return;
+      // Only an operator can see what is owed, and the badge is the only thing that needs it.
+      final pending = await _apiClient.listPendingRedemptions();
+      if (mounted) setState(() => _pendingCount = pending.length);
     } catch (_) {
       // Leave false - an unreachable server is not a reason to show operator affordances.
     }
@@ -105,103 +138,109 @@ class _EconomyScreenState extends State<EconomyScreen> {
     await Navigator.of(
       context,
     ).pushNamed('/economy/pending', arguments: _sessionArgs);
+    _loadIsOperator();
   }
 
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
-    final buyPrice = _price?['arPerChip'];
-    final sellPrice = _price?['sellPricePerChip'];
 
-    return Scaffold(
-      appBar: AppBar(
+    return ValueListenableBuilder<ChipDisplaySettings>(
+      valueListenable: ChipDisplay.instance,
+      builder: (context, chipSettings, _) => KarataScreen(
+        onBack: () => Navigator.of(context).pop(),
+        backLabel: t.back,
+        title: t.economyTitle,
+        subtitle: t.economySubtitle,
         actions: [
-          if (_isOperator)
-            IconButton(
-              icon: const Icon(Icons.pending_actions_rounded),
-              onPressed: _openPending,
-              tooltip: t.pendingRedemptions,
-            ),
-          if (_isOperator)
-            IconButton(
-              icon: const Icon(Icons.tune_rounded),
-              onPressed: _openConfig,
-              tooltip: t.economySettings,
-            ),
-          IconButton(icon: const Icon(Icons.refresh), onPressed: _load),
+          CircleIconButton(
+            icon: KarataIcons.refresh,
+            onPressed: _isLoading ? null : _load,
+            semanticLabel: t.refresh,
+          ),
         ],
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-          child: _isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      t.economyTitle,
-                      style: const TextStyle(
-                        fontSize: 34,
-                        fontWeight: FontWeight.w300,
-                        color: KarataColors.ink,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      t.economySubtitle,
-                      style: const TextStyle(
-                        fontSize: 13.5,
-                        color: KarataColors.dim,
-                        height: 1.45,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    // The per-chip rate is the one thing that can't be said without naming chips,
-                    // and it's redundant once every amount is already shown in Ariary - so it's
-                    // dropped entirely rather than reworded when money display is on.
-                    if (!ChipDisplay.instance.value.asMoney) ...[
-                      Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: KarataColors.field,
-                          borderRadius: BorderRadius.circular(16),
+        children: [
+          BalanceCard(
+            balanceLabel: t.balance,
+            balance: _walletChips == null
+                ? '—'
+                : ChipDisplay.amountOnly(chipSettings, _walletChips),
+            unit: chipSettings.unitLabel,
+            atTablesLabel: t.atTables,
+            atTables: _atTablesChips == null
+                ? '—'
+                : ChipDisplay.amountOnly(chipSettings, _atTablesChips),
+            depositLabel: t.deposit,
+            withdrawLabel: t.withdraw,
+            onDeposit: _openBuy,
+            onWithdraw: _openRedeem,
+          ),
+          // The per-chip rate is the one thing that can't be said without naming chips, and it's
+          // redundant once every amount is already shown in Ariary - so it's dropped entirely
+          // rather than reworded when money display is on.
+          if (!chipSettings.asMoney && _price != null)
+            KarataCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    t.buyPriceLine('${_price!['arPerChip']}'),
+                    style: KarataText.body,
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    t.sellPriceLine('${_price!['sellPricePerChip']}'),
+                    style: KarataText.label,
+                  ),
+                ],
+              ),
+            ),
+          if (_isOperator)
+            SectionCard(
+              title: t.house,
+              trailing: t.admin,
+              children: [
+                SettingRow(
+                  icon: KarataIcons.clock,
+                  title: t.pendingRedemptions,
+                  description: t.pendingRedemptionsHint,
+                  onTap: _openPending,
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (_pendingCount > 0) ...[
+                        StatusPill(
+                          label: '$_pendingCount',
+                          height: 22,
+                          foreground: KarataColors.onGoldBadge,
+                          background: KarataColors.gold,
+                          ringColor: KarataColors.goldWash,
                         ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              t.buyPriceLine('$buyPrice'),
-                              style: const TextStyle(
-                                color: KarataColors.ink,
-                                fontSize: 15,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              t.sellPriceLine('$sellPrice'),
-                              style: const TextStyle(
-                                color: KarataColors.dim,
-                                fontSize: 13,
-                              ),
-                            ),
-                          ],
-                        ),
+                        const SizedBox(width: 8),
+                      ],
+                      const KarataIcon(
+                        KarataIcons.chevronRight,
+                        size: 18,
+                        color: KarataColors.inkFaint,
                       ),
-                      const SizedBox(height: 28),
                     ],
-                    ElevatedButton(
-                      onPressed: _openBuy,
-                      child: Text(t.buyChips),
-                    ),
-                    const SizedBox(height: 12),
-                    OutlinedButton(
-                      onPressed: _openRedeem,
-                      child: Text(t.redeemChips),
-                    ),
-                  ],
+                  ),
                 ),
-        ),
+                const CardDivider(),
+                SettingRow(
+                  icon: KarataIcons.sliders,
+                  title: t.economySettings,
+                  description: t.economySettingsHint,
+                  onTap: _openConfig,
+                  trailing: const KarataIcon(
+                    KarataIcons.chevronRight,
+                    size: 18,
+                    color: KarataColors.inkFaint,
+                  ),
+                ),
+              ],
+            ),
+        ],
       ),
     );
   }

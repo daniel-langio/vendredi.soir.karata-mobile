@@ -1,23 +1,85 @@
-import 'package:flutter/material.dart';
-import '../../theme.dart';
+import 'package:flutter/widgets.dart';
 
-/// The rounded, gradient-green table surface behind the opponent seats, board and hero's hole
-/// cards. Purely a background decoration - meant to sit behind that content in a [Stack], not to
-/// lay it out.
+import '../../theme/karata_colors.dart';
+
+/// The table itself: a teal felt oval inside a wooden rail.
+///
+/// Both are ellipses rather than circles - the design gives them separate horizontal and vertical
+/// radii (`border-radius: 181px / 250px`), so each is built from an elliptical [BorderRadius]
+/// sized to the box rather than [BoxShape.circle], which would round it to whichever side is
+/// shorter.
 class TableFelt extends StatelessWidget {
-  const TableFelt({super.key});
+  const TableFelt({super.key, required this.size});
+
+  final Size size;
+
+  /// How far the felt is inset inside the rail, from the mockup's two ovals.
+  static const railThickness = 14.0;
+
+  static BorderRadius _oval(Size size) =>
+      BorderRadius.all(Radius.elliptical(size.width / 2, size.height / 2));
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        gradient: const RadialGradient(
-          center: Alignment.topCenter,
-          radius: 1.2,
-          colors: [KarataColors.feltCenter, KarataColors.feltEdge],
-        ),
-        borderRadius: BorderRadius.circular(140),
-        border: Border.all(color: KarataColors.feltRing, width: 1.5),
+    final feltSize = Size(
+      size.width - railThickness * 2,
+      size.height - railThickness * 2,
+    );
+
+    return SizedBox.fromSize(
+      size: size,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                borderRadius: _oval(size),
+                gradient: const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFF6B4630), Color(0xFF3D2517)],
+                ),
+                // A lit top edge on the rail: `inset 0 2px 0 rgba(255,255,255,0.12)`.
+                border: Border.all(color: const Color(0x1FFFFFFF), width: 2),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x8C000000),
+                    blurRadius: 34,
+                    offset: Offset(0, 16),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Positioned(
+            left: railThickness,
+            top: railThickness,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                borderRadius: _oval(feltSize),
+                gradient: const RadialGradient(
+                  center: Alignment(0, -0.16),
+                  radius: 0.72,
+                  colors: [
+                    KarataColors.feltCenter,
+                    KarataColors.feltMid,
+                    KarataColors.feltEdge,
+                  ],
+                  stops: [0, 0.55, 1],
+                ),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x80000000),
+                    blurRadius: 16,
+                    offset: Offset(0, 6),
+                    blurStyle: BlurStyle.inner,
+                  ),
+                ],
+              ),
+              child: SizedBox.fromSize(size: feltSize),
+            ),
+          ),
+        ],
       ),
     );
   }

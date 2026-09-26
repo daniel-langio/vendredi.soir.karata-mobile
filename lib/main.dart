@@ -6,7 +6,6 @@ import 'l10n/app_localizations.dart';
 import 'chip_display.dart';
 import 'locale_controller.dart';
 import 'sound_settings.dart';
-import 'wide_layout.dart';
 import 'url_strategy_stub.dart'
     if (dart.library.js_interop) 'url_strategy_web.dart';
 import 'screens/welcome_screen.dart';
@@ -22,7 +21,10 @@ import 'screens/chip_purchase_screen.dart';
 import 'screens/chip_redemption_screen.dart';
 import 'screens/economy_config_screen.dart';
 import 'screens/pending_redemptions_screen.dart';
-import 'theme.dart';
+import 'api/api_client.dart';
+import 'onboarding_gate.dart';
+import 'theme/karata_colors.dart';
+import 'theme/karata_theme.dart';
 
 void main() {
   configureUrlStrategy();
@@ -51,22 +53,20 @@ class MyApp extends StatelessWidget {
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
           ],
-          onGenerateRoute: _onGenerateRoute,
-          // This UI was designed as a phone screen. On a wide browser window it just looked like
-          // that same phone layout stretched edge to edge, so cap it and centre it there; a native
-          // build is already phone-shaped and wants the full window. TableScreen raises this cap
-          // (via WideLayout) while it's the active route, so it can use a laptop-size window - every
-          // other screen never touches WideLayout, so they stay phone-width regardless.
+          onGenerateRoute: karataOnGenerateRoute,
+          // This UI is drawn as a phone screen. On a wide browser window it just looked like that
+          // same phone layout stretched edge to edge, so cap it and centre it there; a native
+          // build is already phone-shaped and wants the full window.
+          //
+          // Every screen is phone-width for now, the table included: the V2 design has a separate
+          // desktop layout for each screen, which is a pass of its own.
           builder: kIsWeb
-              ? (context, child) => ValueListenableBuilder<bool>(
-                  valueListenable: WideLayout.instance,
-                  builder: (context, wide, _) => ColoredBox(
-                    color: KarataColors.bg,
-                    child: Center(
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(maxWidth: wide ? 1040 : 430),
-                        child: child,
-                      ),
+              ? (context, child) => ColoredBox(
+                  color: KarataColors.backdrop,
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 430),
+                      child: child,
                     ),
                   ),
                 )
@@ -103,7 +103,12 @@ class _Session {
   }
 }
 
-Route<dynamic>? _onGenerateRoute(RouteSettings settings) {
+/// Resolves every route name the app pushes.
+///
+/// Public so a test can assert that the names screens actually push are names this recognises -
+/// a mistyped one is silently inert at runtime, which is how the lobby's deposit and withdraw
+/// buttons once did nothing at all.
+Route<dynamic>? karataOnGenerateRoute(RouteSettings settings) {
   final uri = Uri.parse(settings.name ?? '/');
   final segments = uri.pathSegments;
   final session = _Session.fromArguments(settings.arguments);
@@ -182,6 +187,22 @@ Route<dynamic>? _onGenerateRoute(RouteSettings settings) {
             serverUrl: session.serverUrl,
             token: session.token,
             username: session.username,
+          );
+  } else if (segments.length == 2 &&
+      segments[0] == 'onboarding' &&
+      segments[1] == 'deposit') {
+    // The first deposit, shown to a player who has just registered. `skippable=false` is the
+    // house requiring it (see the economy config's enforceDepositOnRegistration), and is what
+    // withholds the way past.
+    final skippable = uri.queryParameters['skippable'] != 'false';
+    page = session == null
+        ? _RequireSession(routeName: settings.name ?? uri.path)
+        : ChipPurchaseScreen(
+            serverUrl: session.serverUrl,
+            token: session.token,
+            username: session.username,
+            onboarding: true,
+            skippable: skippable,
           );
   } else if (segments.length == 2 &&
       segments[0] == 'economy' &&
@@ -368,8 +389,16 @@ class _RootScreenState extends State<RootScreen> {
         token.isNotEmpty &&
         username != null) {
       setState(() => _hasSession = true);
+
+      // A player the house required to deposit, who has not yet, is sent back to the till rather
+      // than into the app - which is what makes the requirement a gate and not a suggestion.
+      final gated = await mustDepositFirst(
+        ApiClient(baseUrl: serverUrl, token: token),
+      );
+      if (!mounted) return;
+
       Navigator.of(context).pushNamedAndRemoveUntil(
-        '/menu',
+        gated ? '/onboarding/deposit?skippable=false' : '/menu',
         (route) => false,
         arguments: {
           'serverUrl': serverUrl,

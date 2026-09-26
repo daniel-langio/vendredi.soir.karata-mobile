@@ -1,7 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:poker_client/screens/menu_screen.dart';
+import 'package:poker_client/widgets/common/karata_button.dart';
 import 'test_helpers.dart';
 
 void main() {
@@ -28,12 +28,9 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('eli'), findsOneWidget);
+      expect(find.widgetWithText(KarataButton, 'New table'), findsOneWidget);
       expect(
-        find.widgetWithText(ElevatedButton, 'Create a table'),
-        findsOneWidget,
-      );
-      expect(
-        find.widgetWithText(OutlinedButton, 'Join with a link'),
+        find.widgetWithText(KarataButton, 'Join with link'),
         findsOneWidget,
       );
 

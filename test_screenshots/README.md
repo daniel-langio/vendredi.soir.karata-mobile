@@ -33,9 +33,11 @@ Add one entry to `_screens` in `app_screens_test.dart`, and a fixture to `fake_s
 any endpoint the screen calls. A path with no fixture answers 404, so the gap shows up in the shot
 rather than hanging the run.
 
-## Known limitation
+## Fonts
 
-Card suits (`♠ ♥ ♦ ♣`) render as an empty box. Only Roboto is registered in the test VM and it has
-no glyph for them; a real Android device falls back to a symbol font and draws them correctly.
-This affects the table and the public-table cards, and it is an artifact of the harness, not a bug
-in the app.
+The app's own typeface (Bricolage Grotesque, in `assets/fonts/`) is registered in the test VM, so
+these shots carry the real typography rather than a substitute. Roboto is registered alongside it
+as the fallback for any glyph it does not cover.
+
+Card suits are drawn as paths rather than typed as `♠ ♥ ♦ ♣`, so they no longer depend on a font
+having a glyph for them.

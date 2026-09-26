@@ -27,7 +27,9 @@ import 'package:poker_client/screens/settings_screen.dart';
 import 'package:poker_client/screens/table_screen.dart';
 import 'package:poker_client/screens/welcome_screen.dart';
 import 'package:poker_client/sound_settings.dart';
-import 'package:poker_client/theme.dart';
+import 'package:poker_client/widgets/common/segmented_tabs.dart';
+import 'package:poker_client/theme/karata_text_styles.dart';
+import 'package:poker_client/theme/karata_theme.dart';
 
 import 'fake_server.dart';
 
@@ -121,11 +123,28 @@ class _Screen {
   /// settle and finish its entry animation; TableScreen wants fewer (see [_screens]).
   final int frames;
 
-  const _Screen(this.name, this.build, {this.frames = 40});
+  /// Something to do once the screen has settled, before the shutter - tapping into a tab, say.
+  final Future<void> Function(WidgetTester)? then;
+
+  const _Screen(this.name, this.build, {this.frames = 40, this.then});
 
   Future<void> settle(WidgetTester tester) async {
+    // Asset images resolve on a real async tick, which pumped frames never give them - without
+    // this the welcome screen photographs with a hole where the logo is.
+    await tester.runAsync(() async {
+      await precacheImage(
+        const AssetImage('assets/logo/karata_mark_1024.png'),
+        tester.element(find.byType(MaterialApp)),
+      );
+    });
     for (var i = 0; i < frames; i++) {
       await tester.pump(const Duration(milliseconds: 50));
+    }
+    if (then != null) {
+      await then!(tester);
+      for (var i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 50));
+      }
     }
   }
 }
@@ -146,6 +165,25 @@ final _screens = <_Screen>[
       serverUrl: _session['serverUrl']!,
       token: _session['token']!,
       username: _session['username']!,
+    ),
+  ),
+  _Screen(
+    '04b-menu-your-tables',
+    () => MenuScreen(
+      serverUrl: _session['serverUrl']!,
+      token: _session['token']!,
+      username: _session['username']!,
+    ),
+    // The private list is where a table's mascot cards are silver rather than gold, and nothing
+    // else photographs that.
+    // By position, not by label: this shot is taken in both languages.
+    then: (tester) async => tester.tap(
+      find
+          .descendant(
+            of: find.byType(SegmentedTabs),
+            matching: find.byType(GestureDetector),
+          )
+          .at(1),
     ),
   ),
   _Screen(
@@ -177,6 +215,16 @@ final _screens = <_Screen>[
     frames: 12,
   ),
   _Screen(
+    '07b-table-showdown',
+    () => TableScreen(
+      serverUrl: _session['serverUrl']!,
+      token: _session['token']!,
+      username: _session['username']!,
+      gameId: shotsShowdownGameId,
+    ),
+    frames: 12,
+  ),
+  _Screen(
     '08-economy',
     () => EconomyScreen(
       serverUrl: _session['serverUrl']!,
@@ -190,6 +238,17 @@ final _screens = <_Screen>[
       serverUrl: _session['serverUrl']!,
       token: _session['token']!,
       username: _session['username']!,
+    ),
+  ),
+  _Screen(
+    '09b-onboarding-deposit',
+    () => ChipPurchaseScreen(
+      serverUrl: _session['serverUrl']!,
+      token: _session['token']!,
+      username: _session['username']!,
+      onboarding: true,
+      // The house requires it here, so there is no way past - which is the state worth seeing.
+      skippable: false,
     ),
   ),
   _Screen(
@@ -256,10 +315,21 @@ void _ignoreAudioPluginNoise() {
 /// The files come from the Flutter SDK's own artifact cache rather than a download or a vendored
 /// copy: they are already on any machine that can run this test, CI included.
 Future<void> _loadRealFonts() async {
+  // Karata's own typeface, straight out of the assets the app ships. Without this the test VM
+  // draws every glyph as a filled box, and with a Roboto substitute the shots would show the
+  // right layout in the wrong voice - Bricolage Grotesque's proportions are a large part of what
+  // the V2 design looks like.
+  await (FontLoader(kKarataFont)..addFont(
+        File(
+          'assets/fonts/BricolageGrotesque.ttf',
+        ).readAsBytes().then(ByteData.sublistView),
+      ))
+      .load();
+
   final cache = _materialFontsDir();
   if (cache == null) {
     printOnFailure(
-      'Flutter SDK fonts not found - screenshots will render text as boxes.',
+      'Flutter SDK fonts not found - icon glyphs will render as boxes.',
     );
     return;
   }
@@ -267,24 +337,17 @@ Future<void> _loadRealFonts() async {
   Future<ByteData> read(String name) async =>
       ByteData.sublistView(await File('${cache.path}/$name').readAsBytes());
 
-  // Registered under the name the app's theme asks for, not under "Roboto".
-  //
-  // karataTheme() names 'SF Pro Text', which does not exist on Android - the device quietly
-  // falls back to its own UI font, which is Roboto. flutter_test has no such fallback: an
-  // unknown family lands on the placeholder font that draws every glyph as a filled box, which
-  // is what these images looked like before. Registering the SDK's Roboto under that name does
-  // by hand exactly what the phone does by itself, so a shot shows the typography a player sees.
-  for (final family in const ['SF Pro Text', 'Roboto']) {
-    final loader = FontLoader(family);
-    for (final weight in const [
-      'Roboto-Regular.ttf',
-      'Roboto-Medium.ttf',
-      'Roboto-Bold.ttf',
-    ]) {
-      loader.addFont(read(weight));
-    }
-    await loader.load();
+  // Roboto still has to be present as the fallback family: it carries the card suits and any
+  // glyph Bricolage Grotesque does not cover.
+  final roboto = FontLoader('Roboto');
+  for (final weight in const [
+    'Roboto-Regular.ttf',
+    'Roboto-Medium.ttf',
+    'Roboto-Bold.ttf',
+  ]) {
+    roboto.addFont(read(weight));
   }
+  await roboto.load();
 
   await (FontLoader(
     'MaterialIcons',

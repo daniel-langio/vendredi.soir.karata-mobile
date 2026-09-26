@@ -9,6 +9,9 @@ const shotsServerUrl = 'https://shots.karata/poker';
 
 const shotsUsername = 'eli';
 const shotsGameId = '7f3c1e5a-4b2d-4c8e-9a10-6d5b2f8e1c44';
+
+/// A second table id, served at showdown rather than mid-flop.
+const shotsShowdownGameId = '7f3c1e5a-4b2d-4c8e-9a10-6d5b2f8e1c55';
 const _dealId = 'a1b2c3d4-0000-4000-8000-000000000001';
 
 /// A stand-in for the karata backend, so every screen can be photographed full of plausible data
@@ -58,11 +61,13 @@ Object? _fixtureFor(String path) {
         'sellSpreadPercent': 10,
         'rakePercent': 5,
         'rakeMinPot': 40,
+        'enforceDepositOnRegistration': true,
       };
     case '/economy/redemptions/pending':
       return _pendingRedemptions;
   }
   if (path == '/poker/games/$shotsGameId') return gameInPlay();
+  if (path == '/poker/games/$shotsShowdownGameId') return gameAtShowdown();
   if (path == '/poker/deals/$_dealId/hand/me') {
     return {
       'cards': ['AS', 'KS'],
@@ -71,18 +76,25 @@ Object? _fixtureFor(String path) {
   return null;
 }
 
+/// Seated players for a lobby row. Named rather than blank, because the V2 table card draws each
+/// player as their initial on a coloured disc - blanks would photograph as a row of grey "?"s -
+/// and sums their stacks into the balance card's "at tables" figure.
+List<Map<String, dynamic>> _seats(List<String> names, {int chips = 180}) => [
+  for (final name in names) {'username': name, 'chips': chips},
+];
+
 final _myTables = [
   {
     'gameId': shotsGameId,
     'name': 'Vendredi Soir',
     'defaultBuyIn': 200,
-    'players': List.filled(4, const {}),
+    'players': _seats([shotsUsername, 'hanta', 'rivo', 'bot-mika']),
   },
   {
     'gameId': '2c9a7b11-1111-4111-8111-111111111111',
     'name': 'Tsena Kely',
     'defaultBuyIn': 120,
-    'players': List.filled(2, const {}),
+    'players': _seats([shotsUsername, 'naina'], chips: 68),
   },
 ];
 
@@ -90,14 +102,16 @@ final _publicTables = [
   {
     'gameId': '3d8b6c22-2222-4222-8222-222222222222',
     'name': 'Analakely Nights',
+    'isPublic': true,
     'defaultBuyIn': 500,
-    'players': List.filled(5, const {}),
+    'players': _seats(['rado', 'tiana', 'naina', 'fara', 'hery']),
   },
   {
     'gameId': '4e7c5d33-3333-4333-8333-333333333333',
     'name': 'Débutants',
+    'isPublic': true,
     'defaultBuyIn': 100,
-    'players': List.filled(3, const {}),
+    'players': _seats(['soa', 'hanta', 'fara']),
   },
 ];
 
@@ -194,3 +208,43 @@ Map<String, dynamic> gameInPlay() => {
     'outcome': null,
   },
 };
+
+/// The same table at showdown: the board complete, two hands turned over, and a winner named.
+///
+/// Photographed as its own screen because a showdown exercises parts of the table nothing else
+/// reaches - revealed opponent hands, the winning-card highlight, the outcome banner - and those
+/// are exactly the parts that can break without any other shot noticing.
+Map<String, dynamic> gameAtShowdown() {
+  final game = gameInPlay();
+  final deal = Map<String, dynamic>.from(
+    game['currentDeal'] as Map<String, dynamic>,
+  );
+  deal['phase'] = 'SHOWDOWN';
+  deal['activePlayerId'] = null;
+  deal['communityCards'] = ['AS', 'TD', '7C', 'AH', '2C'];
+  deal['pot'] = 246;
+  deal['outcome'] = {
+    'winners': [
+      {'username': shotsUsername, 'amount': 246, 'handRank': 'Pair of aces'},
+    ],
+    'revealedHands': [
+      {
+        'playerId': 'p1',
+        'username': shotsUsername,
+        'holeCards': ['AC', 'KS'],
+        'handRank': 'Pair of aces',
+        'winner': true,
+      },
+      {
+        'playerId': 'p2',
+        'username': 'hanta',
+        'holeCards': ['QD', 'JH'],
+        'handRank': 'Ace high',
+        'winner': false,
+      },
+    ],
+    'winningCards': ['AS', 'AH', 'AC'],
+  };
+  game['currentDeal'] = deal;
+  return game;
+}

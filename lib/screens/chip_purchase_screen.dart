@@ -1,20 +1,46 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
+
 import '../api/api_client.dart';
 import '../chip_display.dart';
 import '../l10n/app_localizations.dart';
-import '../theme.dart';
+import '../theme/karata_colors.dart';
+import '../theme/karata_text_styles.dart';
+import '../widgets/common/amount_field.dart';
+import '../widgets/common/choice_chips_row.dart';
+import '../widgets/common/karata_button.dart';
+import '../widgets/common/karata_screen.dart';
+import '../widgets/common/karata_text_field.dart';
+import '../widgets/common/labeled_field.dart';
+import '../widgets/common/segmented_tabs.dart';
+import '../widgets/wallet/payment_notice.dart';
+import '../widgets/wallet/step_heading.dart';
+import '../widgets/wallet/summary_card.dart';
 
 class ChipPurchaseScreen extends StatefulWidget {
   final String serverUrl;
   final String token;
   final String username;
 
+  /// Shown to a player who has just registered, rather than reached from the wallet.
+  ///
+  /// Changes only the framing - the heading welcomes them, and there is a way past it unless the
+  /// house has said there isn't. The deposit itself is the same flow, so there is one of it to
+  /// keep working rather than a second, nearly-identical first-run form.
+  final bool onboarding;
+
+  /// Whether a way past is offered. False means the house requires the deposit - see the economy
+  /// config's enforceDepositOnRegistration.
+  final bool skippable;
+
   const ChipPurchaseScreen({
     super.key,
     required this.serverUrl,
     required this.token,
     required this.username,
+    this.onboarding = false,
+    this.skippable = true,
   });
 
   @override
@@ -34,6 +60,8 @@ class _ChipPurchaseScreenState extends State<ChipPurchaseScreen> {
   Map<String, dynamic>? _purchase;
   Timer? _pollTimer;
 
+  static const _providers = ['MVOLA', 'ORANGE_MONEY'];
+
   ChipDisplaySettings get _display => ChipDisplay.instance.value;
 
   /// Chips to credit. In money mode the field asks for the amount the player wants *in their
@@ -41,10 +69,19 @@ class _ChipPurchaseScreenState extends State<ChipPurchaseScreen> {
   /// the number they will see afterwards. What they actually have to send is [_totalPriceAr],
   /// which is higher: the house's spread lives between the two, and the pay instructions below
   /// state it outright rather than burying it in a per-chip rate.
-  int get _quantity => _display.chipsFromEntry(
-    int.tryParse(_quantityController.text.trim()) ?? 0,
-  );
+  int get _quantity =>
+      AmountField.chipsFrom(_display, _quantityController.text) ?? 0;
   int get _totalPriceAr => _quantity * (_sellPricePerChip ?? 0);
+
+  /// What the credited chips are worth at the rate balances are shown at - the top line of the
+  /// breakdown, and the thing the spread is measured against.
+  int get _creditedValueAr => _quantity * _display.arPerChip;
+  int get _feeAr => _totalPriceAr - _creditedValueAr;
+
+  /// The one-tap amounts under the field, in whichever unit the field is asking for.
+  List<int> get _presetEntries => _display.inMoney
+      ? const [10000, 20000, 50000, 100000]
+      : const [10, 20, 50, 100];
 
   @override
   void initState() {
@@ -79,7 +116,7 @@ class _ChipPurchaseScreenState extends State<ChipPurchaseScreen> {
             config['houseReceivingPhoneNumber'] as String?;
         // Seed the default in the unit the field ended up asking for - "1" means one chip, which
         // is one rate's worth of Ariary once the amount is typed as money.
-        _quantityController.text = '${_display.entryFromChips(1)}';
+        _quantityController.text = AmountField.entryText(_display, 1);
       });
     } catch (e) {
       if (mounted) {
@@ -122,6 +159,16 @@ class _ChipPurchaseScreenState extends State<ChipPurchaseScreen> {
     });
   }
 
+  Future<void> _copyHouseNumber() async {
+    final number = _houseReceivingPhoneNumber;
+    if (number == null || number.isEmpty) return;
+    await copyToClipboard(number);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(AppLocalizations.of(context).numberCopied)),
+    );
+  }
+
   Future<void> _submitPayment() async {
     final t = AppLocalizations.of(context);
     final phone = _phoneController.text.trim();
@@ -161,192 +208,154 @@ class _ChipPurchaseScreenState extends State<ChipPurchaseScreen> {
     }
   }
 
+  /// Leaves the first-run deposit for the lobby, clearing the stack behind it - there is nothing
+  /// back there but the registration form.
+  void _leaveOnboarding() {
+    Navigator.of(context).pushNamedAndRemoveUntil(
+      '/menu',
+      (route) => false,
+      arguments: {
+        'serverUrl': widget.serverUrl,
+        'token': widget.token,
+        'username': widget.username,
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
     final status = _purchase?['status'] as String?;
 
-    return Scaffold(
-      appBar: AppBar(),
-      body: SafeArea(
-        child: _isLoadingPrice
-            ? const Center(child: CircularProgressIndicator())
-            : ListView(
-                padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-                children: [
-                  Text(
-                    t.buyChips,
-                    style: const TextStyle(
-                      fontSize: 34,
-                      fontWeight: FontWeight.w300,
-                      color: KarataColors.ink,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  // Same call as EconomyScreen and the withdrawal screen: a per-chip rate can't be
-                  // stated without naming chips, and the pay instructions below already spell out
-                  // the exact Ariary to send - so it drops out entirely in money mode.
-                  if (!_display.inMoney)
-                    Text(
-                      t.sellPriceLine('${_sellPricePerChip ?? 0}'),
-                      style: const TextStyle(
-                        fontSize: 13.5,
-                        color: KarataColors.dim,
-                        height: 1.45,
-                      ),
-                    ),
-                  const SizedBox(height: 24),
-                  if (status == null) ...[
-                    Text(
-                      t.quantity,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: KarataColors.ink,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    TextField(
-                      controller: _quantityController,
-                      keyboardType: TextInputType.number,
-                      style: const TextStyle(color: KarataColors.ink),
-                      onChanged: (_) => setState(() {}),
-                    ),
-                    const SizedBox(height: 20),
-                    Text(
-                      t.paymentProvider,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: KarataColors.ink,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    DropdownButtonFormField<String>(
-                      initialValue: _provider,
-                      dropdownColor: KarataColors.field,
-                      // Names the family because a dropdown's style replaces the inherited one
-                      // outright rather than merging with it - see kUiFont.
-                      style: const TextStyle(
-                        color: KarataColors.ink,
-                        fontFamily: kUiFont,
-                      ),
-                      items: const [
-                        DropdownMenuItem(value: 'MVOLA', child: Text('MVola')),
-                        DropdownMenuItem(
-                          value: 'ORANGE_MONEY',
-                          child: Text('Orange Money'),
-                        ),
-                      ],
-                      onChanged: (value) =>
-                          setState(() => _provider = value ?? _provider),
-                    ),
-                    const SizedBox(height: 20),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: KarataColors.field,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Text(
-                        t.payInstructions(
-                          ChipDisplay.groupDigits(_totalPriceAr),
-                          _houseReceivingPhoneNumber ?? '',
-                        ),
-                        style: const TextStyle(
-                          color: KarataColors.ink,
-                          fontSize: 13.5,
-                          height: 1.5,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    Text(
-                      t.yourPhoneNumber,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: KarataColors.ink,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    TextField(
-                      controller: _phoneController,
-                      keyboardType: TextInputType.phone,
-                      style: const TextStyle(color: KarataColors.ink),
-                      decoration: const InputDecoration(hintText: '+261...'),
-                    ),
-                    const SizedBox(height: 20),
-                    Text(
-                      t.transactionRef,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: KarataColors.ink,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    TextField(
-                      controller: _refController,
-                      style: const TextStyle(color: KarataColors.ink),
-                      decoration: InputDecoration(
-                        hintText: t.transactionRefHint,
-                      ),
-                    ),
-                    const SizedBox(height: 28),
-                    ElevatedButton(
-                      onPressed: _isLoading ? null : _submitPayment,
-                      child: _isLoading
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: KarataColors.ink,
-                              ),
-                            )
-                          : Text(t.submitPayment),
-                    ),
-                  ] else if (status == 'PENDING_PAYMENT') ...[
-                    const SizedBox(height: 40),
-                    const Center(child: CircularProgressIndicator()),
-                    const SizedBox(height: 20),
-                    Text(
-                      t.waitingForConfirmation,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: KarataColors.dim,
-                        fontSize: 13.5,
-                        height: 1.5,
-                      ),
-                    ),
-                  ] else ...[
-                    const SizedBox(height: 40),
-                    const Center(
-                      child: Icon(
-                        Icons.check_circle,
-                        color: KarataColors.chipInk,
-                        size: 56,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    Text(
-                      t.chipsCredited,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: KarataColors.ink,
-                        fontSize: 16,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    ElevatedButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: Text(t.close),
-                    ),
-                  ],
-                ],
+    return KarataScreen(
+      // No way back during onboarding: there is nothing behind it but the form they just left.
+      onBack: widget.onboarding ? null : () => Navigator.of(context).pop(),
+      backLabel: t.back,
+      title: widget.onboarding ? t.onboardingTitle : t.buyChips,
+      subtitle: widget.onboarding ? t.onboardingSubtitle : t.depositSubtitle,
+      children: _isLoadingPrice
+          ? const [
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: 60),
+                child: Center(
+                  child: CircularProgressIndicator(color: KarataColors.gold),
+                ),
               ),
-      ),
+            ]
+          : switch (status) {
+              null => _form(t),
+              'PENDING_PAYMENT' => _waiting(t),
+              _ => _done(t),
+            },
     );
   }
+
+  List<Widget> _form(AppLocalizations t) => [
+    LabeledField(
+      label: t.amount,
+      child: AmountField(
+        controller: _quantityController,
+        display: _display,
+        onChanged: (_) => setState(() {}),
+      ),
+    ),
+    ChoiceChipsRow(
+      labels: [
+        for (final entry in _presetEntries)
+          _display.inMoney ? ChipDisplay.groupDigits(entry) : '$entry',
+      ],
+      selectedIndex: _presetEntries.indexWhere(
+        (entry) => _display.chipsFromEntry(entry) == _quantity,
+      ),
+      onSelected: (i) => setState(() {
+        _quantityController.text = _display.inMoney
+            ? ChipDisplay.groupDigits(_presetEntries[i])
+            : '${_presetEntries[i]}';
+      }),
+    ),
+    LabeledField(
+      label: t.paymentProvider,
+      child: SegmentedTabs(
+        height: 40,
+        labels: const ['MVola', 'Orange Money'],
+        selectedIndex: _providers.indexOf(_provider),
+        onChanged: (i) => setState(() => _provider = _providers[i]),
+      ),
+    ),
+    SummaryCard(
+      lines: [
+        (
+          label: t.chipsYouGet,
+          value: ChipDisplay.formatWith(_display, _quantity),
+          emphasised: false,
+        ),
+        (
+          label: t.fee,
+          value: '${ChipDisplay.groupDigits(_feeAr)} Ar',
+          emphasised: false,
+        ),
+        (
+          label: t.youPay,
+          value: '${ChipDisplay.groupDigits(_totalPriceAr)} Ar',
+          emphasised: true,
+        ),
+      ],
+    ),
+    StepHeading(number: 1, label: t.sendThePayment),
+    PaymentNotice(
+      sentence: t.payInstructions('{amount}', '{phone}'),
+      amount: '${ChipDisplay.groupDigits(_totalPriceAr)} Ar',
+      phoneNumber: _houseReceivingPhoneNumber ?? '',
+      copyLabel: t.copyNumber,
+      onCopy: _copyHouseNumber,
+    ),
+    StepHeading(number: 2, label: t.confirmItHere),
+    LabeledField(
+      label: t.yourPhoneNumber,
+      child: KarataTextField(
+        controller: _phoneController,
+        keyboardType: TextInputType.phone,
+        hintText: '+261...',
+      ),
+    ),
+    LabeledField(
+      label: t.transactionRef,
+      child: KarataTextField(
+        controller: _refController,
+        hintText: t.transactionRefHint,
+      ),
+    ),
+    KarataButton(
+      label: t.submitPayment,
+      onPressed: _isLoading ? null : _submitPayment,
+    ),
+    if (widget.onboarding && widget.skippable)
+      KarataButton(
+        label: t.skipForNow,
+        onPressed: _leaveOnboarding,
+        style: KarataButtonStyle.secondary,
+      ),
+  ];
+
+  List<Widget> _waiting(AppLocalizations t) => [
+    const Padding(
+      padding: EdgeInsets.only(top: 40),
+      child: Center(child: CircularProgressIndicator(color: KarataColors.gold)),
+    ),
+    Text(
+      t.waitingForConfirmation,
+      textAlign: TextAlign.center,
+      style: KarataText.subtitle,
+    ),
+  ];
+
+  List<Widget> _done(AppLocalizations t) => [
+    const SizedBox(height: 24),
+    Text(
+      t.chipsCredited,
+      textAlign: TextAlign.center,
+      style: karataText(size: 17, weight: 800),
+    ),
+    KarataButton(label: t.close, onPressed: () => Navigator.of(context).pop()),
+  ];
 }

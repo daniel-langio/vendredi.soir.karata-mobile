@@ -1,9 +1,16 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+
 import '../debug_backend_config.dart';
 import '../l10n/app_localizations.dart';
 import '../server_config.dart';
-import '../theme.dart';
+import '../theme/karata_colors.dart';
+import '../theme/karata_text_styles.dart';
+import '../widgets/common/karata_backdrop.dart';
+import '../widgets/common/karata_button.dart';
+import '../widgets/common/karata_logo.dart';
+import '../widgets/common/karata_text_field.dart';
+import '../widgets/common/kente_ribbon.dart';
 
 /// When this app is served from the same Spring Boot app it talks to (the
 /// intended deployment for the web build - see web-ui/README.md), same-origin
@@ -55,88 +62,173 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
   void _goToRegister() {
     final serverUrl = _urlController.text.trim();
-    Navigator.of(context).pushNamed('/register', arguments: {'serverUrl': serverUrl});
+    Navigator.of(
+      context,
+    ).pushNamed('/register', arguments: {'serverUrl': serverUrl});
   }
 
   void _goToLogin() {
     final serverUrl = _urlController.text.trim();
-    Navigator.of(context).pushNamed('/login', arguments: {'serverUrl': serverUrl});
+    Navigator.of(
+      context,
+    ).pushNamed('/login', arguments: {'serverUrl': serverUrl});
+  }
+
+  String get _backendLabel {
+    if (_selectedBackend == _customBackend) return 'Debug backend: custom';
+    final backend = _debugBackends.firstWhere(
+      (b) => b.url == _selectedBackend,
+      orElse: () => _debugBackends.first,
+    );
+    return 'Debug backend: ${backend.name}';
   }
 
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
+
     return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 40, 24, 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Spacer(),
-              const Icon(Icons.casino, size: 72, color: KarataColors.ink),
-              const SizedBox(height: 16),
-              const Text(
-                'Karata',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 34, fontWeight: FontWeight.w300, color: KarataColors.ink),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                t.welcomeTagline,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 13.5, color: KarataColors.dim, height: 1.45),
-              ),
-              const Spacer(),
-              // Debug-only: which backend to talk to is fixed in a release build (always
-              // defaultServerUrl()) - this picker only appears at all when
-              // assets/debug_backend_config.json enables it, and never in a non-debug build
-              // regardless of the config file. See debug_backend_config.dart.
-              if (_debugBackends.isNotEmpty) ...[
-                Row(
+      backgroundColor: Colors.transparent,
+      body: KarataBackdrop(
+        child: Column(
+          children: [
+            const KenteRibbon(),
+            Expanded(
+              child: SafeArea(
+                top: false,
+                child: Column(
                   children: [
                     Expanded(
-                      child: Text(
-                        _selectedBackend == _customBackend
-                            ? 'Debug backend: custom'
-                            : 'Debug backend: ${_debugBackends.firstWhere((b) => b.url == _selectedBackend, orElse: () => _debugBackends.first).name}',
-                        style: const TextStyle(color: KarataColors.dim, fontSize: 11.5),
-                        overflow: TextOverflow.ellipsis,
+                      // Centred while there is room, scrollable when there is not: the mark and
+                      // the tagline together are taller than a short window (a small phone in
+                      // landscape, a desktop browser), and this is the one screen with no other
+                      // scrolling content to absorb them.
+                      child: LayoutBuilder(
+                        builder: (context, constraints) => SingleChildScrollView(
+                          padding: const EdgeInsets.symmetric(horizontal: 32),
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              minHeight: constraints.maxHeight,
+                            ),
+                            child: Center(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const KarataLogo(),
+                                  const SizedBox(height: 18),
+                                  Text('Karata', style: KarataText.display),
+                                  const SizedBox(height: 18),
+                                  ConstrainedBox(
+                                    constraints: const BoxConstraints(
+                                      maxWidth: 290,
+                                    ),
+                                    child: Text(
+                                      t.welcomeTagline,
+                                      textAlign: TextAlign.center,
+                                      // The tagline is the one place the design sizes body copy at
+                                      // 16px; karataText keeps the optical-size axis in step with it.
+                                      style: karataText(
+                                        size: 16,
+                                        weight: 500,
+                                        color: KarataColors.inkMuted,
+                                        height: 1.45,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
-                    PopupMenuButton<String>(
-                      icon: const Icon(Icons.dns_outlined, size: 20, color: KarataColors.dim),
-                      tooltip: 'Choose a debug backend',
-                      onSelected: (url) {
-                        setState(() {
-                          _selectedBackend = url;
-                          if (url != _customBackend) _urlController.text = url;
-                        });
-                      },
-                      itemBuilder: (context) => [
-                        for (final b in _debugBackends)
-                          PopupMenuItem(value: b.url, child: Text(b.name)),
-                        const PopupMenuItem(value: _customBackend, child: Text('Custom URL...')),
-                      ],
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 28),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // Debug-only: which backend to talk to is fixed in a release build
+                          // (always defaultServerUrl()) - this picker only appears at all when
+                          // assets/debug_backend_config.yml enables it, and never in a non-debug
+                          // build regardless of the config file. See debug_backend_config.dart.
+                          if (_debugBackends.isNotEmpty) ...[
+                            _BackendPicker(
+                              label: _backendLabel,
+                              backends: _debugBackends,
+                              onSelected: (url) => setState(() {
+                                _selectedBackend = url;
+                                if (url != _customBackend) {
+                                  _urlController.text = url;
+                                }
+                              }),
+                            ),
+                            if (_selectedBackend == _customBackend) ...[
+                              const SizedBox(height: 12),
+                              KarataTextField(
+                                controller: _urlController,
+                                hintText: t.serverBaseUrl,
+                              ),
+                            ],
+                            const SizedBox(height: 12),
+                          ],
+                          KarataButton(
+                            label: t.createAccount,
+                            onPressed: _goToRegister,
+                          ),
+                          const SizedBox(height: 12),
+                          KarataButton(
+                            label: t.logIn,
+                            onPressed: _goToLogin,
+                            style: KarataButtonStyle.secondary,
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
-                if (_selectedBackend == _customBackend) ...[
-                  const SizedBox(height: 8),
-                  TextField(
-                    controller: _urlController,
-                    style: const TextStyle(color: KarataColors.ink, fontSize: 13),
-                    decoration: InputDecoration(labelText: t.serverBaseUrl),
-                  ),
-                ],
-                const SizedBox(height: 16),
-              ],
-              ElevatedButton(onPressed: _goToRegister, child: Text(t.createAccount)),
-              const SizedBox(height: 11),
-              OutlinedButton(onPressed: _goToLogin, child: Text(t.logIn)),
-            ],
-          ),
+              ),
+            ),
+          ],
         ),
+      ),
+    );
+  }
+}
+
+/// The debug backend line, which doubles as the menu that switches backend.
+class _BackendPicker extends StatelessWidget {
+  const _BackendPicker({
+    required this.label,
+    required this.backends,
+    required this.onSelected,
+  });
+
+  final String label;
+  final List<BackendOption> backends;
+  final ValueChanged<String> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton<String>(
+      tooltip: 'Choose a debug backend',
+      onSelected: onSelected,
+      color: KarataColors.surface,
+      itemBuilder: (context) => [
+        for (final b in backends)
+          PopupMenuItem(
+            value: b.url,
+            child: Text(b.name, style: KarataText.body),
+          ),
+        PopupMenuItem(
+          value: _customBackend,
+          child: Text('Custom URL...', style: KarataText.body),
+        ),
+      ],
+      child: Text(
+        label,
+        textAlign: TextAlign.center,
+        overflow: TextOverflow.ellipsis,
+        style: KarataText.caption,
       ),
     );
   }
