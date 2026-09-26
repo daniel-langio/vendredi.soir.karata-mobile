@@ -5,6 +5,8 @@ import '../l10n/app_localizations.dart';
 import '../theme/karata_colors.dart';
 import '../widgets/common/karata_button.dart';
 import '../widgets/common/karata_screen.dart';
+import '../widgets/common/karata_switch.dart';
+import '../widgets/common/setting_row.dart';
 import '../widgets/common/karata_text_field.dart';
 import '../widgets/common/labeled_field.dart';
 import '../widgets/common/section_card.dart';
@@ -34,6 +36,9 @@ class _EconomyConfigScreenState extends State<EconomyConfigScreen> {
   final _rakePercentController = TextEditingController();
   final _rakeMinController = TextEditingController();
   final _housePhoneController = TextEditingController();
+
+  /// Whether a new player must fund their wallet before they can reach the rest of the app.
+  bool _enforceDeposit = false;
   bool _isLoading = true;
   bool _isSavingPrice = false;
   bool _isSavingConfig = false;
@@ -67,6 +72,7 @@ class _EconomyConfigScreenState extends State<EconomyConfigScreen> {
         _rakePercentController.text = '${config['rakePercent']}';
         _rakeMinController.text = '${config['rakeMin']}';
         _housePhoneController.text = '${config['houseReceivingPhoneNumber']}';
+        _enforceDeposit = config['enforceDepositOnRegistration'] == true;
       });
     } catch (e) {
       if (mounted) {
@@ -146,6 +152,7 @@ class _EconomyConfigScreenState extends State<EconomyConfigScreen> {
         rakePercent: rakePercent,
         rakeMin: rakeMin,
         houseReceivingPhoneNumber: housePhone,
+        enforceDepositOnRegistration: _enforceDeposit,
       );
       if (mounted) {
         ScaffoldMessenger.of(
@@ -233,6 +240,22 @@ class _EconomyConfigScreenState extends State<EconomyConfigScreen> {
                       fillColor: KarataColors.backdrop,
                       suffixText: 'Ar',
                       hintText: t.noMinimum,
+                    ),
+                  ),
+                ],
+              ),
+              SectionCard(
+                title: t.registration,
+                children: [
+                  SettingRow(
+                    title: t.enforceDeposit,
+                    description: t.enforceDepositHint,
+                    trailing: KarataSwitch(
+                      value: _enforceDeposit,
+                      semanticLabel: t.enforceDeposit,
+                      onChanged: _isSavingConfig
+                          ? null
+                          : (value) => setState(() => _enforceDeposit = value),
                     ),
                   ),
                 ],

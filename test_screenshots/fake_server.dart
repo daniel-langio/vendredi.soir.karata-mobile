@@ -61,6 +61,7 @@ Object? _fixtureFor(String path) {
         'sellSpreadPercent': 10,
         'rakePercent': 5,
         'rakeMinPot': 40,
+        'enforceDepositOnRegistration': true,
       };
     case '/economy/redemptions/pending':
       return _pendingRedemptions;

@@ -21,6 +21,8 @@ import 'screens/chip_purchase_screen.dart';
 import 'screens/chip_redemption_screen.dart';
 import 'screens/economy_config_screen.dart';
 import 'screens/pending_redemptions_screen.dart';
+import 'api/api_client.dart';
+import 'onboarding_gate.dart';
 import 'theme/karata_colors.dart';
 import 'theme/karata_theme.dart';
 
@@ -185,6 +187,22 @@ Route<dynamic>? karataOnGenerateRoute(RouteSettings settings) {
             serverUrl: session.serverUrl,
             token: session.token,
             username: session.username,
+          );
+  } else if (segments.length == 2 &&
+      segments[0] == 'onboarding' &&
+      segments[1] == 'deposit') {
+    // The first deposit, shown to a player who has just registered. `skippable=false` is the
+    // house requiring it (see the economy config's enforceDepositOnRegistration), and is what
+    // withholds the way past.
+    final skippable = uri.queryParameters['skippable'] != 'false';
+    page = session == null
+        ? _RequireSession(routeName: settings.name ?? uri.path)
+        : ChipPurchaseScreen(
+            serverUrl: session.serverUrl,
+            token: session.token,
+            username: session.username,
+            onboarding: true,
+            skippable: skippable,
           );
   } else if (segments.length == 2 &&
       segments[0] == 'economy' &&
@@ -371,8 +389,16 @@ class _RootScreenState extends State<RootScreen> {
         token.isNotEmpty &&
         username != null) {
       setState(() => _hasSession = true);
+
+      // A player the house required to deposit, who has not yet, is sent back to the till rather
+      // than into the app - which is what makes the requirement a gate and not a suggestion.
+      final gated = await mustDepositFirst(
+        ApiClient(baseUrl: serverUrl, token: token),
+      );
+      if (!mounted) return;
+
       Navigator.of(context).pushNamedAndRemoveUntil(
-        '/menu',
+        gated ? '/onboarding/deposit?skippable=false' : '/menu',
         (route) => false,
         arguments: {
           'serverUrl': serverUrl,

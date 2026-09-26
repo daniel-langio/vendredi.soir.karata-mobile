@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../api/api_client.dart';
+import '../onboarding_gate.dart';
 import 'auth_redirect.dart';
 import '../l10n/app_localizations.dart';
 import '../theme/karata_colors.dart';
@@ -68,11 +69,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
       await prefs.setString('jwt_token', token);
       await prefs.setString('username', username);
 
+      // A brand new player goes to the till first, unless the house says they may skip it. Asked
+      // after the account exists, so a server that cannot answer costs nothing but the prompt.
+      final gated = await mustDepositFirst(
+        ApiClient(baseUrl: widget.serverUrl, token: token),
+      );
+
       if (mounted) {
         // Clears the whole stack (not just this screen) - reached via WelcomeScreen's
         // RootScreen, which would otherwise linger below Menu and show as a stray back button.
         Navigator.of(context).pushNamedAndRemoveUntil(
-          widget.redirectTarget ?? '/menu',
+          gated
+              ? '/onboarding/deposit?skippable=false'
+              : (widget.redirectTarget ?? '/menu'),
           (route) => false,
           arguments: {
             'serverUrl': widget.serverUrl,

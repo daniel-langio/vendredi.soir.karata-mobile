@@ -34,6 +34,7 @@ const _routes = <String, Type>{
   '/economy/redeem': ChipRedemptionScreen,
   '/economy/config': EconomyConfigScreen,
   '/economy/pending': PendingRedemptionsScreen,
+  '/onboarding/deposit': ChipPurchaseScreen,
   '/table/7f3c1e5a-4b2d-4c8e-9a10-6d5b2f8e1c44': TableScreen,
 };
 

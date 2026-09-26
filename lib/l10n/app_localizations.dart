@@ -407,6 +407,17 @@ class AppLocalizations {
   String get betAmount => _s('betAmount');
   String get tablePausedHost => _s('tablePausedHost');
 
+  // V2 design - first-run deposit
+  String get onboardingTitle => _s('onboardingTitle');
+  String get onboardingSubtitle => _s('onboardingSubtitle');
+  String get skipForNow => _s('skipForNow');
+  String get startPlaying => _s('startPlaying');
+
+  // V2 design
+  String get registration => _s('registration');
+  String get enforceDeposit => _s('enforceDeposit');
+  String get enforceDepositHint => _s('enforceDepositHint');
+
   static const Map<String, Map<String, String>> _strings = {
     'en': {
       'cancel': 'Cancel',
@@ -720,6 +731,14 @@ class AppLocalizations {
       'betAmount': 'Bet amount',
       'tablePausedHost':
           'You have paused this table. Nobody can act until you resume it.',
+      'onboardingTitle': 'Add your first chips',
+      'onboardingSubtitle': 'Top up with mobile money to sit down at a table.',
+      'skipForNow': 'Skip for now',
+      'startPlaying': 'Start playing',
+      'registration': 'Registration',
+      'enforceDeposit': 'Require a deposit to start',
+      'enforceDepositHint':
+          'A new player must fund their wallet before they can reach the tables.',
     },
     'fr': {
       'cancel': 'Annuler',
@@ -1049,6 +1068,15 @@ class AppLocalizations {
       'betAmount': 'Montant de la mise',
       'tablePausedHost':
           'Vous avez mis cette table en pause. Personne ne peut jouer avant que vous la repreniez.',
+      'onboardingTitle': 'Ajoutez vos premiers jetons',
+      'onboardingSubtitle':
+          'Rechargez avec le mobile money pour vous asseoir à une table.',
+      'skipForNow': 'Plus tard',
+      'startPlaying': 'Commencer à jouer',
+      'registration': 'Inscription',
+      'enforceDeposit': 'Exiger un dépôt pour commencer',
+      'enforceDepositHint':
+          'Un nouveau joueur doit alimenter son portefeuille avant d\'accéder aux tables.',
     },
   };
 }

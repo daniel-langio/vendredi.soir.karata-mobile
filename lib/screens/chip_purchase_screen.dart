@@ -23,11 +23,24 @@ class ChipPurchaseScreen extends StatefulWidget {
   final String token;
   final String username;
 
+  /// Shown to a player who has just registered, rather than reached from the wallet.
+  ///
+  /// Changes only the framing - the heading welcomes them, and there is a way past it unless the
+  /// house has said there isn't. The deposit itself is the same flow, so there is one of it to
+  /// keep working rather than a second, nearly-identical first-run form.
+  final bool onboarding;
+
+  /// Whether a way past is offered. False means the house requires the deposit - see the economy
+  /// config's enforceDepositOnRegistration.
+  final bool skippable;
+
   const ChipPurchaseScreen({
     super.key,
     required this.serverUrl,
     required this.token,
     required this.username,
+    this.onboarding = false,
+    this.skippable = true,
   });
 
   @override
@@ -195,16 +208,31 @@ class _ChipPurchaseScreenState extends State<ChipPurchaseScreen> {
     }
   }
 
+  /// Leaves the first-run deposit for the lobby, clearing the stack behind it - there is nothing
+  /// back there but the registration form.
+  void _leaveOnboarding() {
+    Navigator.of(context).pushNamedAndRemoveUntil(
+      '/menu',
+      (route) => false,
+      arguments: {
+        'serverUrl': widget.serverUrl,
+        'token': widget.token,
+        'username': widget.username,
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
     final status = _purchase?['status'] as String?;
 
     return KarataScreen(
-      onBack: () => Navigator.of(context).pop(),
+      // No way back during onboarding: there is nothing behind it but the form they just left.
+      onBack: widget.onboarding ? null : () => Navigator.of(context).pop(),
       backLabel: t.back,
-      title: t.buyChips,
-      subtitle: t.depositSubtitle,
+      title: widget.onboarding ? t.onboardingTitle : t.buyChips,
+      subtitle: widget.onboarding ? t.onboardingSubtitle : t.depositSubtitle,
       children: _isLoadingPrice
           ? const [
               Padding(
@@ -301,6 +329,12 @@ class _ChipPurchaseScreenState extends State<ChipPurchaseScreen> {
       label: t.submitPayment,
       onPressed: _isLoading ? null : _submitPayment,
     ),
+    if (widget.onboarding && widget.skippable)
+      KarataButton(
+        label: t.skipForNow,
+        onPressed: _leaveOnboarding,
+        style: KarataButtonStyle.secondary,
+      ),
   ];
 
   List<Widget> _waiting(AppLocalizations t) => [
