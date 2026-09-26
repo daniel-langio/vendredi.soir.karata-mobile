@@ -958,9 +958,15 @@ class _TableScreenState extends State<TableScreen> {
         children: [
           _ClockBar(fraction: fraction),
           const SizedBox(width: 8),
-          Text(
-            t.yourTurnLeft(secs),
-            style: const TextStyle(fontSize: 13, color: KarataColors.dim),
+          // Flexible because this row shares its width with the dealer chip and the turn badge,
+          // and the sentence is longer in some languages than in others.
+          Flexible(
+            child: Text(
+              t.yourTurnLeft(secs),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 13, color: KarataColors.dim),
+            ),
           ),
         ],
       );

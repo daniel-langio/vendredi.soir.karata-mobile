@@ -67,7 +67,6 @@ class _ChipPurchaseScreenState extends State<ChipPurchaseScreen> {
 
   Future<void> _loadPriceAndConfig() async {
     setState(() => _isLoadingPrice = true);
-    final t = AppLocalizations.of(context);
     try {
       final price = await _apiClient.getChipPrice();
       final config = await _apiClient.getEconomyConfig();
@@ -84,6 +83,9 @@ class _ChipPurchaseScreenState extends State<ChipPurchaseScreen> {
       });
     } catch (e) {
       if (mounted) {
+        // Resolved here rather than before the await: this loader runs from initState, and
+        // looking up an inherited widget that early trips a framework assertion.
+        final t = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(t.couldNotLoadPrice('$e')),
@@ -223,7 +225,12 @@ class _ChipPurchaseScreenState extends State<ChipPurchaseScreen> {
                     DropdownButtonFormField<String>(
                       initialValue: _provider,
                       dropdownColor: KarataColors.field,
-                      style: const TextStyle(color: KarataColors.ink),
+                      // Names the family because a dropdown's style replaces the inherited one
+                      // outright rather than merging with it - see kUiFont.
+                      style: const TextStyle(
+                        color: KarataColors.ink,
+                        fontFamily: kUiFont,
+                      ),
                       items: const [
                         DropdownMenuItem(value: 'MVOLA', child: Text('MVola')),
                         DropdownMenuItem(

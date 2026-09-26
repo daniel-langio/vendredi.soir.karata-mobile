@@ -192,44 +192,58 @@ class _MenuScreenState extends State<MenuScreen> {
                     ),
                   ),
                   if (_walletChips != null)
-                    Tooltip(
-                      message: t.walletBalance,
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(999),
-                        onTap: _openEconomy,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 10,
-                          ),
-                          decoration: BoxDecoration(
-                            color: KarataColors.chipBg,
-                            borderRadius: BorderRadius.circular(999),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Icons.monetization_on_rounded,
-                                color: KarataColors.chipInk,
-                                size: 24,
-                              ),
-                              const SizedBox(width: 8),
-                              ValueListenableBuilder<ChipDisplaySettings>(
-                                valueListenable: ChipDisplay.instance,
-                                builder: (context, chipSettings, _) => Text(
-                                  ChipDisplay.formatWith(
-                                    chipSettings,
-                                    _walletChips,
-                                  ),
-                                  style: const TextStyle(
-                                    fontSize: 30,
-                                    fontWeight: FontWeight.bold,
-                                    color: KarataColors.chipInk,
+                    // Flexible, because the balance is the one item here whose width is not
+                    // ours to predict: as money it runs to "2 450 000 Ar", which at 30px bold is
+                    // wider than the phone once the avatar and name have taken their share.
+                    Flexible(
+                      child: Tooltip(
+                        message: t.walletBalance,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(999),
+                          onTap: _openEconomy,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 10,
+                            ),
+                            decoration: BoxDecoration(
+                              color: KarataColors.chipBg,
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.monetization_on_rounded,
+                                  color: KarataColors.chipInk,
+                                  size: 24,
+                                ),
+                                const SizedBox(width: 8),
+                                Flexible(
+                                  child: ValueListenableBuilder<ChipDisplaySettings>(
+                                    valueListenable: ChipDisplay.instance,
+                                    // Scaled down rather than ellipsised: a balance with its tail
+                                    // cut off is worse than a smaller one you can still read.
+                                    builder: (context, chipSettings, _) =>
+                                        FittedBox(
+                                          fit: BoxFit.scaleDown,
+                                          alignment: Alignment.centerRight,
+                                          child: Text(
+                                            ChipDisplay.formatWith(
+                                              chipSettings,
+                                              _walletChips,
+                                            ),
+                                            style: const TextStyle(
+                                              fontSize: 30,
+                                              fontWeight: FontWeight.bold,
+                                              color: KarataColors.chipInk,
+                                            ),
+                                          ),
+                                        ),
                                   ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ),

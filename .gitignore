@@ -43,3 +43,7 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Screenshots are produced by the Screenshots workflow on demand, never committed - see
+# test_screenshots/. Keeping them out of git is what stops them going stale against the code.
+test_screenshots/shots/

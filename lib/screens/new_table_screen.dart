@@ -206,6 +206,9 @@ class _NewTableScreenState extends State<NewTableScreen> {
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
               initialValue: _variant,
+              // "Seven-Card Stud (coming soon)" is wider than a phone leaves room for; let the
+              // field own the full width and ellipsise inside it rather than overflow.
+              isExpanded: true,
               dropdownColor: KarataColors.field,
               style: const TextStyle(color: KarataColors.ink),
               decoration: InputDecoration(labelText: t.gameVariant),
