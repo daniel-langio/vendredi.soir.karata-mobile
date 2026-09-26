@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../api/api_client.dart';
+import '../chip_display.dart';
 import '../l10n/app_localizations.dart';
 import '../table_name_generator.dart';
 import '../theme.dart';
@@ -22,9 +23,18 @@ class NewTableScreen extends StatefulWidget {
 
 class _NewTableScreenState extends State<NewTableScreen> {
   final _nameController = TextEditingController(text: generateTableName());
-  final _smallBlindController = TextEditingController(text: '1');
-  final _bigBlindController = TextEditingController(text: '2');
-  final _buyInController = TextEditingController(text: '200');
+  // Blinds and buy-in are asked for in whatever unit the player reads the rest of the app in, so
+  // the defaults are seeded through the same conversion the entries are read back with.
+  final _display = ChipDisplay.instance.value;
+  late final _smallBlindController = TextEditingController(
+    text: '${_display.entryFromChips(1)}',
+  );
+  late final _bigBlindController = TextEditingController(
+    text: '${_display.entryFromChips(2)}',
+  );
+  late final _buyInController = TextEditingController(
+    text: '${_display.entryFromChips(200)}',
+  );
   String _variant = 'TEXAS_HOLDEM';
   bool _isLoading = false;
   bool _isOperator = false;
@@ -63,11 +73,19 @@ class _NewTableScreenState extends State<NewTableScreen> {
     super.dispose();
   }
 
+  /// Reads one amount field as chips. Null (rather than zero) for anything unparseable, so the
+  /// "fill in valid values" guard below still catches an empty or junk entry.
+  int? _chipsFrom(TextEditingController controller) {
+    final entered = int.tryParse(controller.text.trim());
+    return entered == null ? null : _display.chipsFromEntry(entered);
+  }
+
   Future<void> _create() async {
     final name = _nameController.text.trim();
-    final sb = int.tryParse(_smallBlindController.text.trim());
-    final bb = int.tryParse(_bigBlindController.text.trim());
-    final buyIn = int.tryParse(_buyInController.text.trim());
+    // The API only ever speaks chips, whatever unit the fields were filled in.
+    final sb = _chipsFrom(_smallBlindController);
+    final bb = _chipsFrom(_bigBlindController);
+    final buyIn = _chipsFrom(_buyInController);
 
     if (name.isEmpty ||
         sb == null ||
@@ -265,7 +283,7 @@ class _NewTableScreenState extends State<NewTableScreen> {
               controller: _buyInController,
               keyboardType: TextInputType.number,
               style: const TextStyle(color: KarataColors.ink),
-              decoration: InputDecoration(labelText: t.chips),
+              decoration: InputDecoration(labelText: t.amount),
             ),
             if (_isOperator) ...[
               const SizedBox(height: 8),

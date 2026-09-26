@@ -146,6 +146,10 @@ class AppLocalizations {
   String blindsSeated(String small, String big, int count) =>
       _fmt('blindsSeated', {'small': small, 'big': big, 'count': '$count'});
   String get youCanOnlyBuyInOnce => _s('youCanOnlyBuyInOnce');
+  // Every amount field is labelled by the unit it actually takes, which follows the "show chips
+  // as money" setting - so the reader never has to guess whether the number they type is chips or
+  // Ar. The `.money` variants below carry the unit; the call sites just ask for the label.
+  String get amount => _s('amount');
   String get sitDown => _s('sitDown');
   String get openTable => _s('openTable');
   String get noValidLink => _s('noValidLink');
@@ -210,6 +214,12 @@ class AppLocalizations {
   String call(String amount) => _fmt('call', {'amount': amount});
   String bet(String amount) => _fmt('bet', {'amount': amount});
   String raise(String amount) => _fmt('raise', {'amount': amount});
+  // Bare verbs for the action buttons, which stack the amount on a second line - a third of a
+  // phone's width can't hold "Relancer 7 600 Ar" on one, and an ellipsis hides the very number
+  // the player is about to commit.
+  String get callVerb => _s('callVerb');
+  String get betVerb => _s('betVerb');
+  String get raiseVerb => _s('raiseVerb');
   String minAllIn(String min, String max) =>
       _fmt('minAllIn', {'min': min, 'max': max});
   String get oneThirdPot => _s('oneThirdPot');
@@ -218,6 +228,7 @@ class AppLocalizations {
   String get pot => _s('pot');
   String get allIn => _s('allIn');
   String get handStrengthAvailableSoon => _s('handStrengthAvailableSoon');
+
   /// Three separate keys rather than one, because French has to agree with its subject: the
   /// winner speaks in the second person ("tu remportes"), anyone else in the third ("il
   /// remporte"), and several winners in the plural ("remportent"). English uses "won" throughout.
@@ -356,7 +367,8 @@ class AppLocalizations {
       'virtualChipsHint':
           'Chips here are free and can never be cashed out - use this for a practice/demo table.',
       'strictMinimumBuyIn': 'Enforce minimum buy-in',
-      'strictMinimumBuyInHint': 'Players must buy in for at least the tier amount above.',
+      'strictMinimumBuyInHint':
+          'Players must buy in for at least the tier amount above.',
       'autoRebuy': 'Auto-rebuy busted players',
       'autoRebuyHint':
           'Whenever an active player runs out of chips, the house tops them back up before '
@@ -381,7 +393,9 @@ class AppLocalizations {
       'name': 'Name',
       'generateTableName': 'Generate a random name',
       'smallBlind': 'Small blind',
+      'smallBlind.money': 'Small blind (Ar)',
       'bigBlind': 'Big blind',
+      'bigBlind.money': 'Big blind (Ar)',
       'yourBuyIn': 'Your buy-in',
       'chips': 'Chips',
       'newTableFooter':
@@ -398,6 +412,8 @@ class AppLocalizations {
       'blindsSeated': 'Blinds {small} / {big} · {count} seated',
       'youCanOnlyBuyInOnce':
           "You can only buy in once per table, so pick a stack you're happy to sit with.",
+      'amount': 'Amount',
+      'amount.money': 'Amount (Ar)',
       'sitDown': 'Sit down',
       'openTable': 'Open table',
       'noValidLink': 'No valid table link found',
@@ -451,6 +467,9 @@ class AppLocalizations {
       'call': 'Call {amount}',
       'bet': 'Bet {amount}',
       'raise': 'Raise {amount}',
+      'callVerb': 'Call',
+      'betVerb': 'Bet',
+      'raiseVerb': 'Raise',
       'minAllIn': 'min {min} · all in {max}',
       'oneThirdPot': '⅓ pot',
       'halfPot': '½ pot',
@@ -517,7 +536,7 @@ class AppLocalizations {
       'couldNotLoadPrice': 'Could not load the chip price: {error}',
       'couldNotLoadPrice.money': 'Could not load the rate: {error}',
       'quantity': 'Quantity',
-      'quantity.money': 'Amount',
+      'quantity.money': 'Amount (Ar)',
       'paymentProvider': 'Payment provider',
       'payInstructions':
           'Pay {amount} Ar to {phone} using your mobile money app, then enter the phone number you paid from and the reference (Trans Id / Ref) from your confirmation SMS below.',
@@ -641,7 +660,9 @@ class AppLocalizations {
       'name': 'Nom',
       'generateTableName': 'Générer un nom aléatoire',
       'smallBlind': 'Petite blinde',
+      'smallBlind.money': 'Petite blinde (Ar)',
       'bigBlind': 'Grosse blinde',
+      'bigBlind.money': 'Grosse blinde (Ar)',
       'yourBuyIn': "Votre mise d'entrée",
       'chips': 'Jetons',
       'newTableFooter':
@@ -658,6 +679,8 @@ class AppLocalizations {
       'blindsSeated': 'Blindes {small} / {big} · {count} joueurs',
       'youCanOnlyBuyInOnce':
           "Vous ne pouvez acheter des jetons qu'une seule fois par table : choisissez une pile qui vous convient.",
+      'amount': 'Montant',
+      'amount.money': 'Montant (Ar)',
       'sitDown': "S'installer",
       'openTable': 'Ouvrir la table',
       'noValidLink': 'Aucun lien de table valide trouvé',
@@ -712,6 +735,9 @@ class AppLocalizations {
       'call': 'Suivre {amount}',
       'bet': 'Miser {amount}',
       'raise': 'Relancer {amount}',
+      'callVerb': 'Suivre',
+      'betVerb': 'Miser',
+      'raiseVerb': 'Relancer',
       'minAllIn': 'min {min} · tapis {max}',
       'oneThirdPot': '⅓ pot',
       'halfPot': '½ pot',
@@ -779,10 +805,9 @@ class AppLocalizations {
       'pendingRedemptions.money': 'Retraits en attente',
       'economySettings': "Paramètres de l'économie",
       'couldNotLoadPrice': 'Impossible de charger le prix du jeton : {error}',
-      'couldNotLoadPrice.money':
-          'Impossible de charger le taux : {error}',
+      'couldNotLoadPrice.money': 'Impossible de charger le taux : {error}',
       'quantity': 'Quantité',
-      'quantity.money': 'Montant',
+      'quantity.money': 'Montant (Ar)',
       'paymentProvider': 'Opérateur de paiement',
       'payInstructions':
           "Payez {amount} Ar au {phone} via votre application mobile money, puis saisissez le numéro depuis lequel vous avez payé et la référence (Trans Id / Ref) reçue par SMS ci-dessous.",

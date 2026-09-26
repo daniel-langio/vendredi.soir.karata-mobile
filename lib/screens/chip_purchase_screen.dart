@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../api/api_client.dart';
+import '../chip_display.dart';
 import '../l10n/app_localizations.dart';
 import '../theme.dart';
 
@@ -33,7 +34,16 @@ class _ChipPurchaseScreenState extends State<ChipPurchaseScreen> {
   Map<String, dynamic>? _purchase;
   Timer? _pollTimer;
 
-  int get _quantity => int.tryParse(_quantityController.text.trim()) ?? 0;
+  ChipDisplaySettings get _display => ChipDisplay.instance.value;
+
+  /// Chips to credit. In money mode the field asks for the amount the player wants *in their
+  /// wallet*, converted at the same rate their balance is shown at - so the number they type is
+  /// the number they will see afterwards. What they actually have to send is [_totalPriceAr],
+  /// which is higher: the house's spread lives between the two, and the pay instructions below
+  /// state it outright rather than burying it in a per-chip rate.
+  int get _quantity => _display.chipsFromEntry(
+    int.tryParse(_quantityController.text.trim()) ?? 0,
+  );
   int get _totalPriceAr => _quantity * (_sellPricePerChip ?? 0);
 
   @override
@@ -62,10 +72,15 @@ class _ChipPurchaseScreenState extends State<ChipPurchaseScreen> {
       final price = await _apiClient.getChipPrice();
       final config = await _apiClient.getEconomyConfig();
       if (!mounted) return;
+      // Adopt the rate we just fetched, so the field's unit and the app's balances can't disagree.
+      ChipDisplay.instance.applyRate(price);
       setState(() {
         _sellPricePerChip = (price['sellPricePerChip'] as num).toInt();
         _houseReceivingPhoneNumber =
             config['houseReceivingPhoneNumber'] as String?;
+        // Seed the default in the unit the field ended up asking for - "1" means one chip, which
+        // is one rate's worth of Ariary once the amount is typed as money.
+        _quantityController.text = '${_display.entryFromChips(1)}';
       });
     } catch (e) {
       if (mounted) {
@@ -166,14 +181,18 @@ class _ChipPurchaseScreenState extends State<ChipPurchaseScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    t.sellPriceLine('${_sellPricePerChip ?? 0}'),
-                    style: const TextStyle(
-                      fontSize: 13.5,
-                      color: KarataColors.dim,
-                      height: 1.45,
+                  // Same call as EconomyScreen and the withdrawal screen: a per-chip rate can't be
+                  // stated without naming chips, and the pay instructions below already spell out
+                  // the exact Ariary to send - so it drops out entirely in money mode.
+                  if (!_display.inMoney)
+                    Text(
+                      t.sellPriceLine('${_sellPricePerChip ?? 0}'),
+                      style: const TextStyle(
+                        fontSize: 13.5,
+                        color: KarataColors.dim,
+                        height: 1.45,
+                      ),
                     ),
-                  ),
                   const SizedBox(height: 24),
                   if (status == null) ...[
                     Text(
@@ -224,7 +243,7 @@ class _ChipPurchaseScreenState extends State<ChipPurchaseScreen> {
                       ),
                       child: Text(
                         t.payInstructions(
-                          '$_totalPriceAr',
+                          ChipDisplay.groupDigits(_totalPriceAr),
                           _houseReceivingPhoneNumber ?? '',
                         ),
                         style: const TextStyle(

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../api/api_client.dart';
+import '../chip_display.dart';
 import '../l10n/app_localizations.dart';
 import '../theme.dart';
 
@@ -31,7 +32,16 @@ class _ChipRedemptionScreenState extends State<ChipRedemptionScreen> {
   Map<String, dynamic>? _redemption;
   Timer? _pollTimer;
 
-  int get _quantity => int.tryParse(_quantityController.text.trim()) ?? 0;
+  ChipDisplaySettings get _display => ChipDisplay.instance.value;
+
+  /// Chips to escrow for the payout. The field asks for whichever unit the player reads the rest
+  /// of the app in - chips normally, Ariary once "show chips as money" is on - rather than quietly
+  /// asking for chips under a wallet-flavoured screen. The API only ever speaks chips, so a money
+  /// entry is divided back out at the very rate the payout itself is priced at ([_buyPricePerChip]
+  /// is the server's `arPerChip`, the same number every balance on screen is rendered with).
+  int get _quantity => _display.chipsFromEntry(
+    int.tryParse(_quantityController.text.trim()) ?? 0,
+  );
   int get _totalPriceAr => _quantity * (_buyPricePerChip ?? 0);
 
   @override
@@ -59,7 +69,14 @@ class _ChipRedemptionScreenState extends State<ChipRedemptionScreen> {
     try {
       final price = await _apiClient.getChipPrice();
       if (!mounted) return;
-      setState(() => _buyPricePerChip = (price['arPerChip'] as num).toInt());
+      // Adopt the rate we just quoted, so the field's unit and the app's balances can't disagree.
+      ChipDisplay.instance.applyRate(price);
+      setState(() {
+        _buyPricePerChip = (price['arPerChip'] as num).toInt();
+        // Seed the default in the unit the field ended up asking for - "1" means one chip, which
+        // is one rate's worth of Ariary once the amount is typed as money.
+        _quantityController.text = '${_display.entryFromChips(1)}';
+      });
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -156,14 +173,18 @@ class _ChipRedemptionScreenState extends State<ChipRedemptionScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    t.buyPriceLine('${_buyPricePerChip ?? 0}'),
-                    style: const TextStyle(
-                      fontSize: 13.5,
-                      color: KarataColors.dim,
-                      height: 1.45,
+                  // The per-chip rate can't be stated without naming chips, and it's redundant
+                  // once the amount is typed and quoted in Ariary - so it drops out entirely in
+                  // money mode rather than being reworded, the way EconomyScreen does it.
+                  if (!_display.inMoney)
+                    Text(
+                      t.buyPriceLine('${_buyPricePerChip ?? 0}'),
+                      style: const TextStyle(
+                        fontSize: 13.5,
+                        color: KarataColors.dim,
+                        height: 1.45,
+                      ),
                     ),
-                  ),
                   const SizedBox(height: 24),
                   if (status == null) ...[
                     Text(
@@ -213,7 +234,9 @@ class _ChipRedemptionScreenState extends State<ChipRedemptionScreen> {
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Text(
-                        t.redeemTotalLine('$_totalPriceAr'),
+                        t.redeemTotalLine(
+                          ChipDisplay.groupDigits(_totalPriceAr),
+                        ),
                         style: const TextStyle(
                           color: KarataColors.ink,
                           fontSize: 13.5,
