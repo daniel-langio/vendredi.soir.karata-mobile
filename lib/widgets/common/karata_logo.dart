@@ -1,11 +1,13 @@
 import 'package:flutter/widgets.dart';
 
-import '../../theme/karata_colors.dart';
-import 'dashed_path.dart';
-
-/// Karata's mark: a gold coin with an orange dashed rim and a five-pip die at its centre.
+/// Karata's mark: two cards fanned, the front one bearing a laterite spade.
 ///
-/// Drawn rather than shipped as an image so it stays crisp at any size and needs no asset.
+/// Shipped as an image rather than drawn, because it is the same artwork as the launcher icon and
+/// the favicon - one file to change when the brand does, and no chance of the app's own logo
+/// drifting from the icon on the home screen.
+///
+/// The PNG is used rather than the SVG beside it: the SVG would need a rendering package, and at
+/// 1024px the raster is sharp at every size this is drawn at.
 class KarataLogo extends StatelessWidget {
   const KarataLogo({super.key, this.size = 150});
 
@@ -13,81 +15,14 @@ class KarataLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox.square(
-      dimension: size,
-      child: CustomPaint(painter: const _LogoPainter()),
+    return Image.asset(
+      'assets/logo/karata_mark_1024.png',
+      width: size,
+      height: size,
+      fit: BoxFit.contain,
+      // The mark is the app's identity; drawing nothing is better than drawing a broken-image
+      // glyph if the asset ever fails to resolve.
+      errorBuilder: (context, error, stack) => SizedBox.square(dimension: size),
     );
   }
-}
-
-class _LogoPainter extends CustomPainter {
-  const _LogoPainter();
-
-  /// The design's viewBox. Every coordinate below is in these units.
-  static const _viewBox = 200.0;
-
-  /// The darker gold sitting 6 units low, which reads as the coin's thickness.
-  static const _edge = Color(0xFF7A5410);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    canvas.save();
-    canvas.scale(size.width / _viewBox);
-
-    const centre = Offset(100, 100);
-    final fill = Paint()..isAntiAlias = true;
-
-    // The coin's rim, offset downwards so it shows beneath the face.
-    canvas.drawCircle(const Offset(100, 106), 94, fill..color = _edge);
-
-    // The face, lit from the top-left.
-    canvas.drawCircle(
-      centre,
-      94,
-      fill
-        ..shader = const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [KarataColors.goldBright, KarataColors.goldDeep],
-        ).createShader(Rect.fromCircle(center: centre, radius: 94)),
-    );
-    fill.shader = null;
-
-    // The orange dashed ring: `stroke-dasharray: 14 8 6 8` on a 16-wide stroke.
-    canvas.drawPath(
-      dashPath(circlePath(centre, 82), const [14, 8, 6, 8]),
-      Paint()
-        ..color = KarataColors.orange
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 16
-        ..isAntiAlias = true,
-    );
-
-    // The navy well the die sits in.
-    canvas.drawCircle(centre, 62, fill..color = KarataColors.backdrop);
-
-    // The die, and its five pips.
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        const Rect.fromLTWH(64, 64, 72, 72),
-        const Radius.circular(16),
-      ),
-      fill..color = KarataColors.gold,
-    );
-    fill.color = KarataColors.onAccent;
-    for (final pip in const [
-      Offset(80, 80),
-      Offset(120, 80),
-      Offset(100, 100),
-      Offset(80, 120),
-      Offset(120, 120),
-    ]) {
-      canvas.drawCircle(pip, 8, fill);
-    }
-
-    canvas.restore();
-  }
-
-  @override
-  bool shouldRepaint(_LogoPainter oldDelegate) => false;
 }

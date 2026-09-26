@@ -72,6 +72,7 @@ flutter:
   assets:
     - assets/debug_backend_config.yml
     - assets/sounds/
+    - assets/logo/
 
   fonts:
     - family: Bricolage Grotesque

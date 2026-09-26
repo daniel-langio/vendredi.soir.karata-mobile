@@ -114,7 +114,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  const _LogoWithShadow(),
+                                  const KarataLogo(),
                                   const SizedBox(height: 18),
                                   Text('Karata', style: KarataText.display),
                                   const SizedBox(height: 18),
@@ -191,28 +191,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           ],
         ),
       ),
-    );
-  }
-}
-
-/// `filter: drop-shadow(0 14px 26px rgba(0,0,0,0.55))` on the mark.
-class _LogoWithShadow extends StatelessWidget {
-  const _LogoWithShadow();
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: const BoxDecoration(
-        shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x8C000000),
-            blurRadius: 26,
-            offset: Offset(0, 14),
-          ),
-        ],
-      ),
-      child: const KarataLogo(),
     );
   }
 }

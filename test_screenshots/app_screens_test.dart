@@ -129,6 +129,14 @@ class _Screen {
   const _Screen(this.name, this.build, {this.frames = 40, this.then});
 
   Future<void> settle(WidgetTester tester) async {
+    // Asset images resolve on a real async tick, which pumped frames never give them - without
+    // this the welcome screen photographs with a hole where the logo is.
+    await tester.runAsync(() async {
+      await precacheImage(
+        const AssetImage('assets/logo/karata_mark_1024.png'),
+        tester.element(find.byType(MaterialApp)),
+      );
+    });
     for (var i = 0; i < frames; i++) {
       await tester.pump(const Duration(milliseconds: 50));
     }
