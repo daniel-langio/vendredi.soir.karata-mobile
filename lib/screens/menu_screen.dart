@@ -9,11 +9,11 @@ import '../theme/karata_text_styles.dart';
 import '../widgets/common/circle_icon_button.dart';
 import '../widgets/common/karata_backdrop.dart';
 import '../widgets/common/karata_button.dart';
-import '../widgets/common/karata_icon.dart';
 import '../widgets/common/karata_icons.dart';
 import '../widgets/common/segmented_tabs.dart';
 import '../widgets/lobby/lobby_table_card.dart';
 import '../widgets/lobby/profile_header.dart';
+import '../widgets/lobby/table_mascot.dart';
 import '../widgets/wallet/balance_card.dart';
 
 class MenuScreen extends StatefulWidget {
@@ -299,24 +299,15 @@ class _MenuScreenState extends State<MenuScreen> {
       rows.add(
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: _card(tables[i], i, t, chips),
+          child: _card(tables[i], t, chips),
         ),
       );
     }
     return rows;
   }
 
-  /// The two cards fanned into a table card's right edge, cycled so a list does not read as the
-  /// same picture repeated.
-  static const _decorations =
-      <((String, KarataIconData), (String, KarataIconData))>[
-        (('A', KarataSuits.spade), ('K', KarataSuits.heart)),
-        (('10', KarataSuits.diamond), ('9', KarataSuits.club)),
-      ];
-
   Widget _card(
     TableSummary table,
-    int index,
     AppLocalizations t,
     ChipDisplaySettings chips,
   ) {
@@ -339,7 +330,7 @@ class _MenuScreenState extends State<MenuScreen> {
       playerCountLabel: seated,
       actionLabel: _showPublic ? t.sitDown : t.open,
       onPressed: () => _openTable(table.gameId),
-      decoration: _decorations[index % _decorations.length],
+      decoration: TableMascot.forTable(table.name),
     );
   }
 
