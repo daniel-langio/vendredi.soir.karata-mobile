@@ -6,7 +6,6 @@ import '../common/avatar_stack.dart';
 import '../common/css_gradient.dart';
 import '../common/karata_button.dart';
 import '../common/karata_icon.dart';
-import '../common/kente_ribbon.dart';
 import '../common/status_pill.dart';
 import 'fanned_cards.dart';
 
@@ -147,12 +146,6 @@ class LobbyTableCard extends StatelessWidget {
                     ],
                   ),
                 ),
-              ),
-              const Positioned(
-                left: 0,
-                right: 0,
-                top: 0,
-                child: KenteRibbon(height: 5),
               ),
             ],
           ),
