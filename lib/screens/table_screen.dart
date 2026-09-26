@@ -698,6 +698,7 @@ class _TableScreenState extends State<TableScreen> {
   /// The pot line, the two round buttons, the sizer and the action buttons.
   Widget _controls(AppLocalizations t) {
     final common = (
+      centreLabel: _myStack,
       handStrengthLabel: t.handStrength,
       emoteLabel: t.sendReaction,
     );
@@ -709,6 +710,7 @@ class _TableScreenState extends State<TableScreen> {
         message: t.tableClosed,
         onHandStrength: null,
         onEmote: null,
+        centreLabel: common.centreLabel,
         handStrengthLabel: common.handStrengthLabel,
         emoteLabel: common.emoteLabel,
       );
@@ -730,6 +732,7 @@ class _TableScreenState extends State<TableScreen> {
         message: handInProgress ? null : null,
         onHandStrength: null,
         onEmote: null,
+        centreLabel: common.centreLabel,
         handStrengthLabel: common.handStrengthLabel,
         emoteLabel: common.emoteLabel,
       );
@@ -750,6 +753,7 @@ class _TableScreenState extends State<TableScreen> {
         ],
         onHandStrength: _openVariantInfo,
         onEmote: null,
+        centreLabel: common.centreLabel,
         handStrengthLabel: common.handStrengthLabel,
         emoteLabel: common.emoteLabel,
       );
@@ -770,6 +774,7 @@ class _TableScreenState extends State<TableScreen> {
         ],
         onHandStrength: _openVariantInfo,
         onEmote: null,
+        centreLabel: common.centreLabel,
         handStrengthLabel: common.handStrengthLabel,
         emoteLabel: common.emoteLabel,
       );
@@ -781,9 +786,25 @@ class _TableScreenState extends State<TableScreen> {
       sizer: _betSizer(t),
       onHandStrength: _openVariantInfo,
       onEmote: null,
+      centreLabel: common.centreLabel,
       handStrengthLabel: common.handStrengthLabel,
       emoteLabel: common.emoteLabel,
     );
+  }
+
+  /// What the player has in front of them at this table.
+  ///
+  /// Read from the seated player rather than from `game.you`, which carries what they may do
+  /// this turn (call amount, raise bounds) rather than what they hold.
+  String? get _myStack {
+    final me =
+        _players.firstWhere(
+              (p) => p['username'] == widget.username,
+              orElse: () => null,
+            )
+            as Map<String, dynamic>?;
+    final chips = me?['chips'] as num?;
+    return chips == null ? null : ChipDisplay.instance.format(chips);
   }
 
   int get _minRaise => (_you?['minRaise'] as num?)?.toInt() ?? 20;
