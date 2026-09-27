@@ -2,9 +2,9 @@ import 'dart:ui' show Size;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:poker_client/screens/menu_screen.dart';
-import 'package:poker_client/widgets/common/breakpoints.dart';
-import 'package:poker_client/widgets/desktop/desktop_sidebar.dart';
+import 'package:karata_ui/screens/menu_screen.dart';
+import 'package:karata_ui/widgets/common/breakpoints.dart';
+import 'package:karata_ui/widgets/desktop/desktop_sidebar.dart';
 import 'test_helpers.dart';
 
 /// Which of the two layouts a viewport gets, and that a screen actually reaches the wide one.

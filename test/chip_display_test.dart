@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:poker_client/api/api_client.dart';
-import 'package:poker_client/chip_display.dart';
+import 'package:karata_ui/api/api_client.dart';
+import 'package:karata_ui/chip_display.dart';
 
 void main() {
   setUp(() async {

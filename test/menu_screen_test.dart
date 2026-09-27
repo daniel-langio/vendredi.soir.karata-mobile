@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:poker_client/screens/menu_screen.dart';
-import 'package:poker_client/widgets/common/karata_button.dart';
+import 'package:karata_ui/screens/menu_screen.dart';
+import 'package:karata_ui/widgets/common/karata_button.dart';
 import 'test_helpers.dart';
 
 void main() {

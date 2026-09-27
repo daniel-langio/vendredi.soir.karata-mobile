@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:poker_client/l10n/app_localizations.dart';
-import 'package:poker_client/main.dart';
-import 'package:poker_client/theme/karata_theme.dart';
-import 'package:poker_client/widgets/common/karata_switch.dart';
-import 'package:poker_client/widgets/common/labeled_field.dart';
-import 'package:poker_client/widgets/common/setting_row.dart';
+import 'package:karata_ui/l10n/app_localizations.dart';
+import 'package:karata_ui/main.dart';
+import 'package:karata_ui/theme/karata_theme.dart';
+import 'package:karata_ui/widgets/common/karata_switch.dart';
+import 'package:karata_ui/widgets/common/labeled_field.dart';
+import 'package:karata_ui/widgets/common/setting_row.dart';
 
 /// Wraps a screen the same way MyApp's MaterialApp does, so AppLocalizations.of(context) has
 /// something to find - without this, any screen using it throws a null-check failure in tests.

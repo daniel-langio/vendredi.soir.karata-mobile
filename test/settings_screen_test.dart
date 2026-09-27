@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:poker_client/chip_display.dart';
-import 'package:poker_client/screens/settings_screen.dart';
-import 'package:poker_client/sound_settings.dart';
+import 'package:karata_ui/chip_display.dart';
+import 'package:karata_ui/screens/settings_screen.dart';
+import 'package:karata_ui/sound_settings.dart';
 import 'test_helpers.dart';
 
 // TestWidgetsFlutterBinding answers every request with a 400, so the phone-number lookup always

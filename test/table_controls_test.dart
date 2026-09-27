@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:poker_client/widgets/common/karata_button.dart';
-import 'package:poker_client/widgets/table/bet_sizer_row.dart';
-import 'package:poker_client/widgets/table/table_controls.dart';
-import 'package:poker_client/widgets/table/turn_status_bar.dart';
+import 'package:karata_ui/widgets/common/karata_button.dart';
+import 'package:karata_ui/widgets/table/bet_sizer_row.dart';
+import 'package:karata_ui/widgets/table/table_controls.dart';
+import 'package:karata_ui/widgets/table/turn_status_bar.dart';
 import 'test_helpers.dart';
 
 /// The controls sit under the felt, and the felt is sized from whatever space is left over - so

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:poker_client/chip_display.dart';
-import 'package:poker_client/l10n/app_localizations.dart';
+import 'package:karata_ui/chip_display.dart';
+import 'package:karata_ui/l10n/app_localizations.dart';
 
 void main() {
   // Set directly rather than via setAsMoney, which would need SharedPreferences bound.

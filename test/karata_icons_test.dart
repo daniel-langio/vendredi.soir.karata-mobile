@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:poker_client/widgets/common/karata_icon.dart';
-import 'package:poker_client/widgets/common/karata_icons.dart';
-import 'package:poker_client/widgets/common/svg_path.dart';
+import 'package:karata_ui/widgets/common/karata_icon.dart';
+import 'package:karata_ui/widgets/common/karata_icons.dart';
+import 'package:karata_ui/widgets/common/svg_path.dart';
 
 /// The icons are transcribed `d` strings, so a typo in one would otherwise surface as a blank
 /// square at runtime on whichever screen happens to use it. Parsing every shape here turns that

@@ -1,7 +1,7 @@
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:poker_client/screens/welcome_screen.dart';
-import 'package:poker_client/widgets/common/karata_button.dart';
+import 'package:karata_ui/screens/welcome_screen.dart';
+import 'package:karata_ui/widgets/common/karata_button.dart';
 import 'test_helpers.dart';
 
 void main() {
