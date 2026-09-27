@@ -53,14 +53,24 @@ Object? _fixtureFor(String path) {
     case '/poker/games/public':
       return _publicTables;
     case '/economy/price':
-      return {'arPerChip': 100, 'sellPricePerChip': 110};
+      return {
+        'arPerChip': 100,
+        'sellPricePerChip': 100,
+        'depositFeePercent': 10,
+        'depositFeeMin': 500,
+        'redeemFeePercent': 5,
+        'redeemFeeMin': 300,
+      };
     case '/economy/config':
       return {
         'houseReceivingPhoneNumber': '+261 34 12 345 67',
         'arPerChip': 100,
-        'sellSpreadPercent': 10,
+        'depositFeePercent': 10,
+        'depositFeeMin': 500,
+        'redeemFeePercent': 5,
+        'redeemFeeMin': 300,
         'rakePercent': 5,
-        'rakeMinPot': 40,
+        'rakeMin': 40,
         'enforceDepositOnRegistration': true,
       };
     case '/economy/redemptions/pending':

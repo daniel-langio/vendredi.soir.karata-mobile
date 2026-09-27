@@ -274,6 +274,12 @@ class AppLocalizations {
   String get economySubtitle => _s('economySubtitle');
   String buyPriceLine(String price) => _fmt('buyPriceLine', {'price': price});
   String sellPriceLine(String price) => _fmt('sellPriceLine', {'price': price});
+
+  /// One rate in both directions, since V59 retired the sell spread - what a chip costs to buy
+  /// and what it pays to cash out are the same number now, and the fees are charged separately.
+  String chipPriceLine(String price) => _fmt('chipPriceLine', {'price': price});
+  String feeLine(String label, String rate, String min) =>
+      _fmt('feeLine', {'label': label, 'rate': rate, 'min': min});
   String get buyChips => _s('buyChips');
   String get redeemChips => _s('redeemChips');
   String get pendingRedemptions => _s('pendingRedemptions');
@@ -395,6 +401,14 @@ class AppLocalizations {
   String get price => _s('price');
   String get arPerChip => _s('arPerChip');
   String get fees => _s('fees');
+  String get depositFeePercentField => _s('depositFeePercentField');
+  String get depositFeeMinField => _s('depositFeeMinField');
+  String get redeemFeePercentField => _s('redeemFeePercentField');
+  String get redeemFeeMinField => _s('redeemFeeMinField');
+  String get feeFormulaHint => _s('feeFormulaHint');
+  String get depositFee => _s('depositFee');
+  String get redeemFee => _s('redeemFee');
+  String tooSmallForFee(String fee) => _fmt('tooSmallForFee', {'fee': fee});
   String get houseAccount => _s('houseAccount');
   String get receivingPhoneNumber => _s('receivingPhoneNumber');
   String get noMinimum => _s('noMinimum');
@@ -637,6 +651,8 @@ class AppLocalizations {
           'Deposit to top up your balance, or withdraw it back to mobile money.',
       'buyPriceLine': 'Redeem rate: {price} Ar per chip',
       'sellPriceLine': 'Buy rate: {price} Ar per chip',
+      'chipPriceLine': 'Chip price: {price} Ar per chip',
+      'feeLine': '{label}: {rate}%, minimum {min} Ar',
       'buyChips': 'Buy chips',
       'buyChips.money': 'Deposit',
       'redeemChips': 'Redeem chips',
@@ -786,6 +802,16 @@ class AppLocalizations {
       'howItWorksPlayLead': 'Play',
       'howItWorksPlay': 'Your balance becomes chips when you sit down.',
       'howItWorksWithdraw': 'Cash out any time; payouts are sent by hand.',
+      'depositFeePercentField': 'Deposit fee',
+      'depositFeeMinField': 'Deposit fee minimum',
+      'redeemFeePercentField': 'Withdrawal fee',
+      'redeemFeeMinField': 'Withdrawal fee minimum',
+      'feeFormulaHint':
+          'Each fee is the rate, or the minimum if that is larger - not both added together.',
+      'depositFee': 'Deposit fee',
+      'redeemFee': 'Withdrawal fee',
+      'tooSmallForFee':
+          'Too small to withdraw - the fee alone is {fee} Ar. Ask for more than that.',
       'findTable': 'Find table',
       'joinTableDesktopTip':
           'Tip: opening a Karata link on this computer takes you straight to the table.',
@@ -991,6 +1017,8 @@ class AppLocalizations {
           'Déposez pour recharger votre solde, ou retirez-le vers mobile money.',
       'buyPriceLine': "Taux d'encaissement : {price} Ar par jeton",
       'sellPriceLine': "Taux d'achat : {price} Ar par jeton",
+      'chipPriceLine': 'Prix du jeton : {price} Ar par jeton',
+      'feeLine': '{label} : {rate} %, minimum {min} Ar',
       'buyChips': 'Acheter des jetons',
       'buyChips.money': 'Dépôt',
       'redeemChips': 'Encaisser des jetons',
@@ -1152,6 +1180,16 @@ class AppLocalizations {
           'Votre solde devient des jetons quand vous vous asseyez.',
       'howItWorksWithdraw':
           'Encaissez quand vous voulez ; les paiements sont envoyés à la main.',
+      'depositFeePercentField': 'Frais de dépôt',
+      'depositFeeMinField': 'Frais de dépôt minimum',
+      'redeemFeePercentField': 'Frais de retrait',
+      'redeemFeeMinField': 'Frais de retrait minimum',
+      'feeFormulaHint':
+          'Chaque frais correspond au taux, ou au minimum s\'il est plus élevé - pas aux deux additionnés.',
+      'depositFee': 'Frais de dépôt',
+      'redeemFee': 'Frais de retrait',
+      'tooSmallForFee':
+          'Montant trop faible : les frais seuls sont de {fee} Ar. Demandez davantage.',
       'findTable': 'Trouver la table',
       'joinTableDesktopTip':
           'Astuce : ouvrir un lien Karata sur cet ordinateur vous emmène directement à la table.',

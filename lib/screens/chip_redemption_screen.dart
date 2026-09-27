@@ -50,6 +50,8 @@ class _ChipRedemptionScreenState extends State<ChipRedemptionScreen> {
   final _phoneController = TextEditingController();
   String _provider = 'MVOLA';
   int? _buyPricePerChip;
+  int _redeemFeePercent = 0;
+  int _redeemFeeMin = 0;
   int? _walletChips;
   bool _isLoading = false;
   bool _isLoadingPrice = true;
@@ -67,7 +69,23 @@ class _ChipRedemptionScreenState extends State<ChipRedemptionScreen> {
   /// is the server's `arPerChip`, the same number every balance on screen is rendered with).
   int get _quantity =>
       AmountField.chipsFrom(_display, _quantityController.text) ?? 0;
-  int get _totalPriceAr => _quantity * (_buyPricePerChip ?? 0);
+  int get _grossAr => _quantity * (_buyPricePerChip ?? 0);
+
+  /// The same arithmetic the server does in EconomyConfigService.redeemFeeAr - the rate with the
+  /// minimum as a floor - taken out of the payout rather than added to it.
+  int get _feeAr {
+    if (_grossAr <= 0) return 0;
+    final byRate = _grossAr * _redeemFeePercent ~/ 100;
+    return byRate > _redeemFeeMin ? byRate : _redeemFeeMin;
+  }
+
+  /// What actually reaches the player's phone. Never below zero: the server refuses a redemption
+  /// its own fee would swallow, and this must not promise one either.
+  int get _totalPriceAr => _grossAr - _feeAr < 0 ? 0 : _grossAr - _feeAr;
+
+  /// The server's own rule, applied here so the button is not offered for something that will
+  /// come back as an error - see ChipRedemptionService.initiateRedemption.
+  bool get _feeEatsItAll => _quantity > 0 && _feeAr >= _grossAr;
 
   /// The one-tap amounts under the field. The last is the whole balance, which is why it is
   /// "All" rather than a figure.
@@ -103,6 +121,8 @@ class _ChipRedemptionScreenState extends State<ChipRedemptionScreen> {
       ChipDisplay.instance.applyRate(price);
       setState(() {
         _buyPricePerChip = (price['arPerChip'] as num).toInt();
+        _redeemFeePercent = (price['redeemFeePercent'] as num?)?.toInt() ?? 0;
+        _redeemFeeMin = (price['redeemFeeMin'] as num?)?.toInt() ?? 0;
         _walletChips = wallet;
         // Seed the default in the unit the field ended up asking for - "1" means one chip, which
         // is one rate's worth of Ariary once the amount is typed as money.
@@ -300,6 +320,14 @@ class _ChipRedemptionScreenState extends State<ChipRedemptionScreen> {
           value: ChipDisplay.formatWith(_display, _quantity),
           emphasised: false,
         ),
+        // Only when there is one: a house that charges nothing should not have a zero line
+        // drawing attention to a fee it does not take.
+        if (_feeAr > 0)
+          (
+            label: t.redeemFee,
+            value: '-${ChipDisplay.groupDigits(_feeAr)} Ar',
+            emphasised: false,
+          ),
         (
           label: t.youWillReceive,
           value: '${ChipDisplay.groupDigits(_totalPriceAr)} Ar',
@@ -307,10 +335,22 @@ class _ChipRedemptionScreenState extends State<ChipRedemptionScreen> {
         ),
       ],
     ),
-    Text(t.payoutsByHand, style: KarataText.label),
+    Text(
+      _feeEatsItAll
+          ? t.tooSmallForFee(ChipDisplay.groupDigits(_feeAr))
+          : t.payoutsByHand,
+      style: _feeEatsItAll
+          ? karataText(
+              size: 13,
+              weight: 600,
+              color: KarataColors.orangeLight,
+              height: 1.4,
+            )
+          : KarataText.label,
+    ),
     KarataButton(
       label: t.redeemChips,
-      onPressed: _isLoading ? null : _submitRedemption,
+      onPressed: _isLoading || _feeEatsItAll ? null : _submitRedemption,
     ),
   ];
 

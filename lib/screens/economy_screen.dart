@@ -200,14 +200,10 @@ class _EconomyScreenState extends State<EconomyScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          t.buyPriceLine('${_price!['arPerChip']}'),
+                          t.chipPriceLine('${_price!['arPerChip']}'),
                           style: KarataText.body,
                         ),
-                        const SizedBox(height: 6),
-                        Text(
-                          t.sellPriceLine('${_price!['sellPricePerChip']}'),
-                          style: KarataText.label,
-                        ),
+                        ..._feeLines(t, _price!),
                       ],
                     ),
                   ),
@@ -323,17 +319,31 @@ class _EconomyScreenState extends State<EconomyScreen> {
     );
   }
 
+  /// The two fees under the chip price, each shown only when the house actually charges it.
+  List<Widget> _feeLines(AppLocalizations t, Map<String, dynamic> rate) {
+    int at(String key) => (rate[key] as num?)?.toInt() ?? 0;
+    return [
+      for (final (label, pct, min) in [
+        (t.depositFee, at('depositFeePercent'), at('depositFeeMin')),
+        (t.redeemFee, at('redeemFeePercent'), at('redeemFeeMin')),
+      ])
+        if (pct > 0 || min > 0) ...[
+          const SizedBox(height: 6),
+          Text(
+            t.feeLine(label, '$pct', ChipDisplay.groupDigits(min)),
+            style: KarataText.label,
+          ),
+        ],
+    ];
+  }
+
   Widget _rateCard(AppLocalizations t, Map<String, dynamic> rate) {
     return KarataCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(t.buyPriceLine('${rate['arPerChip']}'), style: KarataText.body),
-          const SizedBox(height: 6),
-          Text(
-            t.sellPriceLine('${rate['sellPricePerChip']}'),
-            style: KarataText.label,
-          ),
+          Text(t.chipPriceLine('${rate['arPerChip']}'), style: KarataText.body),
+          ..._feeLines(t, rate),
         ],
       ),
     );

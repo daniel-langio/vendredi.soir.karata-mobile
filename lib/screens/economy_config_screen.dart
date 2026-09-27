@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import '../api/api_client.dart';
 import '../l10n/app_localizations.dart';
 import '../theme/karata_colors.dart';
+import '../theme/karata_text_styles.dart';
 import '../widgets/common/breakpoints.dart';
 import '../widgets/common/karata_button.dart';
+import '../widgets/common/karata_card.dart';
 import '../widgets/common/karata_screen.dart';
 import '../widgets/common/karata_switch.dart';
 import '../widgets/common/setting_row.dart';
@@ -41,7 +43,10 @@ class _EconomyConfigScreenState extends State<EconomyConfigScreen> {
   };
   late final ApiClient _apiClient;
   final _priceController = TextEditingController();
-  final _spreadController = TextEditingController();
+  final _depositFeePercentController = TextEditingController();
+  final _depositFeeMinController = TextEditingController();
+  final _redeemFeePercentController = TextEditingController();
+  final _redeemFeeMinController = TextEditingController();
   final _rakePercentController = TextEditingController();
   final _rakeMinController = TextEditingController();
   final _housePhoneController = TextEditingController();
@@ -62,7 +67,10 @@ class _EconomyConfigScreenState extends State<EconomyConfigScreen> {
   @override
   void dispose() {
     _priceController.dispose();
-    _spreadController.dispose();
+    _depositFeePercentController.dispose();
+    _depositFeeMinController.dispose();
+    _redeemFeePercentController.dispose();
+    _redeemFeeMinController.dispose();
     _rakePercentController.dispose();
     _rakeMinController.dispose();
     _housePhoneController.dispose();
@@ -76,11 +84,19 @@ class _EconomyConfigScreenState extends State<EconomyConfigScreen> {
       final config = await _apiClient.getEconomyConfig();
       if (!mounted) return;
       setState(() {
-        _priceController.text = '${price['arPerChip']}';
-        _spreadController.text = '${config['sellSpreadPercent']}';
-        _rakePercentController.text = '${config['rakePercent']}';
-        _rakeMinController.text = '${config['rakeMin']}';
-        _housePhoneController.text = '${config['houseReceivingPhoneNumber']}';
+        // Every field through the same reader: interpolating a missing key straight into a
+        // TextField writes the literal word "null" into it, which is then what gets saved back.
+        String text(Map<String, dynamic> from, String key) =>
+            from[key] == null ? '' : '${from[key]}';
+
+        _priceController.text = text(price, 'arPerChip');
+        _depositFeePercentController.text = text(config, 'depositFeePercent');
+        _depositFeeMinController.text = text(config, 'depositFeeMin');
+        _redeemFeePercentController.text = text(config, 'redeemFeePercent');
+        _redeemFeeMinController.text = text(config, 'redeemFeeMin');
+        _rakePercentController.text = text(config, 'rakePercent');
+        _rakeMinController.text = text(config, 'rakeMin');
+        _housePhoneController.text = text(config, 'houseReceivingPhoneNumber');
         _enforceDeposit = config['enforceDepositOnRegistration'] == true;
       });
     } catch (e) {
@@ -135,17 +151,26 @@ class _EconomyConfigScreenState extends State<EconomyConfigScreen> {
 
   Future<void> _saveConfig() async {
     final t = AppLocalizations.of(context);
-    final spread = int.tryParse(_spreadController.text.trim());
+    final depositFeePercent = int.tryParse(
+      _depositFeePercentController.text.trim(),
+    );
+    final depositFeeMin = int.tryParse(_depositFeeMinController.text.trim());
+    final redeemFeePercent = int.tryParse(
+      _redeemFeePercentController.text.trim(),
+    );
+    final redeemFeeMin = int.tryParse(_redeemFeeMinController.text.trim());
     final rakePercent = int.tryParse(_rakePercentController.text.trim());
     final rakeMin = int.tryParse(_rakeMinController.text.trim());
     final housePhone = _housePhoneController.text.trim();
-    if (spread == null ||
-        spread < 0 ||
-        rakePercent == null ||
-        rakePercent < 0 ||
-        rakeMin == null ||
-        rakeMin < 0 ||
-        housePhone.isEmpty) {
+    final fees = [
+      depositFeePercent,
+      depositFeeMin,
+      redeemFeePercent,
+      redeemFeeMin,
+      rakePercent,
+      rakeMin,
+    ];
+    if (fees.any((v) => v == null || v < 0) || housePhone.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(t.fillValidValues),
@@ -157,9 +182,12 @@ class _EconomyConfigScreenState extends State<EconomyConfigScreen> {
     setState(() => _isSavingConfig = true);
     try {
       await _apiClient.setEconomyConfig(
-        sellSpreadPercent: spread,
-        rakePercent: rakePercent,
-        rakeMin: rakeMin,
+        depositFeePercent: depositFeePercent!,
+        depositFeeMin: depositFeeMin!,
+        redeemFeePercent: redeemFeePercent!,
+        redeemFeeMin: redeemFeeMin!,
+        rakePercent: rakePercent!,
+        rakeMin: rakeMin!,
         houseReceivingPhoneNumber: housePhone,
         enforceDepositOnRegistration: _enforceDeposit,
       );
@@ -271,19 +299,44 @@ class _EconomyConfigScreenState extends State<EconomyConfigScreen> {
     );
   }
 
+  Widget _feeField(
+    String label,
+    TextEditingController controller,
+    String suffix, {
+    String? hint,
+  }) {
+    return LabeledField(
+      label: label,
+      child: KarataTextField(
+        controller: controller,
+        keyboardType: TextInputType.number,
+        fillColor: KarataColors.backdrop,
+        suffixText: suffix,
+        hintText: hint,
+      ),
+    );
+  }
+
   Widget _feesCard(AppLocalizations t) {
     return SectionCard(
       title: t.fees,
       children: [
-        LabeledField(
-          label: t.sellSpreadPercentField,
-          child: KarataTextField(
-            controller: _spreadController,
-            keyboardType: TextInputType.number,
-            fillColor: KarataColors.backdrop,
-            suffixText: '%',
-          ),
+        _feeField(t.depositFeePercentField, _depositFeePercentController, '%'),
+        _feeField(
+          t.depositFeeMinField,
+          _depositFeeMinController,
+          'Ar',
+          hint: t.noMinimum,
         ),
+        _feeField(t.redeemFeePercentField, _redeemFeePercentController, '%'),
+        _feeField(
+          t.redeemFeeMinField,
+          _redeemFeeMinController,
+          'Ar',
+          hint: t.noMinimum,
+        ),
+        Text(t.feeFormulaHint, style: KarataText.label),
+        const CardDivider(),
         LabeledField(
           label: t.rakePercentField,
           child: KarataTextField(

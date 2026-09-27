@@ -387,8 +387,11 @@ class ApiClient {
       : baseUrl;
 
   /// GET /economy/price
-  /// {arPerChip, sellPricePerChip, effectiveAt} - arPerChip is what redeem pays per chip,
-  /// sellPricePerChip (already marked up by the spread) is what a purchase costs per chip.
+  /// {arPerChip, sellPricePerChip, depositFeePercent, depositFeeMin, redeemFeePercent,
+  /// redeemFeeMin, effectiveAt}. arPerChip prices a chip in both directions; the fee pairs are
+  /// what the house charges to move the money, as max(min, amount * percent / 100) over the whole
+  /// transaction. sellPricePerChip now equals arPerChip and is on its way out - the sell spread it
+  /// used to carry was replaced by the deposit fee.
   Future<Map<String, dynamic>> getChipPrice() async {
     final response = await http.get(
       Uri.parse('$_rootUrl/economy/price'),
@@ -433,7 +436,10 @@ class ApiClient {
   /// Operator-only. Every field is required - this appends a whole new config row, not a partial
   /// patch of the current one.
   Future<Map<String, dynamic>> setEconomyConfig({
-    required int sellSpreadPercent,
+    required int depositFeePercent,
+    required int depositFeeMin,
+    required int redeemFeePercent,
+    required int redeemFeeMin,
     required int rakePercent,
     required int rakeMin,
     required String houseReceivingPhoneNumber,
@@ -443,7 +449,10 @@ class ApiClient {
       Uri.parse('$_rootUrl/economy/config'),
       headers: _headers,
       body: jsonEncode({
-        'sellSpreadPercent': sellSpreadPercent,
+        'depositFeePercent': depositFeePercent,
+        'depositFeeMin': depositFeeMin,
+        'redeemFeePercent': redeemFeePercent,
+        'redeemFeeMin': redeemFeeMin,
         'rakePercent': rakePercent,
         'rakeMin': rakeMin,
         'houseReceivingPhoneNumber': houseReceivingPhoneNumber,

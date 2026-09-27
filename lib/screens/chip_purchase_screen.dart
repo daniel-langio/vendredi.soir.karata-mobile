@@ -66,7 +66,9 @@ class _ChipPurchaseScreenState extends State<ChipPurchaseScreen> {
   final _refController = TextEditingController();
   String _provider = 'MVOLA';
   String? _houseReceivingPhoneNumber;
-  int? _sellPricePerChip;
+  int? _pricePerChip;
+  int _depositFeePercent = 0;
+  int _depositFeeMin = 0;
   bool _isLoading = false;
   bool _isLoadingPrice = true;
   Map<String, dynamic>? _purchase;
@@ -79,16 +81,25 @@ class _ChipPurchaseScreenState extends State<ChipPurchaseScreen> {
   /// Chips to credit. In money mode the field asks for the amount the player wants *in their
   /// wallet*, converted at the same rate their balance is shown at - so the number they type is
   /// the number they will see afterwards. What they actually have to send is [_totalPriceAr],
-  /// which is higher: the house's spread lives between the two, and the pay instructions below
-  /// state it outright rather than burying it in a per-chip rate.
+  /// which is higher: the house's fee sits on top, and the pay instructions below state it
+  /// outright rather than burying it in a per-chip rate.
   int get _quantity =>
       AmountField.chipsFrom(_display, _quantityController.text) ?? 0;
-  int get _totalPriceAr => _quantity * (_sellPricePerChip ?? 0);
 
-  /// What the credited chips are worth at the rate balances are shown at - the top line of the
-  /// breakdown, and the thing the spread is measured against.
-  int get _creditedValueAr => _quantity * _display.arPerChip;
-  int get _feeAr => _totalPriceAr - _creditedValueAr;
+  /// What the credited chips are worth at the rate balances are shown at.
+  int get _creditedValueAr => _quantity * (_pricePerChip ?? 0);
+
+  /// The same arithmetic the server does in EconomyConfigService.depositFeeAr: the rate, with the
+  /// minimum as a floor under it rather than added to it. Kept in step by hand, so the total the
+  /// player is asked for is the total they are actually charged.
+  int get _feeAr {
+    final gross = _creditedValueAr;
+    if (gross <= 0) return 0;
+    final byRate = gross * _depositFeePercent ~/ 100;
+    return byRate > _depositFeeMin ? byRate : _depositFeeMin;
+  }
+
+  int get _totalPriceAr => _creditedValueAr + _feeAr;
 
   /// The one-tap amounts under the field, in whichever unit the field is asking for.
   List<int> get _presetEntries => _display.inMoney
@@ -123,7 +134,9 @@ class _ChipPurchaseScreenState extends State<ChipPurchaseScreen> {
       // Adopt the rate we just fetched, so the field's unit and the app's balances can't disagree.
       ChipDisplay.instance.applyRate(price);
       setState(() {
-        _sellPricePerChip = (price['sellPricePerChip'] as num).toInt();
+        _pricePerChip = (price['arPerChip'] as num).toInt();
+        _depositFeePercent = (price['depositFeePercent'] as num?)?.toInt() ?? 0;
+        _depositFeeMin = (price['depositFeeMin'] as num?)?.toInt() ?? 0;
         _houseReceivingPhoneNumber =
             config['houseReceivingPhoneNumber'] as String?;
         // Seed the default in the unit the field ended up asking for - "1" means one chip, which
