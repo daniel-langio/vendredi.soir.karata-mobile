@@ -59,6 +59,12 @@ Object? _fixtureFor(String path) {
       return _publicTables;
     case '/poker/rooms':
       return _rooms;
+    case '/poker/admin/rooms':
+      return _adminRooms;
+    case '/poker/admin/players':
+      return _adminPlayers;
+    case '/poker/admin/tables':
+      return _adminTables;
     case '/economy/price':
       return {
         'arPerChip': 100,
@@ -82,6 +88,13 @@ Object? _fixtureFor(String path) {
       };
     case '/economy/redemptions/pending':
       return _pendingRedemptions;
+  }
+  if (path.startsWith('/poker/admin/players/')) {
+    final username = Uri.decodeComponent(path.split('/').last);
+    return _adminPlayerDetail(username);
+  }
+  if (path.startsWith('/poker/rooms/') && path.endsWith('/stats')) {
+    return _roomStats;
   }
   if (path == '/poker/games/$shotsGameId') return gameInPlay();
   if (path == '/poker/games/$shotsShowdownGameId') return gameAtShowdown();
@@ -229,6 +242,173 @@ final _pendingRedemptions = [
     'pspRef': 'OM5530771',
   },
 ];
+
+/// The admin rooms payload: the same five tiers, spelled flat the way /poker/admin/rooms does,
+/// with High Roller closed so the Disabled row and filter both photograph.
+final _adminRooms = [
+  for (final room in _rooms)
+    {
+      ...room,
+      'smallBlind': (room['blinds']! as Map)['small'],
+      'bigBlind': (room['blinds']! as Map)['big'],
+      'closed': room['name'] == 'High Roller',
+    },
+];
+
+/// Accounts covering every state the Players list distinguishes: seated and not, human and bot,
+/// active and suspended, and one with no recorded join date.
+final _adminPlayers = [
+  _adminPlayer(
+    shotsUsername,
+    balance: 24500,
+    joinedAt: '2026-09-12T09:14:00Z',
+    atTable: 'Analakely Nights',
+  ),
+  _adminPlayer(
+    'daniel_langio',
+    balance: 6100,
+    joinedAt: '2025-07-03T11:02:00Z',
+  ),
+  _adminPlayer(
+    'hanta',
+    balance: 96,
+    joinedAt: '2026-09-19T18:40:00Z',
+    atTable: 'Vendredi Soir',
+  ),
+  _adminPlayer(
+    'rivo',
+    balance: 0,
+    joinedAt: '2026-09-19T18:41:00Z',
+    atTable: 'Vendredi Soir',
+  ),
+  _adminPlayer(
+    'anishmujumdar150',
+    balance: 4100,
+    joinedAt: '2026-02-02T08:00:00Z',
+    suspended: true,
+  ),
+  // No joinedAt: an account from before the column existed, which the list prints as a dash
+  // rather than back-dating.
+  _adminPlayer('polskipoker', balance: 4610),
+  _adminPlayer(
+    'bot-mika-01',
+    balance: 240,
+    bot: true,
+    atTable: 'Vendredi Soir',
+  ),
+  _adminPlayer('bot-noro-04', balance: 184, bot: true),
+];
+
+Map<String, dynamic> _adminPlayer(
+  String username, {
+  required int balance,
+  String? joinedAt,
+  String? atTable,
+  bool bot = false,
+  bool suspended = false,
+}) => {
+  'username': username,
+  'bot': bot,
+  'suspended': suspended,
+  'joinedAt': joinedAt,
+  'balance': balance,
+  'atTableId': atTable == null ? null : shotsGameId,
+  'atTableName': atTable,
+};
+
+Map<String, dynamic> _adminPlayerDetail(String username) {
+  final player = _adminPlayers.firstWhere(
+    (p) => p['username'] == username,
+    orElse: () => _adminPlayers.first,
+  );
+  return {
+    'player': player,
+    'phoneNumber': '+261 34 12 345 67',
+    'lifetimeDeposited': 31000,
+    'lifetimeWithdrawn': 6500,
+  };
+}
+
+/// Tables covering open, full, paused and a room's own table.
+final _adminTables = [
+  _adminTable('Analakely Nights', seated: 5, isPublic: true, buyIn: 500),
+  _adminTable('Vendredi Soir', seated: 2, status: 'OPEN', buyIn: null),
+  _adminTable('Débutants', seated: 3, isPublic: true, buyIn: 100),
+  _adminTable('Neon Deal', seated: 1, status: 'PAUSED', buyIn: 200),
+  _adminTable(
+    'High Rollers',
+    seated: 6,
+    status: 'FULL',
+    isPublic: true,
+    buyIn: 2000,
+  ),
+  _adminTable('Bronze', seated: 5, buyIn: 50, roomName: 'Bronze'),
+];
+
+Map<String, dynamic> _adminTable(
+  String name, {
+  required int seated,
+  required int? buyIn,
+  String status = 'OPEN',
+  bool isPublic = false,
+  String? roomName,
+}) => {
+  'gameId': shotsGameId,
+  'name': name,
+  'isPublic': isPublic,
+  'status': status,
+  'seated': seated,
+  'capacity': 6,
+  'smallBlind': 1,
+  'bigBlind': 2,
+  'defaultBuyIn': buyIn,
+  'variant': 'TEXAS_HOLDEM',
+  'roomId': roomName == null ? null : shotsSeatedRoomId,
+  'roomName': roomName,
+  'host': shotsUsername,
+  'createdAt': '2026-09-27T18:04:11Z',
+};
+
+/// The per-table breakdown the room editor lists, spare included.
+final _roomStats = {
+  'roomId': shotsSeatedRoomId,
+  'name': 'Bronze',
+  'closed': false,
+  'liveTables': 4,
+  'occupiedTables': 3,
+  'seatedPlayers': 14,
+  'freeSeats': 10,
+  'dormantTables': 1,
+  'tables': [
+    {
+      'gameId': shotsGameId,
+      'name': 'Bronze #1',
+      'seated': 5,
+      'freeSeats': 1,
+      'spare': false,
+      'paused': false,
+      'createdAt': '2026-09-27T18:04:11Z',
+    },
+    {
+      'gameId': shotsRoomGameId,
+      'name': 'Bronze #2',
+      'seated': 5,
+      'freeSeats': 1,
+      'spare': false,
+      'paused': false,
+      'createdAt': '2026-09-27T18:40:02Z',
+    },
+    {
+      'gameId': shotsShowdownGameId,
+      'name': 'Bronze #3',
+      'seated': 0,
+      'freeSeats': 6,
+      'spare': true,
+      'paused': false,
+      'createdAt': '2026-09-27T19:21:02Z',
+    },
+  ],
+};
 
 /// A hand mid-flop with the photographed player on the clock, because that is the state the table
 /// has the most to show: community cards down, a live pot, a dealer button, someone all in, and

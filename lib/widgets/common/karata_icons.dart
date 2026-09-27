@@ -70,6 +70,17 @@ abstract final class KarataIcons {
     PathShape('M3 10 H21 M16 15 H17'),
   ]);
 
+  /// The two arrows on a sortable column heading in the admin lists.
+  static const sortArrows = KarataIconData([
+    PathShape('M7 5 V19 M4 8 L7 5 L10 8 M17 19 V5 M14 16 L17 19 L20 16'),
+  ]);
+
+  /// One person, for the admin Players entry. [players] is the crowd; this is the individual.
+  static const person = KarataIconData([
+    CircleShape(12, 8, 4),
+    PathShape('M4 20 C4 15 8 13 12 13 C16 13 20 15 20 20'),
+  ]);
+
   /// A room's table count, drawn as a poker table seen edge-on.
   static const pokerTable = KarataIconData([
     RectShape(3, 10, 18, 3, radius: 1.5),

@@ -20,6 +20,8 @@ void main() {
     'clock': KarataIcons.clock,
     'plus': KarataIcons.plus,
     'link': KarataIcons.link,
+    'person': KarataIcons.person,
+    'sortArrows': KarataIcons.sortArrows,
     'pokerTable': KarataIcons.pokerTable,
     'players': KarataIcons.players,
     'warning': KarataIcons.warning,

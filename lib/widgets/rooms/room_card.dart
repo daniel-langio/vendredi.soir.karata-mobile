@@ -9,7 +9,7 @@ import 'room_card_state.dart';
 import 'room_full_pill.dart';
 import 'room_quiet_well.dart';
 import 'room_stats_well.dart';
-import 'room_tag.dart';
+import '../common/karata_tag.dart';
 
 /// One stake tier in the lobby's Rooms tab, on the phone.
 ///
@@ -47,7 +47,7 @@ class RoomCard extends StatelessWidget {
 
   /// The second tag: "Cashout", "Play chips", "Seated" or "Full".
   final String statusLabel;
-  final RoomTagTone statusTone;
+  final KarataTagTone statusTone;
 
   final RoomCardState state;
 
@@ -164,9 +164,9 @@ class RoomCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              RoomTag(label: variantLabel),
+              KarataTag(label: variantLabel),
               const SizedBox(height: 6),
-              RoomTag(label: statusLabel, tone: statusTone),
+              KarataTag(label: statusLabel, tone: statusTone),
             ],
           ),
         ),

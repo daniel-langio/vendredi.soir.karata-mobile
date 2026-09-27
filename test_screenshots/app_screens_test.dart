@@ -13,6 +13,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:poker_client/chip_display.dart';
 import 'package:poker_client/l10n/app_localizations.dart';
+import 'package:poker_client/screens/admin/admin_player_edit_screen.dart';
+import 'package:poker_client/screens/admin/admin_players_screen.dart';
+import 'package:poker_client/screens/admin/admin_room_edit_screen.dart';
+import 'package:poker_client/screens/admin/admin_rooms_screen.dart';
+import 'package:poker_client/screens/admin/admin_table_edit_screen.dart';
+import 'package:poker_client/screens/admin/admin_tables_screen.dart';
 import 'package:poker_client/screens/chip_purchase_screen.dart';
 import 'package:poker_client/screens/chip_redemption_screen.dart';
 import 'package:poker_client/screens/economy_config_screen.dart';
@@ -231,6 +237,57 @@ final _screens = <_Screen>[
         find.descendant(of: card, matching: find.byType(KarataButton)),
       );
     },
+  ),
+  _Screen(
+    '12-admin-players',
+    () => AdminPlayersScreen(
+      serverUrl: _session['serverUrl']!,
+      token: _session['token']!,
+      username: _session['username']!,
+    ),
+  ),
+  _Screen(
+    '12b-admin-player-edit',
+    () => AdminPlayerEditScreen(
+      serverUrl: _session['serverUrl']!,
+      token: _session['token']!,
+      username: _session['username']!,
+      subject: shotsUsername,
+    ),
+  ),
+  _Screen(
+    '13-admin-tables',
+    () => AdminTablesScreen(
+      serverUrl: _session['serverUrl']!,
+      token: _session['token']!,
+      username: _session['username']!,
+    ),
+  ),
+  _Screen(
+    '13b-admin-table-edit',
+    () => AdminTableEditScreen(
+      serverUrl: _session['serverUrl']!,
+      token: _session['token']!,
+      username: _session['username']!,
+      gameId: shotsGameId,
+    ),
+  ),
+  _Screen(
+    '14-admin-rooms',
+    () => AdminRoomsScreen(
+      serverUrl: _session['serverUrl']!,
+      token: _session['token']!,
+      username: _session['username']!,
+    ),
+  ),
+  _Screen(
+    '14b-admin-room-edit',
+    () => AdminRoomEditScreen(
+      serverUrl: _session['serverUrl']!,
+      token: _session['token']!,
+      username: _session['username']!,
+      roomId: shotsSeatedRoomId,
+    ),
   ),
   _Screen(
     '05-new-table',

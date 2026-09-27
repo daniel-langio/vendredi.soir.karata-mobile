@@ -22,7 +22,7 @@ import '../widgets/rooms/room_card.dart';
 import '../widgets/rooms/room_card_skeleton.dart';
 import '../widgets/rooms/room_card_state.dart';
 import '../widgets/rooms/room_sit_sheet.dart';
-import '../widgets/rooms/room_tag.dart';
+import '../widgets/common/karata_tag.dart';
 import '../widgets/rooms/rooms_error_state.dart';
 import '../widgets/desktop/desktop_shell.dart';
 import '../widgets/desktop/desktop_sidebar.dart';
@@ -42,7 +42,7 @@ enum _LobbyTab { rooms, publicTables, myTables }
 typedef _RoomView = ({
   RoomCardState state,
   String statusLabel,
-  RoomTagTone statusTone,
+  KarataTagTone statusTone,
   String footerPrefix,
   String footerAmount,
   String actionLabel,
@@ -668,7 +668,7 @@ class _MenuScreenState extends State<MenuScreen> {
       return (
         state: RoomCardState.seated,
         statusLabel: t.roomTagSeated,
-        statusTone: RoomTagTone.seated,
+        statusTone: KarataTagTone.seated,
         footerPrefix: t.roomYoureInFor,
         footerAmount: ChipDisplay.formatWith(
           chips,
@@ -682,7 +682,7 @@ class _MenuScreenState extends State<MenuScreen> {
       return (
         state: RoomCardState.full,
         statusLabel: t.roomTagFull,
-        statusTone: RoomTagTone.full,
+        statusTone: KarataTagTone.full,
         footerPrefix: t.roomDefaultBuyIn,
         footerAmount: ChipDisplay.formatWith(chips, room.defaultBuyIn),
         actionLabel: t.roomFull,
@@ -693,8 +693,8 @@ class _MenuScreenState extends State<MenuScreen> {
       state: room.quiet ? RoomCardState.quiet : RoomCardState.open,
       statusLabel: room.cashoutEnabled ? t.roomTagCashout : t.roomTagPlayChips,
       statusTone: room.cashoutEnabled
-          ? RoomTagTone.cashout
-          : RoomTagTone.neutral,
+          ? KarataTagTone.cashout
+          : KarataTagTone.neutral,
       footerPrefix: t.roomDefaultBuyIn,
       footerAmount: ChipDisplay.formatWith(chips, room.defaultBuyIn),
       actionLabel: t.sitDown,

@@ -15,6 +15,10 @@ import '../common/status_pill.dart';
 /// [pending] and [economy] sit under a "House" heading, which is the phone's own arrangement too:
 /// the wallet screen groups them in a House card rather than mixing them with a player's own
 /// actions. The wide layout just promotes that group out of the wallet and into the nav.
+///
+/// The three admin entries sit under their own heading below it. They answer to the same operator
+/// check, and are kept apart from House because House is the money the house handles day to day,
+/// where these are the game's own records - the accounts, the tables and the rooms behind it.
 enum DesktopNav {
   lobby('/menu'),
   newTable('/new-table'),
@@ -22,7 +26,10 @@ enum DesktopNav {
   wallet('/economy'),
   settings('/settings'),
   pending('/economy/pending'),
-  economy('/economy/config');
+  economy('/economy/config'),
+  adminPlayers('/admin/players'),
+  adminTables('/admin/tables'),
+  adminRooms('/admin/rooms');
 
   const DesktopNav(this.route);
 
@@ -38,7 +45,7 @@ class DesktopSidebar extends StatelessWidget {
     required this.username,
     required this.balance,
     required this.onSelect,
-    this.showHouse = false,
+    this.isOperator = false,
     this.pendingCount = 0,
   });
 
@@ -54,9 +61,10 @@ class DesktopSidebar extends StatelessWidget {
 
   final ValueChanged<DesktopNav> onSelect;
 
-  /// Whether the "House" group is listed. Only an operator can open either screen behind it, so
-  /// only an operator is offered them - the same gate the wallet screen puts on its House card.
-  final bool showHouse;
+  /// Whether the House and Admin groups are listed. Every screen behind them is operator-only
+  /// server-side, so only an operator is offered them - the same gate the wallet screen puts on
+  /// its own House card.
+  final bool isOperator;
 
   /// How many payouts the house still owes, shown as a gold badge on the pending entry. Hidden
   /// at zero, exactly as the wallet's own House card hides it.
@@ -111,7 +119,7 @@ class DesktopSidebar extends StatelessWidget {
           _item(DesktopNav.joinTable, KarataIcons.link, t.joinTableTitle),
           _item(DesktopNav.wallet, KarataIcons.wallet, t.economyTitle),
           _item(DesktopNav.settings, KarataIcons.brightness, t.settings),
-          if (showHouse) ...[
+          if (isOperator) ...[
             Padding(
               padding: const EdgeInsets.fromLTRB(14, 20, 14, 6),
               child: Text(
@@ -141,6 +149,20 @@ class DesktopSidebar extends StatelessWidget {
                   : null,
             ),
             _item(DesktopNav.economy, KarataIcons.sliders, t.economySettings),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 20, 14, 6),
+              child: Text(
+                t.adminGroup,
+                style: karataText(
+                  size: 12,
+                  weight: 600,
+                  color: KarataColors.inkFaint,
+                ),
+              ),
+            ),
+            _item(DesktopNav.adminPlayers, KarataIcons.person, t.adminPlayers),
+            _item(DesktopNav.adminTables, KarataIcons.lobby, t.adminTables),
+            _item(DesktopNav.adminRooms, KarataIcons.sliders, t.adminRooms),
           ],
           const Spacer(),
           _UserCard(username: username, balance: balance),
