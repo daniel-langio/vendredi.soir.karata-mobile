@@ -397,7 +397,32 @@ class _TableScreenState extends State<TableScreen> {
     }
   }
 
+  /// Back to the lobby, however this screen was reached.
+  ///
+  /// Always a fresh push rather than a pop: a table opened from a shared link has nothing behind
+  /// it, so popping would drop out of the app rather than land anywhere. Clearing the stack also
+  /// keeps the lobby from appearing twice when this table was pushed on top of one.
+  void _goToLobby() {
+    Navigator.of(context).pushNamedAndRemoveUntil(
+      '/menu',
+      (route) => false,
+      arguments: {
+        'serverUrl': widget.serverUrl,
+        'token': widget.token,
+        'username': widget.username,
+      },
+    );
+  }
+
   Future<void> _leaveTable() async {
+    // Nothing to give up if you are not sitting down. Asking a spectator whether they want to
+    // leave the table and then reporting the server's "not seated" refusal is two wrongs: there
+    // is no seat to release, so this is just a way out.
+    if (!_isPlaying || _isClosed) {
+      _goToLobby();
+      return;
+    }
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) {
@@ -427,18 +452,7 @@ class _TableScreenState extends State<TableScreen> {
     try {
       await _apiClient.leaveTable(widget.gameId);
       if (!mounted) return;
-      // Clears the whole stack rather than just replacing this screen - normally reached via
-      // Menu pushing this table on top of itself, so a plain replace would leave that earlier
-      // Menu instance underneath and show as a stray back button.
-      Navigator.of(context).pushNamedAndRemoveUntil(
-        '/menu',
-        (route) => false,
-        arguments: {
-          'serverUrl': widget.serverUrl,
-          'token': widget.token,
-          'username': widget.username,
-        },
-      );
+      _goToLobby();
     } catch (e) {
       _showError((t) => t.couldNotLeaveTable('$e'));
     } finally {
@@ -603,12 +617,13 @@ class _TableScreenState extends State<TableScreen> {
     );
 
     // Going back has to give up the seat for real, not just pop the route - the server still has
-    // you in the hand otherwise. Intercepting here covers the top bar's arrow, the system back
-    // button and the predictive-back gesture at once, and reuses the same confirmation the Leave
-    // table menu item shows. Only worth asking of someone who actually holds a seat though: a
-    // spectator, or anyone at a closed table, has nothing to give up and just leaves.
+    // you in the hand otherwise. Nothing pops: the top bar's arrow, the system back button, the
+    // predictive-back gesture and the browser's own back all run _leaveTable, which confirms
+    // first if there is a seat to release and otherwise just returns to the lobby. Letting a
+    // spectator pop instead would leave a table opened from a shared link with nowhere to go,
+    // since there is no route underneath it to pop to.
     return PopScope(
-      canPop: _isClosed || !_isPlaying,
+      canPop: false,
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
         _leaveTable();

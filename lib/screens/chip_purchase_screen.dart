@@ -264,10 +264,25 @@ class _ChipPurchaseScreenState extends State<ChipPurchaseScreen> {
             _ => _done(t),
           };
 
-    // The first-run deposit keeps the phone's frame at every width: it is a gate, and the wide
-    // frame is a sidebar that would walk straight around it. The mockups draw no wide version
-    // of it either.
-    if (!widget.onboarding && KarataLayout.isWide(context)) {
+    final wide = KarataLayout.isWide(context);
+
+    // The first-run deposit gets a wide frame of its own rather than the sidebar one: it is a
+    // gate, and a sidebar would walk straight around it. It cannot fall back to the phone layout
+    // either - at this width that is every field stretched edge to edge.
+    if (widget.onboarding && wide) {
+      return DesktopFocusPage(
+        title: t.onboardingTitle,
+        subtitle: t.onboardingSubtitle,
+        child: _isLoadingPrice || status != null
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: rows,
+              )
+            : _wideForm(t),
+      );
+    }
+
+    if (wide) {
       return DesktopShell(
         // Deposit has no entry of its own; artboard 26 keeps the wallet lit behind it.
         current: DesktopNav.wallet,

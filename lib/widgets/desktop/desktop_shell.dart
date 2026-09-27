@@ -251,3 +251,52 @@ class DesktopColumns extends StatelessWidget {
     );
   }
 }
+
+/// A wide page with no sidebar: the title, and the content centred under it in a column that
+/// stops well short of the window's edge.
+///
+/// For the one wide screen that must not offer a way out - the first-run deposit, which is a gate
+/// the sidebar would walk straight around. Without this it fell back to the phone layout, which
+/// at 1280px is every field stretched edge to edge and looks like nobody meant it.
+class DesktopFocusPage extends StatelessWidget {
+  const DesktopFocusPage({
+    super.key,
+    required this.title,
+    required this.child,
+    this.subtitle,
+    this.maxWidth = 960,
+  });
+
+  final String title;
+  final String? subtitle;
+  final Widget child;
+  final double maxWidth;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: KarataBackdrop(
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 40),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: maxWidth),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    DesktopPageHeader(title: title, subtitle: subtitle),
+                    const SizedBox(height: 28),
+                    child,
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
