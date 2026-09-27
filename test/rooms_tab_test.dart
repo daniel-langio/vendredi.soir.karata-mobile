@@ -1,5 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:poker_client/models/room_summary.dart';
 import 'package:poker_client/screens/menu_screen.dart';
@@ -45,6 +49,41 @@ Widget roomCard({
     ),
   ),
 );
+
+/// A server that answers the lobby's three list endpoints and nothing else, so a test can say
+/// what the lobby was told rather than only what it does when it is told nothing.
+http.Client _lobbyServing({
+  required List<Object> rooms,
+  List<Object> publicTables = const [],
+}) => MockClient((request) async {
+  final body = switch (request.url.path) {
+    '/poker/rooms' => rooms,
+    '/poker/games/public' => publicTables,
+    '/poker/games/mine' => const [],
+    _ => null,
+  };
+  if (body == null) return http.Response('{}', 404);
+  return http.Response(
+    jsonEncode(body),
+    200,
+    headers: const {'content-type': 'application/json; charset=utf-8'},
+  );
+});
+
+Future<void> _pumpLobby(WidgetTester tester, http.Client client) async {
+  await http.runWithClient(() async {
+    await tester.pumpWidget(
+      wrapForTest(
+        const MenuScreen(
+          serverUrl: 'https://test.poker/poker',
+          token: 'mock-token',
+          username: 'eli',
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+  }, () => client);
+}
 
 void main() {
   setUp(() {
@@ -199,5 +238,50 @@ void main() {
       findsNothing,
       reason: 'a failed load must not be reported as an empty lobby',
     );
+  });
+
+  group('which tab the lobby opens on', () {
+    final aRoom = {
+      'roomId': 'r1',
+      'name': 'Bronze',
+      'blinds': {'small': 50, 'big': 100},
+      'defaultBuyIn': 5000,
+      'tableCount': 3,
+      'playerCount': 14,
+    };
+
+    testWidgets('Rooms, when there are rooms', (tester) async {
+      await _pumpLobby(tester, _lobbyServing(rooms: [aRoom]));
+      expect(find.text('Bronze'), findsOneWidget);
+      expect(find.text('Anyone can sit down'), findsNothing);
+    });
+
+    testWidgets('Public tables, when the room list comes back empty', (
+      tester,
+    ) async {
+      await _pumpLobby(tester, _lobbyServing(rooms: const []));
+      // An empty Rooms tab is nothing to do; the tables are one tap away and might not be.
+      expect(find.text('Anyone can sit down'), findsOneWidget);
+      expect(find.text('No rooms are open right now.'), findsNothing);
+    });
+
+    testWidgets('Rooms still, so its error can be read, when the load failed', (
+      tester,
+    ) async {
+      await _pumpLobby(
+        tester,
+        MockClient((_) async => http.Response('{}', 500)),
+      );
+      expect(find.text('Couldn’t load rooms'), findsOneWidget);
+    });
+
+    testWidgets('whatever the player picked, empty room list or not', (
+      tester,
+    ) async {
+      await _pumpLobby(tester, _lobbyServing(rooms: const []));
+      await tester.tap(find.text('Rooms'));
+      await tester.pumpAndSettle();
+      expect(find.text('No rooms are open right now.'), findsOneWidget);
+    });
   });
 }

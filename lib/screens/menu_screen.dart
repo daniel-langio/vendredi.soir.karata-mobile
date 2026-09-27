@@ -78,7 +78,24 @@ class _MenuScreenState extends State<MenuScreen> {
   bool _loadingRooms = true;
   String? _roomsError;
 
-  _LobbyTab _tab = _LobbyTab.rooms;
+  /// The tab the player picked, or null while nobody has picked one and [_tab] is choosing.
+  _LobbyTab? _chosenTab;
+
+  /// Rooms lead, except when the lobby knows for a fact there are none.
+  ///
+  /// A player landing on an empty Rooms tab would be looking at nothing to do, when there may
+  /// well be a public table one tap away - so an empty room list hands the lobby over to the
+  /// tables. A *failed* room load is not an empty lobby and leaves the default alone: the Rooms
+  /// tab's own error state is what should be read then, not a silent redirect that makes the
+  /// rooms look as though they no longer exist.
+  ///
+  /// Derived rather than assigned, so the answer stays right when a later refresh finds rooms -
+  /// and a player who has picked a tab keeps it either way.
+  _LobbyTab get _tab =>
+      _chosenTab ??
+      (!_loadingRooms && _roomsError == null && _rooms.isEmpty
+          ? _LobbyTab.publicTables
+          : _LobbyTab.rooms);
 
   @override
   void initState() {
@@ -340,7 +357,8 @@ class _MenuScreenState extends State<MenuScreen> {
               SegmentedTabs(
                 labels: [t.roomsTab, t.publicTables, t.yourTables],
                 selectedIndex: _tab.index,
-                onChanged: (i) => setState(() => _tab = _LobbyTab.values[i]),
+                onChanged: (i) =>
+                    setState(() => _chosenTab = _LobbyTab.values[i]),
               ),
               const SizedBox(width: 8),
               Expanded(
@@ -524,7 +542,7 @@ class _MenuScreenState extends State<MenuScreen> {
                         labels: [t.roomsTab, t.publicTables, t.yourTables],
                         selectedIndex: _tab.index,
                         onChanged: (i) =>
-                            setState(() => _tab = _LobbyTab.values[i]),
+                            setState(() => _chosenTab = _LobbyTab.values[i]),
                       ),
                     ),
                   ),
