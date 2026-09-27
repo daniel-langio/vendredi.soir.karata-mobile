@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -23,7 +22,6 @@ import 'screens/economy_config_screen.dart';
 import 'screens/pending_redemptions_screen.dart';
 import 'api/api_client.dart';
 import 'onboarding_gate.dart';
-import 'theme/karata_colors.dart';
 import 'theme/karata_theme.dart';
 
 void main() {
@@ -54,23 +52,12 @@ class MyApp extends StatelessWidget {
             GlobalWidgetsLocalizations.delegate,
           ],
           onGenerateRoute: karataOnGenerateRoute,
-          // This UI is drawn as a phone screen. On a wide browser window it just looked like that
-          // same phone layout stretched edge to edge, so cap it and centre it there; a native
-          // build is already phone-shaped and wants the full window.
-          //
-          // Every screen is phone-width for now, the table included: the V2 design has a separate
-          // desktop layout for each screen, which is a pass of its own.
-          builder: kIsWeb
-              ? (context, child) => ColoredBox(
-                  color: KarataColors.backdrop,
-                  child: Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 430),
-                      child: child,
-                    ),
-                  ),
-                )
-              : null,
+          // No frame around the app on any platform. The web build used to be capped at 430px and
+          // centred, because every screen was drawn phone-width and stretching one across a
+          // browser window looked worse than boxing it in. Each screen now has a wide layout of
+          // its own, so the cap is not only unnecessary but actively wrong: KarataLayout.isWide
+          // reads the window, not the box, so a wide window would pick the sidebar layout and
+          // then draw it into 430px.
         );
       },
     );
