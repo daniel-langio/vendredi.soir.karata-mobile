@@ -260,7 +260,6 @@ final _screens = <_Screen>[
       username: _session['username']!,
       onboarding: true,
       // The house requires it here, so there is no way past - which is the state worth seeing.
-      skippable: false,
     ),
   ),
   _Screen(

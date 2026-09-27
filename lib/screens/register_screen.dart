@@ -81,9 +81,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         // Clears the whole stack (not just this screen) - reached via WelcomeScreen's
         // RootScreen, which would otherwise linger below Menu and show as a stray back button.
         Navigator.of(context).pushNamedAndRemoveUntil(
-          gated
-              ? '/onboarding/deposit?skippable=false'
-              : (widget.redirectTarget ?? '/menu'),
+          gated ? '/onboarding/deposit' : (widget.redirectTarget ?? '/menu'),
           (route) => false,
           arguments: {
             'serverUrl': widget.serverUrl,

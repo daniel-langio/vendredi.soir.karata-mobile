@@ -31,14 +31,11 @@ class ChipPurchaseScreen extends StatefulWidget {
 
   /// Shown to a player who has just registered, rather than reached from the wallet.
   ///
-  /// Changes only the framing - the heading welcomes them, and there is a way past it unless the
-  /// house has said there isn't. The deposit itself is the same flow, so there is one of it to
-  /// keep working rather than a second, nearly-identical first-run form.
+  /// Changes only the framing - the heading welcomes them and a "Skip for now" is offered
+  /// underneath, since this is the one entry with nothing behind it to go back to. The deposit
+  /// itself is the same flow, so there is one of it to keep working rather than a second,
+  /// nearly-identical first-run form.
   final bool onboarding;
-
-  /// Whether a way past is offered. False means the house requires the deposit - see the economy
-  /// config's enforceDepositOnRegistration.
-  final bool skippable;
 
   const ChipPurchaseScreen({
     super.key,
@@ -46,7 +43,6 @@ class ChipPurchaseScreen extends StatefulWidget {
     required this.token,
     required this.username,
     this.onboarding = false,
-    this.skippable = true,
   });
 
   @override
@@ -421,7 +417,7 @@ class _ChipPurchaseScreenState extends State<ChipPurchaseScreen> {
       label: t.submitPayment,
       onPressed: _isLoading ? null : _submitPayment,
     ),
-    if (widget.onboarding && widget.skippable)
+    if (widget.onboarding)
       KarataButton(
         label: t.skipForNow,
         onPressed: _leaveOnboarding,

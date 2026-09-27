@@ -178,10 +178,11 @@ Route<dynamic>? karataOnGenerateRoute(RouteSettings settings) {
   } else if (segments.length == 2 &&
       segments[0] == 'onboarding' &&
       segments[1] == 'deposit') {
-    // The first deposit, shown to a player who has just registered. `skippable=false` is the
-    // house requiring it (see the economy config's enforceDepositOnRegistration), and is what
-    // withholds the way past.
-    final skippable = uri.queryParameters['skippable'] != 'false';
+    // The first deposit, shown to a player who has just registered - and only when the house
+    // asked for one (see the economy config's enforceDepositOnRegistration). It is always
+    // skippable: the house decides whether a new player is sent to the till, not whether they
+    // are allowed to walk away from it. Without that the screen was a dead end with no back, no
+    // skip and no way to sign out.
     page = session == null
         ? _RequireSession(routeName: settings.name ?? uri.path)
         : ChipPurchaseScreen(
@@ -189,7 +190,6 @@ Route<dynamic>? karataOnGenerateRoute(RouteSettings settings) {
             token: session.token,
             username: session.username,
             onboarding: true,
-            skippable: skippable,
           );
   } else if (segments.length == 2 &&
       segments[0] == 'economy' &&
@@ -385,7 +385,7 @@ class _RootScreenState extends State<RootScreen> {
       if (!mounted) return;
 
       Navigator.of(context).pushNamedAndRemoveUntil(
-        gated ? '/onboarding/deposit?skippable=false' : '/menu',
+        gated ? '/onboarding/deposit' : '/menu',
         (route) => false,
         arguments: {
           'serverUrl': serverUrl,
