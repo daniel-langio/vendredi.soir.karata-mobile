@@ -6,8 +6,8 @@ import '../../theme/karata_text_styles.dart';
 import '../common/avatar.dart';
 import '../common/karata_icon.dart';
 import '../common/karata_icons.dart';
+import '../common/karata_logo.dart';
 import '../common/status_pill.dart';
-import 'karata_mark.dart';
 
 /// The screens the wide layout's sidebar can reach, in the order it lists them.
 ///
@@ -78,7 +78,10 @@ class DesktopSidebar extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(8, 0, 8, 18),
             child: Row(
               children: [
-                const KarataMark(),
+                // Artboard 00 sizes the sidebar lockup's mark at 40. The die this replaced
+                // filled its 34px box edge to edge; the card mark is a PNG with transparent
+                // margin, so at 34 it read a quarter smaller than what it replaced.
+                const KarataLogo(size: 40),
                 const SizedBox(width: 10),
                 Text(
                   'Karata',

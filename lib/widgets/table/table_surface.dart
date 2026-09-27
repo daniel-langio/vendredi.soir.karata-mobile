@@ -103,7 +103,7 @@ class TableSurface extends StatelessWidget {
               ),
             ),
             // The board is anchored, not flowed. Everything that comes and goes around it - the
-            // outcome banner above, the pot and the hand's name below - is placed relative to it
+            // pot, the outcome banner, the hand's name - is placed relative to it
             // rather than stacked with it, so the cards never shift as those appear. Together
             // with the board keeping all five slots whatever has been dealt, that leaves the
             // centre of the felt still while a hand plays out.
@@ -120,7 +120,7 @@ class TableSurface extends StatelessWidget {
                 ),
               ),
             ),
-            if (banner != null)
+            if (banner != null && !metrics.bannerBelowBoard)
               Positioned(
                 left: felt.left,
                 width: felt.width,
@@ -154,8 +154,13 @@ class TableSurface extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   if (!metrics.potChips) PotAmount(pot),
-                  if (handLabel != null) ...[
+                  if (banner != null && metrics.bannerBelowBoard) ...[
                     if (!metrics.potChips) const SizedBox(height: 6),
+                    banner!,
+                  ],
+                  if (handLabel != null) ...[
+                    if (!metrics.potChips || banner != null)
+                      const SizedBox(height: 6),
                     HandLabel(handLabel!),
                   ],
                 ],

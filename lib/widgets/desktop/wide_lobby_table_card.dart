@@ -6,7 +6,6 @@ import '../common/avatar_stack.dart';
 import '../common/css_gradient.dart';
 import '../common/karata_button.dart';
 import '../common/karata_icon.dart';
-import '../common/kente_ribbon.dart';
 import '../common/status_pill.dart';
 import '../lobby/mascot_card_face.dart';
 import '../lobby/mascot_palette.dart';
@@ -77,12 +76,6 @@ class WideLobbyTableCard extends StatelessWidget {
             height: height,
             child: Stack(
               children: [
-                const Positioned(
-                  left: 0,
-                  right: 0,
-                  top: 0,
-                  child: KenteRibbon(height: 5),
-                ),
                 Positioned(
                   right: -10,
                   top: 20,

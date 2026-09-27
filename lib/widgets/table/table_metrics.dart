@@ -28,6 +28,7 @@ class TableMetrics {
     required this.boardTopFraction,
     required this.potTopFraction,
     required this.potChips,
+    required this.bannerBelowBoard,
     required this.dealerInboard,
     required this.dealerDistance,
     required this.betDistance,
@@ -72,6 +73,11 @@ class TableMetrics {
   /// Whether the pot is drawn as chips beside its figure. Only the wide mockups do.
   final bool potChips;
 
+  /// Which side of the board the outcome is announced on. The phone puts it above, in the space
+  /// the pot is not using; the wide table has its pot up there already, so the announcement goes
+  /// under the board with the name of the hand that won.
+  final bool bannerBelowBoard;
+
   /// Whether the dealer button and a seat's bet chips are pushed in off the seat, toward the
   /// centre of the felt, rather than pinned to the seat's own corner.
   final bool dealerInboard;
@@ -105,6 +111,7 @@ class TableMetrics {
     // Unused while potChips is false; the pot is placed under the board instead.
     potTopFraction: 0,
     potChips: false,
+    bannerBelowBoard: false,
     dealerInboard: false,
     // Unused while dealerInboard is false.
     dealerDistance: 0,
@@ -135,6 +142,7 @@ class TableMetrics {
     boardTopFraction: (326 - 130) / 450,
     potTopFraction: (262 - 130) / 450,
     potChips: true,
+    bannerBelowBoard: true,
     dealerInboard: true,
     // Artboard 03's own two: a button just off the lower-left seat, and a bet a little further
     // in from the upper-left one.
