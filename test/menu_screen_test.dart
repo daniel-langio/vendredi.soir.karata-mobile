@@ -9,10 +9,10 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
-  // Both table lists are fetched from the server, and TestWidgetsFlutterBinding answers every
-  // request with a 400 - so this exercises the unreachable-server path. That is deliberate: the
-  // screen must say the load failed rather than render an empty list, which would read as "you
-  // have no tables" when the truth is "we could not find out".
+  // Every list is fetched from the server, and TestWidgetsFlutterBinding answers every request
+  // with a 400 - so this exercises the unreachable-server path. That is deliberate: the screen
+  // must say the load failed rather than render an empty list, which would read as "you have no
+  // tables" when the truth is "we could not find out".
   testWidgets(
     'MenuScreen renders identity, entry points, and both table sections',
     (WidgetTester tester) async {
@@ -34,8 +34,13 @@ void main() {
         findsOneWidget,
       );
 
+      expect(find.text('Rooms'), findsOneWidget);
       expect(find.text('Your tables'), findsOneWidget);
       expect(find.text('Public tables'), findsOneWidget);
+
+      // The lobby opens on Rooms, so the table lists are a tab away.
+      await tester.tap(find.text('Public tables'));
+      await tester.pumpAndSettle();
 
       expect(find.textContaining('Could not load your tables'), findsOneWidget);
       expect(

@@ -12,6 +12,11 @@ const shotsGameId = '7f3c1e5a-4b2d-4c8e-9a10-6d5b2f8e1c44';
 
 /// A second table id, served at showdown rather than mid-flop.
 const shotsShowdownGameId = '7f3c1e5a-4b2d-4c8e-9a10-6d5b2f8e1c55';
+
+/// The room the photographed player is already sitting in, and the table it put them at - which
+/// is what makes the Gold card in the Rooms tab draw its "Seated" state rather than a buy-in.
+const shotsSeatedRoomId = '5a0e9d77-0000-4000-8000-00000000aa01';
+const shotsRoomGameId = '7f3c1e5a-4b2d-4c8e-9a10-6d5b2f8e1c66';
 const _dealId = 'a1b2c3d4-0000-4000-8000-000000000001';
 
 /// A stand-in for the karata backend, so every screen can be photographed full of plausible data
@@ -52,6 +57,8 @@ Object? _fixtureFor(String path) {
       return _myTables;
     case '/poker/games/public':
       return _publicTables;
+    case '/poker/rooms':
+      return _rooms;
     case '/economy/price':
       return {
         'arPerChip': 100,
@@ -105,6 +112,87 @@ final _myTables = [
     'name': 'Tsena Kely',
     'defaultBuyIn': 120,
     'players': _seats([shotsUsername, 'naina'], chips: 68),
+  },
+  {
+    'gameId': shotsRoomGameId,
+    'name': 'Gold',
+    'roomId': shotsSeatedRoomId,
+    'defaultBuyIn': 200,
+    'players': _seats([shotsUsername, 'tiana', 'rado'], chips: 300),
+  },
+];
+
+/// The five stake tiers, chosen to cover all four states of a room card in one shot: busy,
+/// nobody-here-yet, already-seated and capped-out. Amounts are chips, which the shots render at
+/// 100 Ar each.
+final _rooms = [
+  {
+    'roomId': '5a0e9d77-0000-4000-8000-00000000aa00',
+    'name': 'Freeroll',
+    'blinds': {'small': 1, 'big': 2},
+    'defaultBuyIn': 10,
+    'variant': 'TEXAS_HOLDEM',
+    // The only room whose chips never leave the table, so the "Play chips" tag gets photographed.
+    'cashoutEnabled': false,
+    'enforceMinimumBuyIn': true,
+    'autoRebuyEnabled': false,
+    'maxTables': null,
+    'tableCount': 2,
+    'playerCount': 9,
+  },
+  {
+    'roomId': '5a0e9d77-0000-4000-8000-00000000aa02',
+    'name': 'Bronze',
+    'blinds': {'small': 5, 'big': 10},
+    'defaultBuyIn': 50,
+    'variant': 'TEXAS_HOLDEM',
+    'cashoutEnabled': true,
+    'enforceMinimumBuyIn': true,
+    'autoRebuyEnabled': false,
+    'maxTables': null,
+    'tableCount': 3,
+    'playerCount': 14,
+  },
+  {
+    'roomId': '5a0e9d77-0000-4000-8000-00000000aa03',
+    'name': 'Silver',
+    'blinds': {'small': 10, 'big': 20},
+    'defaultBuyIn': 120,
+    'variant': 'TEXAS_HOLDEM',
+    'cashoutEnabled': true,
+    'enforceMinimumBuyIn': true,
+    'autoRebuyEnabled': false,
+    'maxTables': null,
+    // Genuinely empty, and photographed as such: nothing is ever seated to pad the numbers.
+    'tableCount': 0,
+    'playerCount': 0,
+  },
+  {
+    'roomId': shotsSeatedRoomId,
+    'name': 'Gold',
+    'blinds': {'small': 25, 'big': 50},
+    'defaultBuyIn': 200,
+    'variant': 'OMAHA',
+    'cashoutEnabled': true,
+    'enforceMinimumBuyIn': true,
+    'autoRebuyEnabled': false,
+    'maxTables': null,
+    'tableCount': 1,
+    'playerCount': 6,
+  },
+  {
+    'roomId': '5a0e9d77-0000-4000-8000-00000000aa04',
+    'name': 'High Roller',
+    'blinds': {'small': 100, 'big': 200},
+    'defaultBuyIn': 1500,
+    'variant': 'TEXAS_HOLDEM',
+    'cashoutEnabled': true,
+    'enforceMinimumBuyIn': true,
+    'autoRebuyEnabled': false,
+    // Four tables allowed, four running, every one of the 24 seats taken.
+    'maxTables': 4,
+    'tableCount': 4,
+    'playerCount': 24,
   },
 ];
 

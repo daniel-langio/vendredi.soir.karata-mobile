@@ -70,6 +70,33 @@ abstract final class KarataIcons {
     PathShape('M3 10 H21 M16 15 H17'),
   ]);
 
+  /// A room's table count, drawn as a poker table seen edge-on.
+  static const pokerTable = KarataIconData([
+    RectShape(3, 10, 18, 3, radius: 1.5),
+    PathShape('M6 13 V19 M18 13 V19'),
+    PathShape('M3 10 C3 7 6 5 12 5 C18 5 21 7 21 10'),
+  ]);
+
+  /// A room's player count: two figures, the second half a step behind the first.
+  static const players = KarataIconData([
+    CircleShape(8.5, 9, 3.2),
+    CircleShape(16, 10, 2.6),
+    PathShape(
+      'M2.5 19 C2.5 14.5 5.5 12.3 8.5 12.3 C11.5 12.3 14.5 14.5 14.5 19',
+    ),
+    PathShape('M15.5 13.5 C18 13.5 20 15.2 20 19'),
+  ]);
+
+  /// The triangle above "Couldn't load rooms".
+  ///
+  /// The design fills the bang's dot; every shape in one icon shares a paint, so it is drawn
+  /// instead as a circle small enough that the 2.2px stroke closes over its middle - a disc of
+  /// the same size, from the same stroked paint as the rest of the icon.
+  static const warning = KarataIconData([
+    PathShape('M12 3 L22 20 H2 Z M12 9 V13.5'),
+    CircleShape(12, 16.5, 0.1),
+  ]);
+
   /// Join with link.
   static const link = KarataIconData([
     PathShape('M10 14 A4 4 0 0 0 16 14 L19 11 A4 4 0 0 0 13 5 L12 6'),

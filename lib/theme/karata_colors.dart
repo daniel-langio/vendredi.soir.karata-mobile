@@ -66,6 +66,10 @@ abstract final class KarataColors {
   static const orangeShadow = Color(0xFF7E2F15);
   static const orangeLight = Color(0xFFFF8A73);
 
+  /// Body copy inside a warm-red notice, where [orangeLight] is the heading's weight and would
+  /// glare over two lines - the "you need more chips to sit here" panel.
+  static const orangePale = Color(0xFFFFB4A3);
+
   /// Affirmative - selected chips, "seats open", the check action.
   static const teal = Color(0xFF1F9D8B);
 

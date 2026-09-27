@@ -12,6 +12,11 @@ class TableSummary {
   final String name;
   final int? defaultBuyIn;
 
+  /// The room this table belongs to, or null for a player-hosted or public table. The Rooms tab
+  /// matches it against the room it is about to open, so a player who is already sitting there is
+  /// sent straight back to their seat instead of being asked to buy in again.
+  final String? roomId;
+
   /// Whether the house hosts this table and anyone may sit down, as opposed to one of your own.
   final bool isPublic;
 
@@ -23,6 +28,7 @@ class TableSummary {
     required this.name,
     required this.defaultBuyIn,
     required this.players,
+    this.roomId,
     this.isPublic = false,
   });
 
@@ -42,6 +48,7 @@ class TableSummary {
     gameId: j['gameId'] as String,
     name: j['name'] as String? ?? 'Table',
     defaultBuyIn: (j['defaultBuyIn'] as num?)?.toInt(),
+    roomId: j['roomId'] as String?,
     isPublic: j['isPublic'] == true,
     players: [
       for (final p in (j['players'] as List<dynamic>? ?? const []))
