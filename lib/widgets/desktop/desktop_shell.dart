@@ -99,7 +99,7 @@ class _DesktopShellState extends State<DesktopShell> {
                                 chips,
                                 summary.balanceChips,
                               ),
-                        showHouse: summary.isOperator,
+                        isOperator: summary.isOperator,
                         pendingCount: summary.pendingCount,
                         onSelect: _go,
                       ),

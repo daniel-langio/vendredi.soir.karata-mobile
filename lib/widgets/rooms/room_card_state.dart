@@ -1,7 +1,7 @@
 import 'package:flutter/painting.dart';
 
 import '../../theme/karata_colors.dart';
-import 'room_tag.dart';
+import '../common/karata_tag.dart';
 
 /// Which of the four things a room card can be saying, as the design draws them side by side in
 /// `room-card-states.html`.
@@ -33,9 +33,9 @@ extension RoomCardAccent on RoomCardState {
   /// The tone of the card's second tag. [RoomCardState.open] and [RoomCardState.quiet] have
   /// nothing of their own to say there, so the tag falls back to whether the room cashes out -
   /// which the caller decides, since only it knows the room.
-  RoomTagTone? get tagTone => switch (this) {
+  KarataTagTone? get tagTone => switch (this) {
     RoomCardState.open || RoomCardState.quiet => null,
-    RoomCardState.seated => RoomTagTone.seated,
-    RoomCardState.full => RoomTagTone.full,
+    RoomCardState.seated => KarataTagTone.seated,
+    RoomCardState.full => KarataTagTone.full,
   };
 }

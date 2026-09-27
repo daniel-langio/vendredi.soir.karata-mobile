@@ -148,6 +148,124 @@ class AppLocalizations {
   }
 
   String get roomAddChips => _s('roomAddChips');
+
+  // Admin
+  String get adminGroup => _s('adminGroup');
+  String get adminPlayers => _s('adminPlayers');
+  String get adminTables => _s('adminTables');
+  String get adminRooms => _s('adminRooms');
+
+  /// The variant spelled out, as the admin lists and the room editor show it - against the
+  /// [roomVariant] tag, which has a 12px pill to fit into.
+  String roomVariantLong(String variant) => switch (variant) {
+    'OMAHA' => variantOmahaShort,
+    'FIVE_CARD_DRAW' => variantFiveCardDrawShort,
+    _ => variantTexasHoldemShort,
+  };
+
+  String get adminRoomsSubtitle => _s('adminRoomsSubtitle');
+  String get adminTablesSubtitle => _s('adminTablesSubtitle');
+  String get adminPlayersSubtitle => _s('adminPlayersSubtitle');
+  String get adminNoRooms => _s('adminNoRooms');
+  String get adminNoTables => _s('adminNoTables');
+  String get adminNoPlayers => _s('adminNoPlayers');
+  String get adminNewRoom => _s('adminNewRoom');
+  String get filterAll => _s('filterAll');
+  String get filterActive => _s('filterActive');
+  String get filterDisabled => _s('filterDisabled');
+  String get filterOpen => _s('filterOpen');
+  String get filterFull => _s('filterFull');
+  String get filterPaused => _s('filterPaused');
+  String get filterBots => _s('filterBots');
+  String get filterSuspended => _s('filterSuspended');
+  String adminRoomsBreakdown(String empty, String full) =>
+      _fmt('adminRoomsBreakdown', {'empty': empty, 'full': full});
+  String get adminTablesRunning => _s('adminTablesRunning');
+  String get adminOrderedByBuyIn => _s('adminOrderedByBuyIn');
+  String get adminAcrossAllRooms => _s('adminAcrossAllRooms');
+  String get adminPlayersSeated => _s('adminPlayersSeated');
+  String get adminRoomSeatedNow => _s('adminRoomSeatedNow');
+  String adminAccountsShown(String shown, String total) =>
+      _fmt('adminAccountsShown', {'shown': shown, 'total': total});
+  String adminTableCount(String count, String full) =>
+      _fmt('adminTableCount', {'count': count, 'full': full});
+  String get adminHumanAccountsSeated => _s('adminHumanAccountsSeated');
+  String get adminBotAccountsSeated => _s('adminBotAccountsSeated');
+  String get adminPlayersAtATable => _s('adminPlayersAtATable');
+  String get adminColumnRoom => _s('adminColumnRoom');
+  String get adminColumnBlinds => _s('adminColumnBlinds');
+  String get adminColumnBuyIn => _s('adminColumnBuyIn');
+  String get adminColumnTables => _s('adminColumnTables');
+  String get adminColumnPlayers => _s('adminColumnPlayers');
+  String get adminColumnStatus => _s('adminColumnStatus');
+  String get adminColumnTable => _s('adminColumnTable');
+  String get adminColumnSeated => _s('adminColumnSeated');
+  String get adminColumnPlayer => _s('adminColumnPlayer');
+  String get adminColumnBalance => _s('adminColumnBalance');
+  String get adminColumnJoined => _s('adminColumnJoined');
+  String get adminColumnAtTable => _s('adminColumnAtTable');
+  String get adminActive => _s('adminActive');
+  String get adminDisabled => _s('adminDisabled');
+  String get adminSuspended => _s('adminSuspended');
+  String get adminBot => _s('adminBot');
+  String get adminPublic => _s('adminPublic');
+  String get adminPrivate => _s('adminPrivate');
+  String get adminStatusOpen => _s('adminStatusOpen');
+  String get adminStatusFull => _s('adminStatusFull');
+  String get adminStatusPaused => _s('adminStatusPaused');
+  String get adminStatusDormant => _s('adminStatusDormant');
+  String get adminNotSeated => _s('adminNotSeated');
+  String get adminUnknownDate => _s('adminUnknownDate');
+  String get adminSaveChanges => _s('adminSaveChanges');
+  String get adminDangerZone => _s('adminDangerZone');
+  String adminSaved(String name) => _fmt('adminSaved', {'name': name});
+
+  // Player editor
+  String get adminEditPlayer => _s('adminEditPlayer');
+  String get adminEditPlayerSubtitle => _s('adminEditPlayerSubtitle');
+  String get adminAccount => _s('adminAccount');
+  String get adminPaymentPhone => _s('adminPaymentPhone');
+  String get adminSuspendAccount => _s('adminSuspendAccount');
+  String get adminSuspendAccountHint => _s('adminSuspendAccountHint');
+  String get adminResetBalance => _s('adminResetBalance');
+  String get adminResetBalanceHint => _s('adminResetBalanceHint');
+  String get adminResetBalanceAction => _s('adminResetBalanceAction');
+  String get adminCannotResetWhileSeated => _s('adminCannotResetWhileSeated');
+  String get adminJoined => _s('adminJoined');
+  String get adminLifetimeDeposits => _s('adminLifetimeDeposits');
+  String get adminLifetimeWithdrawals => _s('adminLifetimeWithdrawals');
+
+  // Room editor
+  String get adminEditRoom => _s('adminEditRoom');
+  String get adminEditRoomSubtitle => _s('adminEditRoomSubtitle');
+  String get adminRoomSection => _s('adminRoomSection');
+  String get adminCashoutEnabled => _s('adminCashoutEnabled');
+  String get adminCashoutEnabledHint => _s('adminCashoutEnabledHint');
+  String get adminDisableRoom => _s('adminDisableRoom');
+  String get adminDisableRoomHint => _s('adminDisableRoomHint');
+  String get adminDisableRoomAction => _s('adminDisableRoomAction');
+  String get adminEnableRoomAction => _s('adminEnableRoomAction');
+  String get adminTablesInThisRoom => _s('adminTablesInThisRoom');
+  String get adminLive => _s('adminLive');
+  String get adminSpare => _s('adminSpare');
+  String adminSeatedOf(String seated, String capacity) =>
+      _fmt('adminSeatedOf', {'seated': seated, 'capacity': capacity});
+  String get adminEditsReachNewTablesOnly => _s('adminEditsReachNewTablesOnly');
+
+  // Table editor
+  String get adminEditTable => _s('adminEditTable');
+  String get adminEditTableSubtitle => _s('adminEditTableSubtitle');
+  String get adminTableSection => _s('adminTableSection');
+  String get adminTableIsPublic => _s('adminTableIsPublic');
+  String get adminTableIsPublicHint => _s('adminTableIsPublicHint');
+  String get adminRoomTableCannotBePublic => _s('adminRoomTableCannotBePublic');
+  String get adminPauseTableHint => _s('adminPauseTableHint');
+  String get adminCloseTableHint => _s('adminCloseTableHint');
+  String get adminSeatedPlayers => _s('adminSeatedPlayers');
+  String get adminRemove => _s('adminRemove');
+  String get adminOpenSeat => _s('adminOpenSeat');
+  String adminRemovedFromTable(String name) =>
+      _fmt('adminRemovedFromTable', {'name': name});
   String get roomNotNow => _s('roomNotNow');
   String get logOut => _s('logOut');
   String get language => _s('language');
@@ -606,6 +724,113 @@ class AppLocalizations {
           'You need at least {amount} to sit at this room. Add chips to your balance to '
           'continue.',
       'roomAddChips': 'Add chips',
+      'adminGroup': 'Admin',
+      'adminPlayers': 'Players',
+      'adminTables': 'Tables',
+      'adminRooms': 'Rooms',
+      'adminRoomsSubtitle': 'Stake tiers players sit into — ordered by buy-in.',
+      'adminTablesSubtitle':
+          'Every table running right now, private ones included.',
+      'adminPlayersSubtitle': 'Every account, and where each one is sitting.',
+      'adminNoRooms': 'No rooms match this filter.',
+      'adminNoTables': 'No tables match this filter.',
+      'adminNoPlayers': 'No accounts match this filter.',
+      'adminNewRoom': 'New room',
+      'filterAll': 'All',
+      'filterActive': 'Active',
+      'filterDisabled': 'Disabled',
+      'filterOpen': 'Open',
+      'filterFull': 'Full',
+      'filterPaused': 'Paused',
+      'filterBots': 'Bots',
+      'filterSuspended': 'Suspended',
+      'adminRoomsBreakdown': '{empty} empty, {full} full',
+      'adminTablesRunning': 'Tables running',
+      'adminOrderedByBuyIn': 'Ordered by buy-in',
+      'adminAcrossAllRooms': 'across all rooms',
+      'adminPlayersSeated': 'Players seated',
+      'adminRoomSeatedNow': 'room-seated right now',
+      'adminAccountsShown': '{shown} accounts shown · {total} total',
+      'adminTableCount': '{count} tables · {full} full',
+      'adminHumanAccountsSeated': 'human accounts seated',
+      'adminBotAccountsSeated': 'bot accounts seated',
+      'adminPlayersAtATable': 'players at a table right now',
+      'adminColumnRoom': 'Room',
+      'adminColumnBlinds': 'Blinds',
+      'adminColumnBuyIn': 'Buy-in',
+      'adminColumnTables': 'Tables',
+      'adminColumnPlayers': 'Players',
+      'adminColumnStatus': 'Status',
+      'adminColumnTable': 'Table',
+      'adminColumnSeated': 'Seated',
+      'adminColumnPlayer': 'Player',
+      'adminColumnBalance': 'Balance',
+      'adminColumnJoined': 'Joined',
+      'adminColumnAtTable': 'At table',
+      'adminActive': 'Active',
+      'adminDisabled': 'Disabled',
+      'adminSuspended': 'Suspended',
+      'adminBot': 'Bot',
+      'adminPublic': 'public',
+      'adminPrivate': 'private',
+      'adminStatusOpen': 'Open',
+      'adminStatusFull': 'Full',
+      'adminStatusPaused': 'Paused',
+      'adminStatusDormant': 'Draining',
+      'adminNotSeated': '—',
+      'adminUnknownDate': '—',
+      'adminSaveChanges': 'Save changes',
+      'adminDangerZone': 'Danger zone',
+      'adminSaved': '{name} saved.',
+      'adminEditPlayer': 'Edit player',
+      'adminEditPlayerSubtitle': 'Editing this player’s account.',
+      'adminAccount': 'Account',
+      'adminPaymentPhone': 'Payment phone number',
+      'adminSuspendAccount': 'Suspend account',
+      'adminSuspendAccountHint':
+          'Blocks login and table access until you lift it. Chips are left untouched.',
+      'adminResetBalance': 'Reset balance to 0',
+      'adminResetBalanceHint': 'This cannot be undone.',
+      'adminResetBalanceAction': 'Reset balance',
+      'adminCannotResetWhileSeated':
+          'Not while they are seated — their stack is out of the wallet until they stand up.',
+      'adminJoined': 'Joined',
+      'adminLifetimeDeposits': 'Lifetime deposits',
+      'adminLifetimeWithdrawals': 'Lifetime withdrawals',
+      'adminEditRoom': 'Edit room',
+      'adminEditRoomSubtitle': 'Editing this room.',
+      'adminRoomSection': 'Room',
+      'adminCashoutEnabled': 'Cashout enabled',
+      'adminCashoutEnabledHint':
+          'Chips at this room convert back to real money.',
+      'adminDisableRoom': 'Disable this room',
+      'adminDisableRoomHint':
+          'Hides it from the room list. Seated players keep playing until they leave.',
+      'adminDisableRoomAction': 'Disable room',
+      'adminEnableRoomAction': 'Enable room',
+      'adminTablesInThisRoom': 'Tables in this room',
+      'adminLive': 'Live',
+      'adminSpare': 'Spare',
+      'adminSeatedOf': '{seated} / {capacity} seated',
+      'adminEditsReachNewTablesOnly':
+          'Tables already in play keep the terms they were opened with. Only tables opened after '
+          'this take the new ones.',
+      'adminEditTable': 'Edit table',
+      'adminEditTableSubtitle': 'Editing this table.',
+      'adminTableSection': 'Table',
+      'adminTableIsPublic': 'Table is public',
+      'adminTableIsPublicHint':
+          'Listed on everyone’s home screen and hosted by the house.',
+      'adminRoomTableCannotBePublic':
+          'A room’s table is reached by sitting down in the room, so it cannot be listed on its own.',
+      'adminPauseTableHint':
+          'Stops new hands from starting; seated players keep their chips.',
+      'adminCloseTableHint':
+          'Ends the table and returns every stack to its owner’s balance.',
+      'adminSeatedPlayers': 'Seated players',
+      'adminRemove': 'Remove',
+      'adminOpenSeat': 'Open seat',
+      'adminRemovedFromTable': '{name} was stood up.',
       'roomNotNow': 'Not now',
       'noTablesYet': 'No tables yet. Create or join one to see it here.',
       'open': 'Open',
@@ -1003,6 +1228,114 @@ class AppLocalizations {
           'Il vous faut au moins {amount} pour vous asseoir dans ce salon. Ajoutez des jetons '
           'à votre solde pour continuer.',
       'roomAddChips': 'Ajouter des jetons',
+      'adminGroup': 'Administration',
+      'adminPlayers': 'Joueurs',
+      'adminTables': 'Tables',
+      'adminRooms': 'Salons',
+      'adminRoomsSubtitle':
+          'Les paliers où les joueurs s’installent — classés par cave.',
+      'adminTablesSubtitle':
+          'Toutes les tables en cours, y compris les privées.',
+      'adminPlayersSubtitle': 'Tous les comptes, et où chacun est assis.',
+      'adminNoRooms': 'Aucun salon ne correspond à ce filtre.',
+      'adminNoTables': 'Aucune table ne correspond à ce filtre.',
+      'adminNoPlayers': 'Aucun compte ne correspond à ce filtre.',
+      'adminNewRoom': 'Nouveau salon',
+      'filterAll': 'Tous',
+      'filterActive': 'Actifs',
+      'filterDisabled': 'Désactivés',
+      'filterOpen': 'Ouvertes',
+      'filterFull': 'Complètes',
+      'filterPaused': 'En pause',
+      'filterBots': 'Bots',
+      'filterSuspended': 'Suspendus',
+      'adminRoomsBreakdown': '{empty} vides, {full} complets',
+      'adminTablesRunning': 'Tables en cours',
+      'adminOrderedByBuyIn': 'Classé par cave',
+      'adminAcrossAllRooms': 'tous salons confondus',
+      'adminPlayersSeated': 'Joueurs assis',
+      'adminRoomSeatedNow': 'assis en salon en ce moment',
+      'adminAccountsShown': '{shown} comptes affichés · {total} au total',
+      'adminTableCount': '{count} tables · {full} complètes',
+      'adminHumanAccountsSeated': 'comptes humains assis',
+      'adminBotAccountsSeated': 'comptes bots assis',
+      'adminPlayersAtATable': 'joueurs à une table en ce moment',
+      'adminColumnRoom': 'Salon',
+      'adminColumnBlinds': 'Blindes',
+      'adminColumnBuyIn': 'Cave',
+      'adminColumnTables': 'Tables',
+      'adminColumnPlayers': 'Joueurs',
+      'adminColumnStatus': 'Statut',
+      'adminColumnTable': 'Table',
+      'adminColumnSeated': 'Assis',
+      'adminColumnPlayer': 'Joueur',
+      'adminColumnBalance': 'Solde',
+      'adminColumnJoined': 'Inscrit le',
+      'adminColumnAtTable': 'À la table',
+      'adminActive': 'Actif',
+      'adminDisabled': 'Désactivé',
+      'adminSuspended': 'Suspendu',
+      'adminBot': 'Bot',
+      'adminPublic': 'publique',
+      'adminPrivate': 'privée',
+      'adminStatusOpen': 'Ouverte',
+      'adminStatusFull': 'Complète',
+      'adminStatusPaused': 'En pause',
+      'adminStatusDormant': 'Se vide',
+      'adminNotSeated': '—',
+      'adminUnknownDate': '—',
+      'adminSaveChanges': 'Enregistrer',
+      'adminDangerZone': 'Zone sensible',
+      'adminSaved': '{name} enregistré.',
+      'adminEditPlayer': 'Modifier le joueur',
+      'adminEditPlayerSubtitle': 'Modification de ce compte joueur.',
+      'adminAccount': 'Compte',
+      'adminPaymentPhone': 'Numéro de téléphone de paiement',
+      'adminSuspendAccount': 'Suspendre le compte',
+      'adminSuspendAccountHint':
+          'Bloque la connexion et l’accès aux tables jusqu’à la levée. Les jetons ne sont pas touchés.',
+      'adminResetBalance': 'Remettre le solde à 0',
+      'adminResetBalanceHint': 'Cette action est irréversible.',
+      'adminResetBalanceAction': 'Remettre à zéro',
+      'adminCannotResetWhileSeated':
+          'Pas tant qu’il est assis — son tapis est hors du portefeuille jusqu’à ce qu’il se lève.',
+      'adminJoined': 'Inscrit le',
+      'adminLifetimeDeposits': 'Dépôts cumulés',
+      'adminLifetimeWithdrawals': 'Retraits cumulés',
+      'adminEditRoom': 'Modifier le salon',
+      'adminEditRoomSubtitle': 'Modification de ce salon.',
+      'adminRoomSection': 'Salon',
+      'adminCashoutEnabled': 'Encaissement activé',
+      'adminCashoutEnabledHint':
+          'Les jetons de ce salon se reconvertissent en argent réel.',
+      'adminDisableRoom': 'Désactiver ce salon',
+      'adminDisableRoomHint':
+          'Le retire de la liste des salons. Les joueurs assis continuent jusqu’à leur départ.',
+      'adminDisableRoomAction': 'Désactiver le salon',
+      'adminEnableRoomAction': 'Réactiver le salon',
+      'adminTablesInThisRoom': 'Tables de ce salon',
+      'adminLive': 'En cours',
+      'adminSpare': 'Réserve',
+      'adminSeatedOf': '{seated} / {capacity} assis',
+      'adminEditsReachNewTablesOnly':
+          'Les tables déjà en jeu gardent les conditions de leur ouverture. Seules les tables '
+          'ouvertes après cette modification prennent les nouvelles.',
+      'adminEditTable': 'Modifier la table',
+      'adminEditTableSubtitle': 'Modification de cette table.',
+      'adminTableSection': 'Table',
+      'adminTableIsPublic': 'Table publique',
+      'adminTableIsPublicHint':
+          'Listée sur l’écran d’accueil de tous et hébergée par la maison.',
+      'adminRoomTableCannotBePublic':
+          'On rejoint la table d’un salon en s’y installant : elle ne peut pas être listée seule.',
+      'adminPauseTableHint':
+          'Empêche le démarrage de nouvelles mains ; les joueurs gardent leurs jetons.',
+      'adminCloseTableHint':
+          'Termine la table et rend chaque tapis au solde de son propriétaire.',
+      'adminSeatedPlayers': 'Joueurs assis',
+      'adminRemove': 'Retirer',
+      'adminOpenSeat': 'Place libre',
+      'adminRemovedFromTable': '{name} a été levé de table.',
       'roomNotNow': 'Plus tard',
       'noTablesYet':
           'Aucune table pour le moment. Créez-en une ou rejoignez-en une pour la voir ici.',

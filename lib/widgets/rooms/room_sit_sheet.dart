@@ -10,7 +10,7 @@ import '../common/choice_chips_row.dart';
 import '../common/dashed_border.dart';
 import '../common/karata_button.dart';
 import '../common/labeled_field.dart';
-import 'room_tag.dart';
+import '../common/karata_tag.dart';
 
 /// What the player decided in the buy-in sheet.
 sealed class RoomSitChoice {
@@ -168,7 +168,7 @@ class _RoomSitSheetState extends State<_RoomSitSheet> {
                 ),
               ),
               const SizedBox(width: 12),
-              RoomTag(label: t.roomVariant(widget.room.variant)),
+              KarataTag(label: t.roomVariant(widget.room.variant)),
             ],
           ),
           const SizedBox(height: 4),

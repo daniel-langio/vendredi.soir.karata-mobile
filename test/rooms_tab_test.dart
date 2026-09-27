@@ -13,7 +13,7 @@ import 'package:poker_client/widgets/rooms/room_card_state.dart';
 import 'package:poker_client/widgets/rooms/room_full_pill.dart';
 import 'package:poker_client/widgets/rooms/room_quiet_well.dart';
 import 'package:poker_client/widgets/rooms/room_stats_well.dart';
-import 'package:poker_client/widgets/rooms/room_tag.dart';
+import 'package:poker_client/widgets/common/karata_tag.dart';
 import 'test_helpers.dart';
 
 /// A room card with everything but [state] and its labels held fixed, so a test names only the
@@ -21,7 +21,7 @@ import 'test_helpers.dart';
 Widget roomCard({
   required RoomCardState state,
   String statusLabel = 'Cashout',
-  RoomTagTone statusTone = RoomTagTone.cashout,
+  KarataTagTone statusTone = KarataTagTone.cashout,
   String footerPrefix = 'Default buy-in',
   String actionLabel = 'Sit down',
   int tableCount = 3,
@@ -179,7 +179,7 @@ void main() {
         roomCard(
           state: RoomCardState.seated,
           statusLabel: 'Seated',
-          statusTone: RoomTagTone.seated,
+          statusTone: KarataTagTone.seated,
           footerPrefix: 'You’re in for',
           actionLabel: 'Return to your table',
           onPressed: () {},
@@ -200,7 +200,7 @@ void main() {
         roomCard(
           state: RoomCardState.full,
           statusLabel: 'Full',
-          statusTone: RoomTagTone.full,
+          statusTone: KarataTagTone.full,
           actionLabel: 'Room full',
         ),
       );

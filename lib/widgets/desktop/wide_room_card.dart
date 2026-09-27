@@ -9,7 +9,7 @@ import '../rooms/room_card_state.dart';
 import '../rooms/room_full_pill.dart';
 import '../rooms/room_quiet_well.dart';
 import '../rooms/room_stats_well.dart';
-import '../rooms/room_tag.dart';
+import '../common/karata_tag.dart';
 
 /// The same room as [RoomCard], laid out as the wide layout's full-width row.
 ///
@@ -41,7 +41,7 @@ class WideRoomCard extends StatelessWidget {
   final String blindsLabel;
   final String variantLabel;
   final String statusLabel;
-  final RoomTagTone statusTone;
+  final KarataTagTone statusTone;
   final RoomCardState state;
   final int tableCount;
   final String tablesLabel;
@@ -150,9 +150,9 @@ class WideRoomCard extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        RoomTag(label: variantLabel),
+        KarataTag(label: variantLabel),
         const SizedBox(width: 8),
-        RoomTag(label: statusLabel, tone: statusTone),
+        KarataTag(label: statusLabel, tone: statusTone),
       ],
     );
   }

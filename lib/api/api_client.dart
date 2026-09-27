@@ -344,6 +344,229 @@ class ApiClient {
     }
   }
 
+  // Admin --------------------------------------------------------------------
+  // Everything under /admin is operator-only and answers 403 to anyone else. The client gates
+  // these screens on the same `operator` flag the rest of the admin UI uses, so a 403 here means
+  // the allowlist changed under a signed-in session rather than a missing check.
+
+  /// GET /admin/players
+  Future<List<Map<String, dynamic>>> listAdminPlayers() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/admin/players'),
+      headers: _headers,
+    );
+    if (response.statusCode == 200) {
+      return (jsonDecode(response.body) as List).cast<Map<String, dynamic>>();
+    } else {
+      _throwDetailedError(response);
+    }
+  }
+
+  /// GET /admin/players/{username}
+  Future<Map<String, dynamic>> getAdminPlayer(String username) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/admin/players/${Uri.encodeComponent(username)}'),
+      headers: _headers,
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      _throwDetailedError(response);
+    }
+  }
+
+  /// PATCH /admin/players/{username}
+  /// A PATCH, not a PUT: an omitted field is left as it was, so correcting a phone number cannot
+  /// lift a suspension by accident.
+  Future<Map<String, dynamic>> updateAdminPlayer(
+    String username, {
+    String? phoneNumber,
+    bool? suspended,
+  }) async {
+    final response = await http.patch(
+      Uri.parse('$baseUrl/admin/players/${Uri.encodeComponent(username)}'),
+      headers: _headers,
+      body: jsonEncode({'phoneNumber': ?phoneNumber, 'suspended': ?suspended}),
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      _throwDetailedError(response);
+    }
+  }
+
+  /// PUT /admin/players/{username}/balance
+  /// Sets the wallet to an exact figure rather than moving it by a delta. Refused server-side
+  /// while the player is seated, because their stack is out of the wallet until they stand up.
+  Future<Map<String, dynamic>> setAdminPlayerBalance(
+    String username,
+    int chips,
+  ) async {
+    final response = await http.put(
+      Uri.parse(
+        '$baseUrl/admin/players/${Uri.encodeComponent(username)}/balance',
+      ),
+      headers: _headers,
+      body: jsonEncode({'chips': chips}),
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      _throwDetailedError(response);
+    }
+  }
+
+  /// GET /admin/tables
+  /// Every live table, including private ones belonging to other players.
+  Future<List<Map<String, dynamic>>> listAdminTables() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/admin/tables'),
+      headers: _headers,
+    );
+    if (response.statusCode == 200) {
+      return (jsonDecode(response.body) as List).cast<Map<String, dynamic>>();
+    } else {
+      _throwDetailedError(response);
+    }
+  }
+
+  /// PATCH /admin/tables/{gameId}
+  Future<Map<String, dynamic>> updateAdminTable(
+    String gameId, {
+    String? name,
+    int? smallBlind,
+    int? bigBlind,
+    bool? isPublic,
+  }) async {
+    final response = await http.patch(
+      Uri.parse('$baseUrl/admin/tables/$gameId'),
+      headers: _headers,
+      body: jsonEncode({
+        'name': ?name,
+        if (smallBlind != null || bigBlind != null)
+          'blinds': {'small': smallBlind, 'big': bigBlind},
+        'isPublic': ?isPublic,
+      }),
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      _throwDetailedError(response);
+    }
+  }
+
+  /// DELETE /admin/tables/{gameId}/players/{username}
+  /// Stands the player up the way their own "leave" would, so their stack is cashed back out.
+  Future<void> removeAdminTablePlayer(String gameId, String username) async {
+    final response = await http.delete(
+      Uri.parse(
+        '$baseUrl/admin/tables/$gameId/players/${Uri.encodeComponent(username)}',
+      ),
+      headers: _headers,
+    );
+    if (response.statusCode != 204) {
+      _throwDetailedError(response);
+    }
+  }
+
+  /// POST /rooms and PUT /rooms/{roomId}
+  /// Operator-only. A PUT, not a PATCH: every field is sent, because `maxTables: null` is how a
+  /// table cap is cleared and patch semantics could not express it. Edits reach only tables
+  /// opened afterwards - the ones already in play keep the terms their players agreed to.
+  Future<Map<String, dynamic>> saveRoom({
+    String? roomId,
+    required String name,
+    required int smallBlind,
+    required int bigBlind,
+    required int defaultBuyIn,
+    required String variant,
+    required bool cashoutEnabled,
+    required bool enforceMinimumBuyIn,
+    required bool autoRebuyEnabled,
+    required int? maxTables,
+  }) async {
+    final body = jsonEncode({
+      'name': name,
+      'blinds': {'small': smallBlind, 'big': bigBlind},
+      'defaultBuyIn': defaultBuyIn,
+      'variant': variant,
+      'cashoutEnabled': cashoutEnabled,
+      'enforceMinimumBuyIn': enforceMinimumBuyIn,
+      'autoRebuyEnabled': autoRebuyEnabled,
+      'maxTables': maxTables,
+    });
+    final response = roomId == null
+        ? await http.post(
+            Uri.parse('$baseUrl/rooms'),
+            headers: _headers,
+            body: body,
+          )
+        : await http.put(
+            Uri.parse('$baseUrl/rooms/$roomId'),
+            headers: _headers,
+            body: body,
+          );
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      _throwDetailedError(response);
+    }
+  }
+
+  /// POST /rooms/{roomId}/close
+  /// Stops the room taking new players. Tables with people at them are left to play out.
+  Future<void> closeRoom(String roomId) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/rooms/$roomId/close'),
+      headers: _headers,
+    );
+    if (response.statusCode != 204) {
+      _throwDetailedError(response);
+    }
+  }
+
+  /// POST /rooms/{roomId}/reopen
+  Future<Map<String, dynamic>> reopenRoom(String roomId) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/rooms/$roomId/reopen'),
+      headers: _headers,
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      _throwDetailedError(response);
+    }
+  }
+
+  /// GET /rooms/{roomId}/stats
+  /// Operator-only: the per-table breakdown the lobby hides. Cheap by design - no game state is
+  /// rebuilt - so the room editor can show a room's live tables without paying for a replay.
+  Future<Map<String, dynamic>> getRoomStats(String roomId) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/rooms/$roomId/stats'),
+      headers: _headers,
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      _throwDetailedError(response);
+    }
+  }
+
+  /// GET /admin/rooms
+  /// Every room, closed ones included - unlike [listRooms], which the lobby uses.
+  Future<List<Map<String, dynamic>>> listAdminRooms() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/admin/rooms'),
+      headers: _headers,
+    );
+    if (response.statusCode == 200) {
+      return (jsonDecode(response.body) as List).cast<Map<String, dynamic>>();
+    } else {
+      _throwDetailedError(response);
+    }
+  }
+
   /// GET /wallet
   /// Fetch the caller's persistent chip wallet balance (separate from any single table's
   /// in-progress stack).

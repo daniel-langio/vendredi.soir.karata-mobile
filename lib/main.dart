@@ -16,6 +16,12 @@ import 'screens/new_table_screen.dart';
 import 'screens/join_table_screen.dart';
 import 'screens/table_screen.dart';
 import 'screens/economy_screen.dart';
+import 'screens/admin/admin_player_edit_screen.dart';
+import 'screens/admin/admin_players_screen.dart';
+import 'screens/admin/admin_room_edit_screen.dart';
+import 'screens/admin/admin_rooms_screen.dart';
+import 'screens/admin/admin_table_edit_screen.dart';
+import 'screens/admin/admin_tables_screen.dart';
 import 'screens/chip_purchase_screen.dart';
 import 'screens/chip_redemption_screen.dart';
 import 'screens/economy_config_screen.dart';
@@ -157,6 +163,13 @@ Route<dynamic>? karataOnGenerateRoute(RouteSettings settings) {
             token: session.token,
             username: session.username,
           );
+  } else if (segments.length >= 2 && segments[0] == 'admin') {
+    // Every admin route is operator-only server-side; the client gates the way in on the same
+    // `operator` flag the sidebar uses, so reaching one of these by URL without the privilege
+    // just means the screen reports the 403 it is given.
+    page = session == null
+        ? _RequireSession(routeName: settings.name ?? uri.path)
+        : _adminPage(segments, session);
   } else if (segments.length == 1 && segments[0] == 'economy') {
     page = session == null
         ? _RequireSession(routeName: settings.name ?? uri.path)
@@ -405,4 +418,45 @@ class _RootScreenState extends State<RootScreen> {
     }
     return const WelcomeScreen();
   }
+}
+
+/// The six admin screens, which share a `/admin/<what>[/<which>]` shape.
+Widget _adminPage(List<String> segments, _Session session) {
+  final which = segments.length > 2 ? Uri.decodeComponent(segments[2]) : null;
+  return switch ((segments[1], which)) {
+    ('players', null) => AdminPlayersScreen(
+      serverUrl: session.serverUrl,
+      token: session.token,
+      username: session.username,
+    ),
+    ('players', final subject?) => AdminPlayerEditScreen(
+      serverUrl: session.serverUrl,
+      token: session.token,
+      username: session.username,
+      subject: subject,
+    ),
+    ('tables', null) => AdminTablesScreen(
+      serverUrl: session.serverUrl,
+      token: session.token,
+      username: session.username,
+    ),
+    ('tables', final gameId?) => AdminTableEditScreen(
+      serverUrl: session.serverUrl,
+      token: session.token,
+      username: session.username,
+      gameId: gameId,
+    ),
+    ('rooms', null) => AdminRoomsScreen(
+      serverUrl: session.serverUrl,
+      token: session.token,
+      username: session.username,
+    ),
+    ('rooms', final roomId?) => AdminRoomEditScreen(
+      serverUrl: session.serverUrl,
+      token: session.token,
+      username: session.username,
+      roomId: roomId,
+    ),
+    _ => const RootScreen(),
+  };
 }
