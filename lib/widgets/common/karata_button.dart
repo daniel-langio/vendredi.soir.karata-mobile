@@ -71,6 +71,7 @@ class KarataButton extends StatefulWidget {
     this.onPressed,
     this.style = KarataButtonStyle.primary,
     this.icon,
+    this.trailingIcon,
     this.height = 54,
     this.expand = true,
     this.raised = true,
@@ -82,6 +83,11 @@ class KarataButton extends StatefulWidget {
   final VoidCallback? onPressed;
   final KarataButtonStyle style;
   final KarataIconData? icon;
+
+  /// An icon after the label rather than before it - the chevron on "Return to your table",
+  /// which points at where the button goes.
+  final KarataIconData? trailingIcon;
+
   final double height;
 
   /// Whether the button stretches to its parent's width, as it does at the foot of a screen.
@@ -136,6 +142,10 @@ class _KarataButtonState extends State<KarataButton> {
             ),
           ),
         ),
+        if (widget.trailingIcon != null) ...[
+          const SizedBox(width: 8),
+          KarataIcon(widget.trailingIcon!, size: 16, color: foreground),
+        ],
       ],
     );
 

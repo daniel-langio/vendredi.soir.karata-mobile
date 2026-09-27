@@ -243,6 +243,48 @@ class ApiClient {
     }
   }
 
+  /// GET /rooms
+  /// The stake tiers the lobby lists, cheapest first. A player never picks a table here - that is
+  /// what [sitInRoom] is for.
+  Future<List<Map<String, dynamic>>> listRooms() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/rooms'),
+      headers: _headers,
+    );
+
+    if (response.statusCode == 200) {
+      return (jsonDecode(response.body) as List).cast<Map<String, dynamic>>();
+    } else {
+      _throwDetailedError(response);
+    }
+  }
+
+  /// POST /rooms/{roomId}/sit
+  /// Seats the caller at whichever of the room's tables the server picks, and returns that
+  /// table's gameId to navigate to.
+  ///
+  /// buyInAmount is left off for the room's own default, because the server treats an absent
+  /// amount and the default as the same thing - only a player who typed something else needs to
+  /// send one. Calling this while already seated in the room returns that table rather than
+  /// seating twice, so it is safe, but the lobby still checks `/games/mine` first to spare the
+  /// player a buy-in prompt for a seat they already hold.
+  Future<String> sitInRoom(String roomId, {int? buyInAmount}) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/rooms/$roomId/sit'),
+      headers: _headers,
+      body: buyInAmount == null
+          ? null
+          : jsonEncode({'buyInAmount': buyInAmount}),
+    );
+
+    if (response.statusCode == 200) {
+      return (jsonDecode(response.body) as Map<String, dynamic>)['gameId']
+          as String;
+    } else {
+      _throwDetailedError(response);
+    }
+  }
+
   /// POST /games/{gameId}/pause
   /// Host-only. A paused table rejects deals and actions until it is resumed.
   Future<void> pauseTable(String gameId) async {

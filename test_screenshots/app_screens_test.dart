@@ -27,7 +27,10 @@ import 'package:poker_client/screens/settings_screen.dart';
 import 'package:poker_client/screens/table_screen.dart';
 import 'package:poker_client/screens/welcome_screen.dart';
 import 'package:poker_client/sound_settings.dart';
+import 'package:poker_client/widgets/common/karata_button.dart';
 import 'package:poker_client/widgets/common/segmented_tabs.dart';
+import 'package:poker_client/widgets/desktop/wide_room_card.dart';
+import 'package:poker_client/widgets/rooms/room_card.dart';
 import 'package:poker_client/theme/karata_text_styles.dart';
 import 'package:poker_client/theme/karata_theme.dart';
 
@@ -161,6 +164,17 @@ class _Screen {
   }
 }
 
+/// The lobby's nth tab, by position rather than by label - these shots are taken in both
+/// languages, and the labels differ between them.
+Future<void> _tapTab(WidgetTester tester, int index) => tester.tap(
+  find
+      .descendant(
+        of: find.byType(SegmentedTabs),
+        matching: find.byType(GestureDetector),
+      )
+      .at(index),
+);
+
 const _session = {
   'serverUrl': shotsServerUrl,
   'token': 'screenshot-token',
@@ -172,7 +186,7 @@ final _screens = <_Screen>[
   _Screen('02-register', () => const RegisterScreen(serverUrl: shotsServerUrl)),
   _Screen('03-login', () => const LoginScreen(serverUrl: shotsServerUrl)),
   _Screen(
-    '04-menu',
+    '04-menu-rooms',
     () => MenuScreen(
       serverUrl: _session['serverUrl']!,
       token: _session['token']!,
@@ -180,7 +194,17 @@ final _screens = <_Screen>[
     ),
   ),
   _Screen(
-    '04b-menu-your-tables',
+    '04b-menu-public-tables',
+    () => MenuScreen(
+      serverUrl: _session['serverUrl']!,
+      token: _session['token']!,
+      username: _session['username']!,
+    ),
+    // By position, not by label: these shots are taken in both languages.
+    then: (tester) async => _tapTab(tester, 1),
+  ),
+  _Screen(
+    '04c-menu-your-tables',
     () => MenuScreen(
       serverUrl: _session['serverUrl']!,
       token: _session['token']!,
@@ -188,15 +212,25 @@ final _screens = <_Screen>[
     ),
     // The private list is where a table's mascot cards are silver rather than gold, and nothing
     // else photographs that.
-    // By position, not by label: this shot is taken in both languages.
-    then: (tester) async => tester.tap(
-      find
-          .descendant(
-            of: find.byType(SegmentedTabs),
-            matching: find.byType(GestureDetector),
-          )
-          .at(1),
+    then: (tester) async => _tapTab(tester, 2),
+  ),
+  _Screen(
+    '04d-room-sit-sheet',
+    () => MenuScreen(
+      serverUrl: _session['serverUrl']!,
+      token: _session['token']!,
+      username: _session['username']!,
     ),
+    // The buy-in sheet is a route of its own, and the only place the player decides anything
+    // about a room - nothing else photographs it.
+    then: (tester) async {
+      final card = find
+          .byWidgetPredicate((w) => w is RoomCard || w is WideRoomCard)
+          .first;
+      await tester.tap(
+        find.descendant(of: card, matching: find.byType(KarataButton)),
+      );
+    },
   ),
   _Screen(
     '05-new-table',

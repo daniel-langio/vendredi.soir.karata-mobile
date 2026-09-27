@@ -88,6 +88,67 @@ class AppLocalizations {
   String get seatedCountNone => _s('seatedCountNone');
   String couldNotLoadTables(String error) =>
       _fmt('couldNotLoadTables', {'error': error});
+
+  // Rooms tab
+  String get roomsTab => _s('roomsTab');
+  String get roomsHint => _s('roomsHint');
+  String get noRoomsOpen => _s('noRoomsOpen');
+  String roomBlinds(String small, String big) =>
+      _fmt('roomBlinds', {'small': small, 'big': big});
+
+  /// The short name a room card tags itself with - "Hold'em", not "No-limit Texas Hold'em",
+  /// which does not fit a 12px tag.
+  String roomVariant(String variant) => switch (variant) {
+    'OMAHA' => _s('roomVariantOmaha'),
+    'FIVE_CARD_DRAW' => _s('roomVariantFiveCardDraw'),
+    _ => _s('roomVariantHoldem'),
+  };
+  String get roomTagCashout => _s('roomTagCashout');
+  String get roomTagPlayChips => _s('roomTagPlayChips');
+  String get roomTagSeated => _s('roomTagSeated');
+  String get roomTagFull => _s('roomTagFull');
+
+  /// "table" / "tables" - the mockup prints the plural at every count, including one.
+  String roomTables(int count) =>
+      count == 1 ? _s('roomTable') : _s('roomTables');
+  String roomPlayers(int count) =>
+      count == 1 ? _s('roomPlayer') : _s('roomPlayers');
+  String get roomBeFirstToSit => _s('roomBeFirstToSit');
+  String get roomNoTablesRunning => _s('roomNoTablesRunning');
+  String get roomDefaultBuyIn => _s('roomDefaultBuyIn');
+  String get roomYoureInFor => _s('roomYoureInFor');
+  String get roomReturnToTable => _s('roomReturnToTable');
+  String get roomFull => _s('roomFull');
+  String get roomsCouldNotLoad => _s('roomsCouldNotLoad');
+  String get roomsCheckConnection => _s('roomsCheckConnection');
+  String get retry => _s('retry');
+
+  // Room buy-in sheet
+  String get roomBuyInAmount => _s('roomBuyInAmount');
+  String roomBuyInMin(String amount) =>
+      _fmt('roomBuyInMin', {'amount': amount});
+  String roomBuyInDefault(String amount) =>
+      _fmt('roomBuyInDefault', {'amount': amount});
+  String roomBuyInMax(String amount) =>
+      _fmt('roomBuyInMax', {'amount': amount});
+  String get roomYourBalance => _s('roomYourBalance');
+  String roomBuyInBounds(String min, String max) =>
+      _fmt('roomBuyInBounds', {'min': min, 'max': max});
+  String roomBuyInBoundsMaxOnly(String max) =>
+      _fmt('roomBuyInBoundsMaxOnly', {'max': max});
+  String roomSitDownFor(String amount) =>
+      _fmt('roomSitDownFor', {'amount': amount});
+
+  /// The two halves of "You need at least {amount} to sit here", so the amount can be drawn in
+  /// the notice's brighter ink. Split here rather than at the call site because only this class
+  /// knows where the placeholder falls in a given language.
+  (String, String) roomNeedChipsAround() {
+    final parts = _s('roomNeedChips').split('{amount}');
+    return (parts.first, parts.length > 1 ? parts[1] : '');
+  }
+
+  String get roomAddChips => _s('roomAddChips');
+  String get roomNotNow => _s('roomNotNow');
   String get logOut => _s('logOut');
   String get language => _s('language');
   String get systemDefault => _s('systemDefault');
@@ -509,6 +570,43 @@ class AppLocalizations {
       'seatedCountOne': '1 player',
       'seatedCountNone': 'empty',
       'couldNotLoadTables': 'Could not load your tables: {error}',
+      'roomsTab': 'Rooms',
+      'roomsHint': 'Pick your stake — we’ll seat you at the best open table.',
+      'noRoomsOpen': 'No rooms are open right now.',
+      'roomBlinds': 'Blinds {small} / {big}',
+      'roomVariantHoldem': 'Hold\'em',
+      'roomVariantOmaha': 'Omaha',
+      'roomVariantFiveCardDraw': 'Five-card draw',
+      'roomTagCashout': 'Cashout',
+      'roomTagPlayChips': 'Play chips',
+      'roomTagSeated': 'Seated',
+      'roomTagFull': 'Full',
+      'roomTable': 'table',
+      'roomTables': 'tables',
+      'roomPlayer': 'player',
+      'roomPlayers': 'players',
+      'roomBeFirstToSit': 'Be the first to sit',
+      'roomNoTablesRunning': '0 tables running yet',
+      'roomDefaultBuyIn': 'Default buy-in',
+      'roomYoureInFor': 'You’re in for',
+      'roomReturnToTable': 'Return to your table',
+      'roomFull': 'Room full',
+      'roomsCouldNotLoad': 'Couldn’t load rooms',
+      'roomsCheckConnection': 'Check your connection and try again.',
+      'retry': 'Retry',
+      'roomBuyInAmount': 'Buy-in amount',
+      'roomBuyInMin': 'Min {amount}',
+      'roomBuyInDefault': 'Default {amount}',
+      'roomBuyInMax': 'Max {amount}',
+      'roomYourBalance': 'Your balance',
+      'roomBuyInBounds': 'Min {min} for this room · Max {max}, your balance.',
+      'roomBuyInBoundsMaxOnly': 'Max {max} — as much as your balance allows.',
+      'roomSitDownFor': 'Sit down for {amount}',
+      'roomNeedChips':
+          'You need at least {amount} to sit at this room. Add chips to your balance to '
+          'continue.',
+      'roomAddChips': 'Add chips',
+      'roomNotNow': 'Not now',
       'noTablesYet': 'No tables yet. Create or join one to see it here.',
       'open': 'Open',
       'logOut': 'Log out',
@@ -868,6 +966,44 @@ class AppLocalizations {
       'seatedCountOne': '1 joueur',
       'seatedCountNone': 'vide',
       'couldNotLoadTables': 'Impossible de charger vos tables : {error}',
+      'roomsTab': 'Salons',
+      'roomsHint':
+          'Choisissez votre palier — nous vous installons à la meilleure table ouverte.',
+      'noRoomsOpen': 'Aucun salon n\'est ouvert pour le moment.',
+      'roomBlinds': 'Blindes {small} / {big}',
+      'roomVariantHoldem': 'Hold\'em',
+      'roomVariantOmaha': 'Omaha',
+      'roomVariantFiveCardDraw': 'Draw à 5 cartes',
+      'roomTagCashout': 'Encaissable',
+      'roomTagPlayChips': 'Jetons fictifs',
+      'roomTagSeated': 'Assis',
+      'roomTagFull': 'Complet',
+      'roomTable': 'table',
+      'roomTables': 'tables',
+      'roomPlayer': 'joueur',
+      'roomPlayers': 'joueurs',
+      'roomBeFirstToSit': 'Soyez le premier à vous asseoir',
+      'roomNoTablesRunning': 'Aucune table en cours',
+      'roomDefaultBuyIn': 'Cave par défaut',
+      'roomYoureInFor': 'Vous avez en jeu',
+      'roomReturnToTable': 'Retour à votre table',
+      'roomFull': 'Salon complet',
+      'roomsCouldNotLoad': 'Impossible de charger les salons',
+      'roomsCheckConnection': 'Vérifiez votre connexion et réessayez.',
+      'retry': 'Réessayer',
+      'roomBuyInAmount': 'Montant de la cave',
+      'roomBuyInMin': 'Min {amount}',
+      'roomBuyInDefault': 'Défaut {amount}',
+      'roomBuyInMax': 'Max {amount}',
+      'roomYourBalance': 'Votre solde',
+      'roomBuyInBounds': 'Min {min} pour ce salon · Max {max}, votre solde.',
+      'roomBuyInBoundsMaxOnly': 'Max {max} — autant que votre solde le permet.',
+      'roomSitDownFor': 'S\'installer pour {amount}',
+      'roomNeedChips':
+          'Il vous faut au moins {amount} pour vous asseoir dans ce salon. Ajoutez des jetons '
+          'à votre solde pour continuer.',
+      'roomAddChips': 'Ajouter des jetons',
+      'roomNotNow': 'Plus tard',
       'noTablesYet':
           'Aucune table pour le moment. Créez-en une ou rejoignez-en une pour la voir ici.',
       'open': 'Ouvrir',
