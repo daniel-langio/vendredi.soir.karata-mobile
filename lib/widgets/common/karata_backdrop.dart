@@ -1,8 +1,7 @@
-import 'dart:math' as math;
-
 import 'package:flutter/widgets.dart';
 
 import '../../theme/karata_colors.dart';
+import 'css_gradient.dart';
 
 /// The page background: `radial-gradient(ellipse at 50% -10%, #23234a 0%, #14142a 55%)`.
 ///
@@ -29,28 +28,16 @@ class _BackdropPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width * _origin.dx, size.height * _origin.dy);
-
-    // CSS sizes a `farthest-corner` ellipse by taking the farthest-side ellipse and growing it
-    // until it passes through the farthest corner. Because the farthest corner sits at exactly
-    // the farthest-side distance on both axes, solving (x/ka)^2 + (y/kb)^2 = 1 always gives
-    // k = sqrt(2) - so the radii are just the farthest-side distances scaled by that.
-    final radiusX = math.max(center.dx, size.width - center.dx) * math.sqrt2;
-    final radiusY = math.max(center.dy, size.height - center.dy) * math.sqrt2;
-
-    final paint = Paint()
-      ..shader =
-          const RadialGradient(
-            colors: [KarataColors.backdropTop, KarataColors.backdrop],
-            stops: [0, 0.55],
-          ).createShader(
-            Rect.fromCenter(
-              center: center,
-              width: radiusX * 2,
-              height: radiusY * 2,
-            ),
-          );
-    canvas.drawRect(Offset.zero & size, paint);
+    canvas.drawRect(
+      Offset.zero & size,
+      Paint()
+        ..shader = cssRadialGradient(
+          size: size,
+          origin: _origin,
+          colors: const [KarataColors.backdropTop, KarataColors.backdrop],
+          stops: const [0, 0.55],
+        ),
+    );
   }
 
   @override

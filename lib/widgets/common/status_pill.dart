@@ -13,6 +13,9 @@ class StatusPill extends StatelessWidget {
     required this.background,
     this.height = 26,
     this.ringColor,
+    this.fontSize,
+    this.fontWeight,
+    this.ringDiameter,
   });
 
   final String label;
@@ -23,9 +26,17 @@ class StatusPill extends StatelessWidget {
   /// Defaults to [foreground]; the gold badge draws a paler ring than its text.
   final Color? ringColor;
 
+  /// The wide layout draws this pill smaller than the phone does - an 11px count on a 20px badge
+  /// in the sidebar, against 13px on a 26px pill on a lobby card - and sizes the glyph beside it
+  /// to match. Both default to the phone's proportions, so a pill that does not ask for them is
+  /// drawn exactly as before.
+  final double? fontSize;
+  final int? fontWeight;
+  final double? ringDiameter;
+
   @override
   Widget build(BuildContext context) {
-    final ringSize = height - 8;
+    final ringSize = ringDiameter ?? height - 8;
     return Container(
       height: height,
       padding: EdgeInsets.only(left: (height - ringSize) / 2, right: 10),
@@ -40,7 +51,11 @@ class StatusPill extends StatelessWidget {
           const SizedBox(width: 6),
           Text(
             label,
-            style: karataText(size: 13, weight: 700, color: foreground),
+            style: karataText(
+              size: fontSize ?? 13,
+              weight: fontWeight ?? 700,
+              color: foreground,
+            ),
           ),
         ],
       ),

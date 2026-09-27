@@ -5,9 +5,11 @@ import '../api/api_client.dart';
 import '../chip_display.dart';
 import '../l10n/app_localizations.dart';
 import '../locale_controller.dart';
+import '../session_summary.dart';
 import '../sound_settings.dart';
 import '../theme/karata_colors.dart';
 import '../theme/karata_text_styles.dart';
+import '../widgets/common/breakpoints.dart';
 import '../widgets/common/karata_button.dart';
 import '../widgets/common/karata_card.dart';
 import '../widgets/common/karata_dropdown.dart';
@@ -19,6 +21,8 @@ import '../widgets/common/labeled_field.dart';
 import '../widgets/common/note_well.dart';
 import '../widgets/common/section_card.dart';
 import '../widgets/common/setting_row.dart';
+import '../widgets/desktop/desktop_shell.dart';
+import '../widgets/desktop/desktop_sidebar.dart';
 
 /// Everything that used to be scattered across app bars, or had no home at all: language, table
 /// sounds, how chip amounts are rendered, and the payment phone number - which until now could
@@ -44,6 +48,12 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+  /// What every route this screen pushes needs to keep the session alive across it.
+  Map<String, dynamic> get _sessionArgs => {
+    'serverUrl': widget.serverUrl,
+    'token': widget.token,
+    'username': widget.username,
+  };
   late final ApiClient _apiClient;
   final _phoneController = TextEditingController();
 
@@ -118,6 +128,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('jwt_token');
     await prefs.remove('username');
+    SessionSummary.instance.clear();
     if (!mounted) return;
     Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
   }
@@ -126,25 +137,41 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
 
+    final general = SectionCard(
+      title: t.settingsGeneral,
+      children: [_languageRow(t), const CardDivider(), _soundRow(t)],
+    );
+    final table = SectionCard(
+      title: t.settingsTable,
+      children: _chipDisplayRows(t),
+    );
+    final account = SectionCard(
+      title: t.settingsAccount,
+      children: _accountRows(t),
+    );
+    final logOut = KarataButton(
+      label: t.logOut,
+      icon: KarataIcons.logout,
+      onPressed: _logOut,
+      style: KarataButtonStyle.danger,
+      height: 50,
+    );
+
+    if (KarataLayout.isWide(context)) {
+      return DesktopShell(
+        current: DesktopNav.settings,
+        sessionArgs: _sessionArgs,
+        username: widget.username,
+        title: t.settings,
+        child: DesktopColumns(left: [general, table], right: [account, logOut]),
+      );
+    }
+
     return KarataScreen(
       onBack: () => Navigator.of(context).pop(),
       backLabel: t.back,
       title: t.settings,
-      children: [
-        SectionCard(
-          title: t.settingsGeneral,
-          children: [_languageRow(t), const CardDivider(), _soundRow(t)],
-        ),
-        SectionCard(title: t.settingsTable, children: _chipDisplayRows(t)),
-        SectionCard(title: t.settingsAccount, children: _accountRows(t)),
-        KarataButton(
-          label: t.logOut,
-          icon: KarataIcons.logout,
-          onPressed: _logOut,
-          style: KarataButtonStyle.danger,
-          height: 50,
-        ),
-      ],
+      children: [general, table, account, logOut],
     );
   }
 

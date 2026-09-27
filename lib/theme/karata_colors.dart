@@ -17,6 +17,10 @@ abstract final class KarataColors {
   /// A notch darker than [backdrop], for wells sunk into a card.
   static const backdropDeep = Color(0xFF0E0E20);
 
+  /// The flat panel behind the wide layout's sidebar. A hair lighter than [backdropDeep], which
+  /// is a button's ledge rather than a surface - the design keeps the two apart, so this does too.
+  static const sidebar = Color(0xFF0F0F22);
+
   // Surfaces ----------------------------------------------------------------
   /// Cards, inputs, and the circular icon buttons in the header.
   static const surface = Color(0xFF1E1E3A);
@@ -36,6 +40,10 @@ abstract final class KarataColors {
 
   /// The quietest tier - helper lines, captions, disabled chip text.
   static const inkFaint = Color(0xFF8A89A8);
+
+  /// Body copy laid over the felt - the tagline on the wide auth screens' teal panel, where
+  /// [inkMuted] would read as a smudge against the green.
+  static const inkOnFelt = Color(0xFFCDEEE7);
 
   /// Text on top of the gold accent.
   static const onAccent = Color(0xFF5E3F00);
@@ -60,6 +68,11 @@ abstract final class KarataColors {
 
   /// Affirmative - selected chips, "seats open", the check action.
   static const teal = Color(0xFF1F9D8B);
+
+  /// The pale ring and the near-black ink of a solid teal badge, which is how the wide lobby
+  /// draws "Seats open" - the phone draws the same pill as a teal wash instead.
+  static const tealPale = Color(0xFF9EF0E2);
+  static const onTeal = Color(0xFF04231F);
   static const tealDeep = Color(0xFF0F5C55);
   static const tealLight = Color(0xFF5FD4C0);
 
@@ -87,6 +100,11 @@ abstract final class KarataColors {
   static const cardFace = Color(0xFFFBFAF7);
   static const cardBackTop = Color(0xFFFBE7A1);
   static const cardMuted = Color(0xFFA3A2B6);
+
+  // Chips -------------------------------------------------------------------
+  /// The face of the design's lowest chip, a pale lavender against the teal 25 and laterite 5,
+  /// which are [teal] and [orange].
+  static const chipPale = Color(0xFFCFCDE6);
 
   // Lines -------------------------------------------------------------------
   /// The hairline on a field or an outlined button.

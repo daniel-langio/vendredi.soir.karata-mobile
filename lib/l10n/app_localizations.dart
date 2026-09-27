@@ -418,6 +418,33 @@ class AppLocalizations {
   String get enforceDeposit => _s('enforceDeposit');
   String get enforceDepositHint => _s('enforceDepositHint');
 
+  // V2 design - the wide layout. Everything here is drawn only on the desktop artboards: the
+  // sidebar's own labels, the greeting that replaces the phone's profile header, and the copy the
+  // wide screens have room for that the phone ones do not.
+  String get navLobby => _s('navLobby');
+  String get lobbySubtitle => _s('lobbySubtitle');
+  String greetingMorning(String name) =>
+      _fmt('greetingMorning', {'name': name});
+  String greetingAfternoon(String name) =>
+      _fmt('greetingAfternoon', {'name': name});
+  String greetingEvening(String name) =>
+      _fmt('greetingEvening', {'name': name});
+  String get welcomeBackTitle => _s('welcomeBackTitle');
+  String get welcomeBackSubtitle => _s('welcomeBackSubtitle');
+  String get economyConfigSubtitle => _s('economyConfigSubtitle');
+  String get howItWorks => _s('howItWorks');
+  String get howItWorksDeposit => _s('howItWorksDeposit');
+  String get howItWorksPlayLead => _s('howItWorksPlayLead');
+  String get howItWorksPlay => _s('howItWorksPlay');
+  String get howItWorksWithdraw => _s('howItWorksWithdraw');
+  String get findTable => _s('findTable');
+  String get joinTableDesktopTip => _s('joinTableDesktopTip');
+  String get requests => _s('requests');
+  String get columnAmount => _s('columnAmount');
+  String get columnPhone => _s('columnPhone');
+  String get columnProvider => _s('columnProvider');
+  String get columnReference => _s('columnReference');
+
   static const Map<String, Map<String, String>> _strings = {
     'en': {
       'cancel': 'Cancel',
@@ -739,6 +766,30 @@ class AppLocalizations {
       'enforceDeposit': 'Require a deposit to start',
       'enforceDepositHint':
           'A new player must fund their wallet before they can reach the tables.',
+      // The wide layout.
+      'navLobby': 'Lobby',
+      'lobbySubtitle': 'Pick a table or start your own.',
+      'greetingMorning': 'Good morning, {name}',
+      'greetingAfternoon': 'Good afternoon, {name}',
+      'greetingEvening': 'Good evening, {name}',
+      'welcomeBackTitle': 'Welcome to Karata',
+      'welcomeBackSubtitle':
+          'Pick up where your friends left off, or start a fresh account in a few seconds.',
+      'economyConfigSubtitle': 'How chips are priced and what the house keeps.',
+      'howItWorks': 'How it works',
+      'howItWorksDeposit':
+          'Send mobile money to the house, then confirm with your SMS reference.',
+      'howItWorksPlayLead': 'Play',
+      'howItWorksPlay': 'Your balance becomes chips when you sit down.',
+      'howItWorksWithdraw': 'Cash out any time; payouts are sent by hand.',
+      'findTable': 'Find table',
+      'joinTableDesktopTip':
+          'Tip: opening a Karata link on this computer takes you straight to the table.',
+      'requests': 'Requests',
+      'columnAmount': 'Amount',
+      'columnPhone': 'Phone',
+      'columnProvider': 'Provider',
+      'columnReference': 'Reference',
     },
     'fr': {
       'cancel': 'Annuler',
@@ -1077,6 +1128,33 @@ class AppLocalizations {
       'enforceDeposit': 'Exiger un dépôt pour commencer',
       'enforceDepositHint':
           'Un nouveau joueur doit alimenter son portefeuille avant d\'accéder aux tables.',
+      // The wide layout.
+      'navLobby': 'Salon',
+      'lobbySubtitle': 'Choisissez une table ou créez la vôtre.',
+      'greetingMorning': 'Bonjour, {name}',
+      'greetingAfternoon': 'Bon après-midi, {name}',
+      'greetingEvening': 'Bonsoir, {name}',
+      'welcomeBackTitle': 'Bienvenue sur Karata',
+      'welcomeBackSubtitle':
+          'Reprenez là où vos amis se sont arrêtés, ou créez un compte en quelques secondes.',
+      'economyConfigSubtitle':
+          'Comment les jetons sont valorisés et ce que la maison garde.',
+      'howItWorks': 'Comment ça marche',
+      'howItWorksDeposit':
+          'Envoyez l\'argent à la maison par mobile money, puis confirmez avec la référence de votre SMS.',
+      'howItWorksPlayLead': 'Jouez',
+      'howItWorksPlay':
+          'Votre solde devient des jetons quand vous vous asseyez.',
+      'howItWorksWithdraw':
+          'Encaissez quand vous voulez ; les paiements sont envoyés à la main.',
+      'findTable': 'Trouver la table',
+      'joinTableDesktopTip':
+          'Astuce : ouvrir un lien Karata sur cet ordinateur vous emmène directement à la table.',
+      'requests': 'Demandes',
+      'columnAmount': 'Montant',
+      'columnPhone': 'Téléphone',
+      'columnProvider': 'Opérateur',
+      'columnReference': 'Référence',
     },
   };
 }
