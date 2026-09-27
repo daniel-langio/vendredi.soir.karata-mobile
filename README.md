@@ -1,4 +1,4 @@
-# poker_client
+# karata-ui
 
 A new Flutter project.
 
@@ -37,7 +37,10 @@ get an email invite.
 **How this is wired up** (for reference / if it ever needs touching):
 - Firebase project: `karata0` (same GCP project karata's backend already deploys to).
 - Android app registered as `com.vendredi.poker.poker_client`, Firebase app id
-  `1:210977503792:android:c89d272d5d925f5c4dcbf5`.
+  `1:210977503792:android:c89d272d5d925f5c4dcbf5`. That id keeps the old `poker_client` name on
+  purpose: the applicationId is the app's identity on a device, so changing it would not rename
+  this app - it would publish a second one, and every existing install would stop receiving
+  updates. The Dart package was renamed to `karata_ui`; the Android identity stays put.
 - CI authenticates via Workload Identity Federation (no downloadable service account key - this
   org has `iam.disableServiceAccountKeyCreation` enforced), as a dedicated service account
   `github-actions-distributor@karata0.iam.gserviceaccount.com` holding only

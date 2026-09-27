@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:poker_client/table_name_generator.dart';
+import 'package:karata_ui/table_name_generator.dart';
 
 void main() {
   test('generateTableName returns two capitalized words', () {

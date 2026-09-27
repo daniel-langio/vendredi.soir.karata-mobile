@@ -5,15 +5,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:poker_client/models/room_summary.dart';
-import 'package:poker_client/screens/menu_screen.dart';
-import 'package:poker_client/widgets/common/karata_button.dart';
-import 'package:poker_client/widgets/rooms/room_card.dart';
-import 'package:poker_client/widgets/rooms/room_card_state.dart';
-import 'package:poker_client/widgets/rooms/room_full_pill.dart';
-import 'package:poker_client/widgets/rooms/room_quiet_well.dart';
-import 'package:poker_client/widgets/rooms/room_stats_well.dart';
-import 'package:poker_client/widgets/common/karata_tag.dart';
+import 'package:karata_ui/models/room_summary.dart';
+import 'package:karata_ui/screens/menu_screen.dart';
+import 'package:karata_ui/widgets/common/karata_button.dart';
+import 'package:karata_ui/widgets/rooms/room_card.dart';
+import 'package:karata_ui/widgets/rooms/room_card_state.dart';
+import 'package:karata_ui/widgets/rooms/room_full_pill.dart';
+import 'package:karata_ui/widgets/rooms/room_quiet_well.dart';
+import 'package:karata_ui/widgets/rooms/room_stats_well.dart';
+import 'package:karata_ui/widgets/common/karata_tag.dart';
 import 'test_helpers.dart';
 
 /// A room card with everything but [state] and its labels held fixed, so a test names only the

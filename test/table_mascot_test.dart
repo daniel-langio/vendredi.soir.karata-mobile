@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:poker_client/widgets/lobby/table_mascot.dart';
+import 'package:karata_ui/widgets/lobby/table_mascot.dart';
 
 void main() {
   test('a table keeps the same hand however the list is ordered', () {
