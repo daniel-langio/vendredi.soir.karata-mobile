@@ -1,5 +1,7 @@
 import 'package:flutter/widgets.dart';
 
+import '../common/clickable.dart';
+
 import '../../theme/karata_colors.dart';
 import '../common/karata_icon.dart';
 
@@ -24,9 +26,8 @@ class RoundIconButton extends StatelessWidget {
     return Semantics(
       button: true,
       label: semanticLabel,
-      child: GestureDetector(
+      child: Clickable(
         onTap: onPressed,
-        behavior: HitTestBehavior.opaque,
         child: Container(
           width: 40,
           height: 40,

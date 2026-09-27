@@ -1,5 +1,7 @@
 import 'package:flutter/widgets.dart';
 
+import 'clickable.dart';
+
 import '../../theme/karata_colors.dart';
 import 'karata_icon.dart';
 import 'karata_icons.dart';
@@ -22,9 +24,8 @@ class PasswordRevealButton extends StatelessWidget {
     return Semantics(
       button: true,
       label: semanticLabel,
-      child: GestureDetector(
+      child: Clickable(
         onTap: onPressed,
-        behavior: HitTestBehavior.opaque,
         child: SizedBox.square(
           dimension: 44,
           child: Center(

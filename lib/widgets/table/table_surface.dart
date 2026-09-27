@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import '../common/clickable.dart';
 import 'board_row.dart';
 import 'chip_glyph.dart';
 import 'dealer_button.dart';
@@ -312,7 +313,7 @@ class _SelectableHand extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         for (var i = 0; i < cards.length; i++)
-          GestureDetector(
+          Clickable(
             onTap: () => onTap(i),
             child: Opacity(
               opacity: selected.contains(i) ? 0.45 : 1,

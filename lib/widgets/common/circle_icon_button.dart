@@ -1,5 +1,7 @@
 import 'package:flutter/widgets.dart';
 
+import 'clickable.dart';
+
 import '../../theme/karata_colors.dart';
 import 'karata_icon.dart';
 
@@ -29,9 +31,8 @@ class CircleIconButton extends StatelessWidget {
     return Semantics(
       button: true,
       label: semanticLabel,
-      child: GestureDetector(
+      child: Clickable(
         onTap: onPressed,
-        behavior: HitTestBehavior.opaque,
         child: Container(
           width: diameter,
           height: diameter,

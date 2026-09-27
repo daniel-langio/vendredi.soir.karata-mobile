@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import '../../theme/karata_colors.dart';
 import '../../theme/karata_text_styles.dart';
 import '../common/avatar_stack.dart';
+import '../common/clickable.dart';
 import '../common/css_gradient.dart';
 import '../common/karata_button.dart';
 import '../common/karata_icon.dart';
@@ -52,151 +53,158 @@ class WideLobbyTableCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x59000000),
-            blurRadius: 20,
-            offset: Offset(0, 8),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(18),
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: cssLinearGradient(
-              angleDegrees: 160,
-              colors: const [KarataColors.surface, Color(0xFF16303A)],
+    // The whole tile is the tap target, not just the button on it - a card that looks
+    // like one object should behave like one. The button stays because the design draws
+    // it, and because it is what names the action for a screen reader.
+    return Clickable(
+      onTap: onPressed,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x59000000),
+              blurRadius: 20,
+              offset: Offset(0, 8),
             ),
-          ),
-          child: SizedBox(
-            height: height,
-            child: Stack(
-              children: [
-                Positioned(
-                  right: -10,
-                  top: 20,
-                  child: IgnorePointer(
-                    child: Container(
-                      width: 220,
-                      height: 210,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: RadialGradient(
-                          center: const Alignment(0.2, 0),
-                          radius: 0.65,
-                          colors: [palette.halo, palette.halo.withAlpha(0)],
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(18),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: cssLinearGradient(
+                angleDegrees: 160,
+                colors: const [KarataColors.surface, Color(0xFF16303A)],
+              ),
+            ),
+            child: SizedBox(
+              height: height,
+              child: Stack(
+                children: [
+                  Positioned(
+                    right: -10,
+                    top: 20,
+                    child: IgnorePointer(
+                      child: Container(
+                        width: 220,
+                        height: 210,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: RadialGradient(
+                            center: const Alignment(0.2, 0),
+                            radius: 0.65,
+                            colors: [palette.halo, palette.halo.withAlpha(0)],
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-                Positioned(
-                  right: 10,
-                  top: 36,
-                  child: SizedBox(
-                    width: 190,
-                    height: 170,
-                    child: Stack(
+                  Positioned(
+                    right: 10,
+                    top: 36,
+                    child: SizedBox(
+                      width: 190,
+                      height: 170,
+                      child: Stack(
+                        children: [
+                          // Laid flat rather than fanned: the phone tilts its pair, the wide tile
+                          // simply overlaps them.
+                          Positioned(
+                            left: 10,
+                            top: 10,
+                            child: _card(decoration.$1),
+                          ),
+                          Positioned(
+                            left: 82,
+                            top: 4,
+                            child: _card(decoration.$2),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    left: 24,
+                    top: 26,
+                    right: 190,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Laid flat rather than fanned: the phone tilts its pair, the wide tile
-                        // simply overlaps them.
-                        Positioned(
-                          left: 10,
-                          top: 10,
-                          child: _card(decoration.$1),
+                        Text(
+                          name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: karataText(size: 26, weight: 800, height: 1.1),
                         ),
-                        Positioned(
-                          left: 82,
-                          top: 4,
-                          child: _card(decoration.$2),
+                        const SizedBox(height: 10),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: StatusPill(
+                            label: statusLabel,
+                            // Solid teal here, against the phone's teal wash.
+                            foreground: seatsOpen
+                                ? KarataColors.onTeal
+                                : KarataColors.inkMuted,
+                            background: seatsOpen
+                                ? KarataColors.teal
+                                : const Color(0x14FFFFFF),
+                            ringColor: seatsOpen
+                                ? KarataColors.tealPale
+                                : KarataColors.inkMuted,
+                            ringDiameter: 20,
+                            fontWeight: 800,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          buyInLabel,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: karataText(
+                            size: 14,
+                            weight: 600,
+                            color: KarataColors.gold,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            AvatarStack(names: playerNames, diameter: 28),
+                            if (playerNames.isNotEmpty)
+                              const SizedBox(width: 8),
+                            Flexible(
+                              child: Text(
+                                playerCountLabel,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: karataText(
+                                  size: 13,
+                                  weight: 500,
+                                  color: KarataColors.inkMuted,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
                   ),
-                ),
-                Positioned(
-                  left: 24,
-                  top: 26,
-                  right: 190,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: karataText(size: 26, weight: 800, height: 1.1),
-                      ),
-                      const SizedBox(height: 10),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: StatusPill(
-                          label: statusLabel,
-                          // Solid teal here, against the phone's teal wash.
-                          foreground: seatsOpen
-                              ? KarataColors.onTeal
-                              : KarataColors.inkMuted,
-                          background: seatsOpen
-                              ? KarataColors.teal
-                              : const Color(0x14FFFFFF),
-                          ringColor: seatsOpen
-                              ? KarataColors.tealPale
-                              : KarataColors.inkMuted,
-                          ringDiameter: 20,
-                          fontWeight: 800,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        buyInLabel,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: karataText(
-                          size: 14,
-                          weight: 600,
-                          color: KarataColors.gold,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      Row(
-                        children: [
-                          AvatarStack(names: playerNames, diameter: 28),
-                          if (playerNames.isNotEmpty) const SizedBox(width: 8),
-                          Flexible(
-                            child: Text(
-                              playerCountLabel,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: karataText(
-                                size: 13,
-                                weight: 500,
-                                color: KarataColors.inkMuted,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                  Positioned(
+                    left: 24,
+                    bottom: 20,
+                    child: KarataButton(
+                      label: actionLabel,
+                      onPressed: onPressed,
+                      height: 44,
+                      expand: false,
+                      // `padding: 0 32px` - wider than the 14px a hugging pill takes by default.
+                      horizontalPadding: 32,
+                    ),
                   ),
-                ),
-                Positioned(
-                  left: 24,
-                  bottom: 20,
-                  child: KarataButton(
-                    label: actionLabel,
-                    onPressed: onPressed,
-                    height: 44,
-                    expand: false,
-                    // `padding: 0 32px` - wider than the 14px a hugging pill takes by default.
-                    horizontalPadding: 32,
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

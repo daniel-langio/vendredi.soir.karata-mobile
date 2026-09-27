@@ -673,7 +673,9 @@ class _TableScreenState extends State<TableScreen> {
     final (action, label) = switch (true) {
       _ when revealed?['winner'] == true => (SeatAction.winner, t.winner),
       _ when folded => (SeatAction.folded, t.fold),
-      _ when isActive => (SeatAction.turn, t.yourTurnBadge),
+      // Somebody else's seat, so never "Your turn" - that badge is only ever drawn on an
+      // opponent here, since the hero's own prompt lives in the action bar below the felt.
+      _ when isActive => (SeatAction.turn, t.toActBadge),
       _ when status == 'ALL_IN' => (SeatAction.allIn, t.allIn),
       _ when lastAction != null => (
         _actionKind(lastAction),

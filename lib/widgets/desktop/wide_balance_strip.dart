@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 
 import '../../theme/karata_colors.dart';
 import '../../theme/karata_text_styles.dart';
+import '../common/clickable.dart';
 import '../common/css_gradient.dart';
 import '../common/karata_button.dart';
 import '../common/karata_icons.dart';
@@ -80,9 +81,8 @@ class WideBalanceStrip extends StatelessWidget {
                     child: IntrinsicHeight(
                       child: Row(
                         children: [
-                          GestureDetector(
+                          Clickable(
                             onTap: onTap,
-                            behavior: HitTestBehavior.opaque,
                             child: _Figure(
                               label: balanceLabel,
                               labelColor: KarataColors.gold,

@@ -1,5 +1,7 @@
 import 'package:flutter/widgets.dart';
 
+import 'clickable.dart';
+
 import '../../theme/karata_colors.dart';
 import '../../theme/karata_text_styles.dart';
 
@@ -56,9 +58,8 @@ class _Tab extends StatelessWidget {
     return Semantics(
       button: true,
       selected: selected,
-      child: GestureDetector(
+      child: Clickable(
         onTap: onPressed,
-        behavior: HitTestBehavior.opaque,
         child: Container(
           height: height,
           padding: const EdgeInsets.symmetric(horizontal: 18),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../theme/karata_colors.dart';
 import '../../theme/karata_text_styles.dart';
+import '../common/clickable.dart';
 
 /// The row of pot fractions above the action buttons, with the bet amount at its end.
 class BetSizerRow extends StatelessWidget {
@@ -71,9 +72,8 @@ class _Fraction extends StatelessWidget {
     return Semantics(
       button: true,
       selected: selected,
-      child: GestureDetector(
+      child: Clickable(
         onTap: onPressed,
-        behavior: HitTestBehavior.opaque,
         child: Container(
           height: 30,
           alignment: Alignment.center,

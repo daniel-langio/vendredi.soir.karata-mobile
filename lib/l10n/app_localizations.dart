@@ -402,6 +402,9 @@ class AppLocalizations {
   // V2 design - the table
   String get winner => _s('winner');
   String get yourTurnBadge => _s('yourTurnBadge');
+
+  /// The same badge on somebody else's seat. "Your turn" there is addressed to the wrong player.
+  String get toActBadge => _s('toActBadge');
   String get handStrength => _s('handStrength');
   String get sendReaction => _s('sendReaction');
   String get betAmount => _s('betAmount');
@@ -753,6 +756,7 @@ class AppLocalizations {
       'noMinimum': 'No minimum',
       'winner': 'Winner',
       'yourTurnBadge': 'Your turn',
+      'toActBadge': 'To act',
       'handStrength': 'Hand strength',
       'sendReaction': 'Send a reaction',
       'betAmount': 'Bet amount',
@@ -1114,6 +1118,7 @@ class AppLocalizations {
       'noMinimum': 'Pas de minimum',
       'winner': 'Gagnant',
       'yourTurnBadge': 'À vous',
+      'toActBadge': 'À parler',
       'handStrength': 'Force de la main',
       'sendReaction': 'Envoyer une réaction',
       'betAmount': 'Montant de la mise',

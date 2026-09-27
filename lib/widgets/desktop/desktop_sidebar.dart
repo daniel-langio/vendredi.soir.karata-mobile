@@ -4,6 +4,7 @@ import '../../l10n/app_localizations.dart';
 import '../../theme/karata_colors.dart';
 import '../../theme/karata_text_styles.dart';
 import '../common/avatar.dart';
+import '../common/clickable.dart';
 import '../common/karata_icon.dart';
 import '../common/karata_icons.dart';
 import '../common/karata_logo.dart';
@@ -83,12 +84,23 @@ class DesktopSidebar extends StatelessWidget {
                 // margin, so at 34 it read a quarter smaller than what it replaced.
                 const KarataLogo(size: 40),
                 const SizedBox(width: 10),
-                Text(
-                  'Karata',
-                  style: karataText(
-                    size: 26,
-                    weight: 800,
-                    letterSpacing: -0.02,
+                // The wordmark takes what the mark leaves and shrinks if it has to, the same way
+                // the nav labels below do. At the design's own sizes it does not have to - but
+                // 40 + 10 + "Karata" at 26px is within a few pixels of the 200 this row gets, so
+                // a wider rendering of the face has nowhere to go.
+                Flexible(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Karata',
+                      maxLines: 1,
+                      style: karataText(
+                        size: 26,
+                        weight: 800,
+                        letterSpacing: -0.02,
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -180,9 +192,8 @@ class _NavItem extends StatelessWidget {
     return Semantics(
       button: true,
       selected: selected,
-      child: GestureDetector(
+      child: Clickable(
         onTap: onPressed,
-        behavior: HitTestBehavior.opaque,
         child: Container(
           height: 42,
           padding: const EdgeInsets.symmetric(horizontal: 14),

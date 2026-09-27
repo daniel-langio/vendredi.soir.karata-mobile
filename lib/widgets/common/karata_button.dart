@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 
 import '../../theme/karata_colors.dart';
 import '../../theme/karata_text_styles.dart';
+import 'clickable.dart';
 import 'karata_icon.dart';
 
 /// How a Karata button is painted. The design has exactly three.
@@ -151,12 +152,11 @@ class _KarataButtonState extends State<KarataButton> {
 
     return Opacity(
       opacity: _enabled ? 1 : 0.45,
-      child: GestureDetector(
-        onTapDown: _enabled ? (_) => setState(() => _down = true) : null,
-        onTapUp: _enabled ? (_) => setState(() => _down = false) : null,
-        onTapCancel: _enabled ? () => setState(() => _down = false) : null,
+      child: Clickable(
+        onTapDown: (_) => setState(() => _down = true),
+        onTapUp: (_) => setState(() => _down = false),
+        onTapCancel: () => setState(() => _down = false),
         onTap: widget.onPressed,
-        behavior: HitTestBehavior.opaque,
         child: Padding(
           // Reserve the ledge so a sinking button does not shift the rest of the column.
           padding: EdgeInsets.only(

@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 
 import '../../theme/karata_colors.dart';
 import '../../theme/karata_text_styles.dart';
+import '../common/clickable.dart';
 import '../common/css_gradient.dart';
 import '../common/karata_button.dart';
 import '../common/karata_icons.dart';
@@ -81,9 +82,8 @@ class BalanceCard extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        GestureDetector(
+                        Clickable(
                           onTap: onTap,
-                          behavior: HitTestBehavior.opaque,
                           child: _Figures(
                             balance: balance,
                             unit: unit,

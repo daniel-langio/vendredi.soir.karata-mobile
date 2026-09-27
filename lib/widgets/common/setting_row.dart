@@ -1,5 +1,7 @@
 import 'package:flutter/widgets.dart';
 
+import 'clickable.dart';
+
 import '../../theme/karata_colors.dart';
 import '../../theme/karata_text_styles.dart';
 import 'karata_icon.dart';
@@ -72,10 +74,6 @@ class SettingRow extends StatelessWidget {
       child: row,
     );
     if (onTap == null) return sized;
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: sized,
-    );
+    return Clickable(onTap: onTap, child: sized);
   }
 }

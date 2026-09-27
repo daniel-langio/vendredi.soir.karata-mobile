@@ -1,5 +1,7 @@
 import 'package:flutter/widgets.dart';
 
+import 'clickable.dart';
+
 import '../../theme/karata_colors.dart';
 
 /// The 52x30 toggle the design uses for every on/off setting.
@@ -25,9 +27,8 @@ class KarataSwitch extends StatelessWidget {
     return Semantics(
       toggled: value,
       label: semanticLabel,
-      child: GestureDetector(
+      child: Clickable(
         onTap: onChanged == null ? null : () => onChanged!(!value),
-        behavior: HitTestBehavior.opaque,
         child: Opacity(
           opacity: onChanged == null ? 0.5 : 1,
           child: AnimatedContainer(

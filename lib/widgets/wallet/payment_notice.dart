@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 
 import '../../theme/karata_colors.dart';
 import '../../theme/karata_text_styles.dart';
+import '../common/clickable.dart';
 import '../common/dashed_border.dart';
 import '../common/karata_icon.dart';
 import '../common/karata_icons.dart';
@@ -97,9 +98,8 @@ class _CopyButton extends StatelessWidget {
       alignment: AlignmentDirectional.centerStart,
       child: Semantics(
         button: true,
-        child: GestureDetector(
+        child: Clickable(
           onTap: onPressed,
-          behavior: HitTestBehavior.opaque,
           child: Container(
             height: 38,
             padding: const EdgeInsets.symmetric(horizontal: 16),
