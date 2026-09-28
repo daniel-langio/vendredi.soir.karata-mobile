@@ -47,6 +47,10 @@ class AdminPage extends StatelessWidget {
   final VoidCallback onRetry;
 
   final List<Widget> children;
+
+  /// The page's own buttons - "New room" and the like. The wide layout puts them on the title's
+  /// line; the phone puts them in the header row opposite the back button, which is the only
+  /// place it has for them.
   final List<Widget> actions;
 
   /// The phone's back button. The wide layout has the sidebar instead and ignores this.
@@ -89,6 +93,7 @@ class AdminPage extends StatelessWidget {
 
     return KarataScreen(
       onBack: onBack ?? () => Navigator.of(context).maybePop(),
+      actions: actions,
       title: title,
       subtitle: subtitle,
       gap: 14,
