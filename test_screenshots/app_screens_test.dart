@@ -15,6 +15,7 @@ import 'package:karata_ui/chip_display.dart';
 import 'package:karata_ui/l10n/app_localizations.dart';
 import 'package:karata_ui/screens/admin/admin_player_edit_screen.dart';
 import 'package:karata_ui/screens/admin/admin_players_screen.dart';
+import 'package:karata_ui/screens/admin/admin_room_create_screen.dart';
 import 'package:karata_ui/screens/admin/admin_room_edit_screen.dart';
 import 'package:karata_ui/screens/admin/admin_rooms_screen.dart';
 import 'package:karata_ui/screens/admin/admin_table_edit_screen.dart';
@@ -281,7 +282,15 @@ final _screens = <_Screen>[
     ),
   ),
   _Screen(
-    '14b-admin-room-edit',
+    '14b-admin-room-create',
+    () => AdminRoomCreateScreen(
+      serverUrl: _session['serverUrl']!,
+      token: _session['token']!,
+      username: _session['username']!,
+    ),
+  ),
+  _Screen(
+    '14c-admin-room-edit',
     () => AdminRoomEditScreen(
       serverUrl: _session['serverUrl']!,
       token: _session['token']!,

@@ -18,6 +18,7 @@ class KarataTextField extends StatelessWidget {
     this.onChanged,
     this.enabled = true,
     this.autofocus = false,
+    this.leading,
     this.trailing,
     this.suffixText,
     this.textAlign = TextAlign.start,
@@ -34,6 +35,10 @@ class KarataTextField extends StatelessWidget {
   final ValueChanged<String>? onChanged;
   final bool enabled;
   final bool autofocus;
+
+  /// An icon pinned inside the left edge, such as the magnifier on a search field. Unlike
+  /// [trailing] it is decoration rather than a control, so it is not a tap target.
+  final Widget? leading;
 
   /// A button pinned inside the right edge, such as the password reveal eye.
   final Widget? trailing;
@@ -66,6 +71,11 @@ class KarataTextField extends StatelessWidget {
       ),
       child: Row(
         children: [
+          if (leading != null)
+            Padding(
+              padding: const EdgeInsets.only(left: 16, right: 10),
+              child: leading,
+            ),
           Expanded(
             child: TextField(
               controller: controller,
@@ -92,7 +102,7 @@ class KarataTextField extends StatelessWidget {
                   color: KarataColors.inkFaint,
                 ),
                 contentPadding: EdgeInsets.only(
-                  left: 18,
+                  left: leading != null ? 0 : 18,
                   right: suffixText != null ? 8 : trailingInset,
                 ),
               ),

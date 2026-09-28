@@ -96,6 +96,11 @@ class AppLocalizations {
   String roomBlinds(String small, String big) =>
       _fmt('roomBlinds', {'small': small, 'big': big});
 
+  /// The same pair without the word "Blinds" in front, for a table cell that already sits under
+  /// a Blinds heading.
+  String blindsPair(String small, String big) =>
+      _fmt('blindsPair', {'small': small, 'big': big});
+
   /// The short name a room card tags itself with - "Hold'em", not "No-limit Texas Hold'em",
   /// which does not fit a 12px tag.
   String roomVariant(String variant) => switch (variant) {
@@ -170,6 +175,11 @@ class AppLocalizations {
   String get adminNoTables => _s('adminNoTables');
   String get adminNoPlayers => _s('adminNoPlayers');
   String get adminNewRoom => _s('adminNewRoom');
+  String get adminNewRoomSubtitle => _s('adminNewRoomSubtitle');
+  String get adminNewRoomNote => _s('adminNewRoomNote');
+  String get adminCreateRoom => _s('adminCreateRoom');
+  String get adminInvalidStakes => _s('adminInvalidStakes');
+  String get adminSearchRooms => _s('adminSearchRooms');
   String get filterAll => _s('filterAll');
   String get filterActive => _s('filterActive');
   String get filterDisabled => _s('filterDisabled');
@@ -692,6 +702,7 @@ class AppLocalizations {
       'roomsHint': 'Pick your stake — we’ll seat you at the best open table.',
       'noRoomsOpen': 'No rooms are open right now.',
       'roomBlinds': 'Blinds {small} / {big}',
+      'blindsPair': '{small} / {big}',
       'roomVariantHoldem': 'Hold\'em',
       'roomVariantOmaha': 'Omaha',
       'roomVariantFiveCardDraw': 'Five-card draw',
@@ -736,6 +747,15 @@ class AppLocalizations {
       'adminNoTables': 'No tables match this filter.',
       'adminNoPlayers': 'No accounts match this filter.',
       'adminNewRoom': 'New room',
+      'adminNewRoomSubtitle':
+          'Name, stakes and default buy-in — the rest is set once players start sitting down.',
+      'adminNewRoomNote':
+          'A new room starts with zero tables and zero players — that’s normal. Its place in the '
+          'list is set automatically by buy-in, lowest stake first.',
+      'adminCreateRoom': 'Create room',
+      'adminInvalidStakes':
+          'Blinds and buy-in must be positive, and the big blind at least the small one.',
+      'adminSearchRooms': 'Search by room name',
       'filterAll': 'All',
       'filterActive': 'Active',
       'filterDisabled': 'Disabled',
@@ -1196,6 +1216,7 @@ class AppLocalizations {
           'Choisissez votre palier — nous vous installons à la meilleure table ouverte.',
       'noRoomsOpen': 'Aucun salon n\'est ouvert pour le moment.',
       'roomBlinds': 'Blindes {small} / {big}',
+      'blindsPair': '{small} / {big}',
       'roomVariantHoldem': 'Hold\'em',
       'roomVariantOmaha': 'Omaha',
       'roomVariantFiveCardDraw': 'Draw à 5 cartes',
@@ -1241,6 +1262,15 @@ class AppLocalizations {
       'adminNoTables': 'Aucune table ne correspond à ce filtre.',
       'adminNoPlayers': 'Aucun compte ne correspond à ce filtre.',
       'adminNewRoom': 'Nouveau salon',
+      'adminNewRoomSubtitle':
+          'Nom, blindes et cave par défaut — le reste se règle une fois que les joueurs s’installent.',
+      'adminNewRoomNote':
+          'Un nouveau salon démarre avec zéro table et zéro joueur — c’est normal. Sa place dans '
+          'la liste est fixée automatiquement par la cave, du palier le plus bas au plus haut.',
+      'adminCreateRoom': 'Créer le salon',
+      'adminInvalidStakes':
+          'Les blindes et la cave doivent être positives, et la grosse blinde au moins égale à la petite.',
+      'adminSearchRooms': 'Rechercher un salon par nom',
       'filterAll': 'Tous',
       'filterActive': 'Actifs',
       'filterDisabled': 'Désactivés',

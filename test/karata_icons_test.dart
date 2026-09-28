@@ -21,6 +21,7 @@ void main() {
     'plus': KarataIcons.plus,
     'link': KarataIcons.link,
     'person': KarataIcons.person,
+    'search': KarataIcons.search,
     'sortArrows': KarataIcons.sortArrows,
     'pokerTable': KarataIcons.pokerTable,
     'players': KarataIcons.players,

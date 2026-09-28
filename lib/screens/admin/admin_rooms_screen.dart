@@ -12,12 +12,19 @@ import '../../widgets/admin/admin_page.dart';
 import '../../widgets/admin/admin_record_card.dart';
 import '../../widgets/admin/admin_stat_tile.dart';
 import '../../widgets/common/breakpoints.dart';
+import '../../widgets/common/karata_icon.dart';
+import '../../widgets/common/karata_icons.dart';
 import '../../widgets/common/karata_tag.dart';
+import '../../widgets/common/karata_text_field.dart';
 import '../../widgets/desktop/desktop_sidebar.dart';
 
 /// Which rooms the list is showing. A closed room is invisible everywhere else in the app, so
 /// this screen is the only place it can be found and reopened.
 enum _RoomFilter { all, active, disabled }
+
+/// Which column the list is ordered by. Buy-in is the default because it is the order the lobby
+/// itself puts rooms in, so the admin list reads the same way round as the thing it administers.
+enum _RoomSort { name, buyIn, tables, players }
 
 /// The stake tiers, as the house sees them - including the ones it has closed.
 class AdminRoomsScreen extends StatefulWidget {
@@ -42,6 +49,8 @@ class _AdminRoomsScreenState extends State<AdminRoomsScreen> {
   bool _loading = true;
   String? _error;
   _RoomFilter _filter = _RoomFilter.all;
+  _RoomSort _sort = _RoomSort.buyIn;
+  final _search = TextEditingController();
 
   @override
   void initState() {
@@ -49,6 +58,12 @@ class _AdminRoomsScreenState extends State<AdminRoomsScreen> {
     _api = ApiClient(baseUrl: widget.serverUrl, token: widget.token);
     _load();
     ChipDisplay.instance.refreshRateFromServer(_api);
+  }
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -78,11 +93,39 @@ class _AdminRoomsScreenState extends State<AdminRoomsScreen> {
     'username': widget.username,
   };
 
-  List<AdminRoom> get _shown => switch (_filter) {
-    _RoomFilter.all => _rooms,
-    _RoomFilter.active => _rooms.where((r) => !r.closed).toList(),
-    _RoomFilter.disabled => _rooms.where((r) => r.closed).toList(),
-  };
+  List<AdminRoom> get _shown {
+    final needle = _search.text.trim().toLowerCase();
+    final filtered = [
+      for (final entry in _rooms)
+        if (switch (_filter) {
+              _RoomFilter.all => true,
+              _RoomFilter.active => !entry.closed,
+              _RoomFilter.disabled => entry.closed,
+            } &&
+            (needle.isEmpty || entry.room.name.toLowerCase().contains(needle)))
+          entry,
+    ];
+    filtered.sort(switch (_sort) {
+      _RoomSort.name => (a, b) => a.room.name.compareTo(b.room.name),
+      _RoomSort.buyIn => (a, b) => a.room.defaultBuyIn.compareTo(
+        b.room.defaultBuyIn,
+      ),
+      _RoomSort.tables => (a, b) => b.room.tableCount.compareTo(
+        a.room.tableCount,
+      ),
+      _RoomSort.players => (a, b) => b.room.playerCount.compareTo(
+        a.room.playerCount,
+      ),
+    });
+    return filtered;
+  }
+
+  Future<void> _createRoom() async {
+    await Navigator.of(
+      context,
+    ).pushNamed('/admin/rooms/new', arguments: _sessionArgs);
+    _load();
+  }
 
   Future<void> _open(AdminRoom room) async {
     await Navigator.of(
@@ -105,8 +148,21 @@ class _AdminRoomsScreenState extends State<AdminRoomsScreen> {
         loading: _loading,
         error: _error,
         onRetry: _load,
+        actions: [
+          AdminPrimaryAction(label: t.adminNewRoom, onPressed: _createRoom),
+        ],
         children: [
           AdminStatRow(tiles: _stats(t)),
+          KarataTextField(
+            controller: _search,
+            hintText: t.adminSearchRooms,
+            onChanged: (_) => setState(() {}),
+            leading: const KarataIcon(
+              KarataIcons.search,
+              size: 18,
+              color: KarataColors.inkFaint,
+            ),
+          ),
           AdminFilterRow(
             labels: [t.filterAll, t.filterActive, t.filterDisabled],
             selectedIndex: _filter.index,
@@ -150,28 +206,52 @@ class _AdminRoomsScreenState extends State<AdminRoomsScreen> {
   Widget _table(AppLocalizations t, ChipDisplaySettings chips) {
     return AdminDataTable(
       columns: [
-        AdminColumn(t.adminColumnRoom, width: const FlexColumnWidth(2.2)),
-        AdminColumn(t.adminColumnBlinds, width: const FlexColumnWidth(1.6)),
-        AdminColumn(t.adminColumnBuyIn, width: const FlexColumnWidth(1.4)),
-        AdminColumn(t.roomTagCashout, width: const FlexColumnWidth(1.2)),
+        AdminColumn(
+          t.adminColumnRoom,
+          width: const FlexColumnWidth(1.7),
+          sortable: true,
+        ),
+        AdminColumn(t.adminColumnBlinds, width: const FlexColumnWidth(1.8)),
+        AdminColumn(
+          t.adminColumnBuyIn,
+          width: const FlexColumnWidth(1.4),
+          sortable: true,
+        ),
+        AdminColumn(t.roomTagCashout, width: const FlexColumnWidth(1.45)),
         AdminColumn(
           t.adminColumnTables,
-          width: const FlexColumnWidth(0.8),
+          width: const FlexColumnWidth(1.1),
+          sortable: true,
           alignment: Alignment.centerRight,
         ),
         AdminColumn(
           t.adminColumnPlayers,
-          width: const FlexColumnWidth(0.9),
+          width: const FlexColumnWidth(1.2),
+          sortable: true,
           alignment: Alignment.centerRight,
         ),
-        AdminColumn(t.adminColumnStatus, width: const FlexColumnWidth(1.1)),
+        AdminColumn(t.adminColumnStatus, width: const FlexColumnWidth(1.25)),
       ],
+      sortedColumn: switch (_sort) {
+        _RoomSort.name => 0,
+        _RoomSort.buyIn => 2,
+        _RoomSort.tables => 4,
+        _RoomSort.players => 5,
+      },
+      onSort: (i) => setState(() {
+        _sort = switch (i) {
+          0 => _RoomSort.name,
+          4 => _RoomSort.tables,
+          5 => _RoomSort.players,
+          _ => _RoomSort.buyIn,
+        };
+      }),
       rows: [
         for (final entry in _shown)
           [
             _nameCell(entry, t),
             _muted(
-              t.roomBlinds(
+              t.blindsPair(
                 ChipDisplay.amountOnly(chips, entry.room.smallBlind),
                 ChipDisplay.formatWith(chips, entry.room.bigBlind),
               ),
@@ -204,7 +284,6 @@ class _AdminRoomsScreenState extends State<AdminRoomsScreen> {
             ),
           ],
       ],
-      onSort: null,
     );
   }
 
@@ -250,7 +329,7 @@ class _AdminRoomsScreenState extends State<AdminRoomsScreen> {
         fields: [
           (
             t.adminColumnBlinds,
-            t.roomBlinds(
+            t.blindsPair(
               ChipDisplay.amountOnly(chips, entry.room.smallBlind),
               ChipDisplay.formatWith(chips, entry.room.bigBlind),
             ),
