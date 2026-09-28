@@ -70,6 +70,12 @@ abstract final class KarataIcons {
     PathShape('M3 10 H21 M16 15 H17'),
   ]);
 
+  /// The magnifier in a search field.
+  static const search = KarataIconData([
+    CircleShape(11, 11, 7),
+    PathShape('M21 21 L16.5 16.5'),
+  ]);
+
   /// The two arrows on a sortable column heading in the admin lists.
   static const sortArrows = KarataIconData([
     PathShape('M7 5 V19 M4 8 L7 5 L10 8 M17 19 V5 M14 16 L17 19 L20 16'),

@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:karata_ui/screens/auth_redirect.dart';
 import 'package:karata_ui/screens/admin/admin_player_edit_screen.dart';
 import 'package:karata_ui/screens/admin/admin_players_screen.dart';
+import 'package:karata_ui/screens/admin/admin_room_create_screen.dart';
 import 'package:karata_ui/screens/admin/admin_room_edit_screen.dart';
 import 'package:karata_ui/screens/admin/admin_rooms_screen.dart';
 import 'package:karata_ui/screens/admin/admin_table_edit_screen.dart';
@@ -47,6 +48,7 @@ const _routes = <String, Type>{
   '/admin/tables': AdminTablesScreen,
   '/admin/tables/7f3c1e5a-4b2d-4c8e-9a10-6d5b2f8e1c44': AdminTableEditScreen,
   '/admin/rooms': AdminRoomsScreen,
+  '/admin/rooms/new': AdminRoomCreateScreen,
   '/admin/rooms/5a0e9d77-0000-4000-8000-00000000aa02': AdminRoomEditScreen,
 };
 

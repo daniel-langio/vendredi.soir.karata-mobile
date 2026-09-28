@@ -18,6 +18,7 @@ import 'screens/table_screen.dart';
 import 'screens/economy_screen.dart';
 import 'screens/admin/admin_player_edit_screen.dart';
 import 'screens/admin/admin_players_screen.dart';
+import 'screens/admin/admin_room_create_screen.dart';
 import 'screens/admin/admin_room_edit_screen.dart';
 import 'screens/admin/admin_rooms_screen.dart';
 import 'screens/admin/admin_table_edit_screen.dart';
@@ -445,6 +446,12 @@ Widget _adminPage(List<String> segments, _Session session) {
       token: session.token,
       username: session.username,
       gameId: gameId,
+    ),
+    // Before the id case, or a room called "new" is the only one that could never be opened.
+    ('rooms', 'new') => AdminRoomCreateScreen(
+      serverUrl: session.serverUrl,
+      token: session.token,
+      username: session.username,
     ),
     ('rooms', null) => AdminRoomsScreen(
       serverUrl: session.serverUrl,

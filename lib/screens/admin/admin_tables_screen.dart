@@ -168,7 +168,7 @@ class _AdminTablesScreenState extends State<AdminTablesScreen> {
             _muted(
               table.smallBlind == null || table.bigBlind == null
                   ? '—'
-                  : t.roomBlinds(
+                  : t.blindsPair(
                       ChipDisplay.amountOnly(chips, table.smallBlind),
                       ChipDisplay.formatWith(chips, table.bigBlind),
                     ),
