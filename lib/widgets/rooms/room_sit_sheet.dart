@@ -85,19 +85,33 @@ class _RoomSitSheetState extends State<_RoomSitSheet> {
     super.dispose();
   }
 
+  /// Whether the room expects the player to already own the chips they sit down with. A
+  /// play-chips room and an auto-rebuy room both hand out their own stake for free server-side
+  /// (see `GameService.joinGame`/`applyAutoRebuys`), so neither has anything to check the wallet
+  /// for - the wallet only matters where cashing out makes the buy-in real money leaving it.
+  bool get _walletRequired =>
+      widget.room.cashoutEnabled && !widget.room.autoRebuyEnabled;
+
   /// The most the player could put on the table, which is simply what they hold: the API caps a
-  /// buy-in from below, never from above.
-  int get _maxChips => widget.balanceChips ?? widget.room.defaultBuyIn;
+  /// buy-in from below, never from above. A room that does not draw the buy-in from the wallet
+  /// has nothing to cap against, so it falls back to its own default the same way a missing
+  /// wallet reading already does.
+  int get _maxChips =>
+      _walletRequired
+          ? widget.balanceChips ?? widget.room.defaultBuyIn
+          : widget.room.defaultBuyIn;
 
   int? get _entered => AmountField.chipsFrom(_display, _amount.text);
 
   bool get _cannotAfford =>
+      _walletRequired &&
       widget.balanceChips != null &&
       widget.balanceChips! < widget.room.minimumBuyIn;
 
   bool get _isValid {
     final chips = _entered;
     if (chips == null) return false;
+    if (!_walletRequired) return chips >= widget.room.minimumBuyIn;
     return chips >= widget.room.minimumBuyIn && chips <= _maxChips;
   }
 
