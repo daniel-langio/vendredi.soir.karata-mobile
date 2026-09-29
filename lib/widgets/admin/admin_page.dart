@@ -31,6 +31,9 @@ class AdminPage extends StatelessWidget {
     required this.children,
     this.actions = const [],
     this.onBack,
+    this.wideRight = const [],
+    this.leftFlex = 1,
+    this.rightFlex = 1,
   });
 
   final DesktopNav nav;
@@ -56,19 +59,31 @@ class AdminPage extends StatelessWidget {
   /// The phone's back button. The wide layout has the sidebar instead and ignores this.
   final VoidCallback? onBack;
 
+  /// A second wide-only column, for the one screen (so far) whose content the design splits in
+  /// two rather than stacking - the table editor's roster and stats beside its settings. Empty
+  /// for every other admin screen, which keeps them on the plain single column they've always had.
+  /// On the phone there is only ever one column, so this simply appears after [children].
+  final List<Widget> wideRight;
+
+  /// `grid-template-columns`, wide layout only - meaningless while [wideRight] is empty.
+  final int leftFlex;
+  final int rightFlex;
+
   @override
   Widget build(BuildContext context) {
-    final body = loading
-        ? const [
-            Padding(
-              padding: EdgeInsets.symmetric(vertical: 60),
-              child: Center(
-                child: CircularProgressIndicator(color: KarataColors.gold),
-              ),
-            ),
+    final loadingOrError = loading || error != null;
+    final left = loadingOrError
+        ? [
+            if (loading)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 60),
+                child: Center(
+                  child: CircularProgressIndicator(color: KarataColors.gold),
+                ),
+              )
+            else
+              _error(context),
           ]
-        : error != null
-        ? [_error(context)]
         : children;
 
     if (KarataLayout.isWide(context)) {
@@ -79,15 +94,22 @@ class AdminPage extends StatelessWidget {
         title: title,
         subtitle: subtitle,
         actions: actions,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            for (var i = 0; i < body.length; i++) ...[
-              if (i > 0) const SizedBox(height: 20),
-              body[i],
-            ],
-          ],
-        ),
+        child: !loadingOrError && wideRight.isNotEmpty
+            ? DesktopColumns(
+                leftFlex: leftFlex,
+                rightFlex: rightFlex,
+                left: left,
+                right: wideRight,
+              )
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  for (var i = 0; i < left.length; i++) ...[
+                    if (i > 0) const SizedBox(height: 20),
+                    left[i],
+                  ],
+                ],
+              ),
       );
     }
 
@@ -97,7 +119,7 @@ class AdminPage extends StatelessWidget {
       title: title,
       subtitle: subtitle,
       gap: 14,
-      children: body,
+      children: loadingOrError ? left : [...left, ...wideRight],
     );
   }
 

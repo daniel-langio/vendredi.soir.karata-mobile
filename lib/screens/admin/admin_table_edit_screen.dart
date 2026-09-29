@@ -9,7 +9,9 @@ import '../../theme/karata_text_styles.dart';
 import '../../widgets/admin/admin_page.dart';
 import '../../widgets/common/amount_field.dart';
 import '../../widgets/common/avatar.dart';
+import '../../widgets/common/dashed_ring.dart';
 import '../../widgets/common/karata_button.dart';
+import '../../widgets/common/karata_card.dart';
 import '../../widgets/common/karata_switch.dart';
 import '../../widgets/common/karata_text_field.dart';
 import '../../widgets/common/labeled_field.dart';
@@ -18,6 +20,11 @@ import '../../widgets/common/setting_row.dart';
 import '../../widgets/desktop/desktop_sidebar.dart';
 
 /// One table, its terms, and the people sitting at it.
+///
+/// Pausing, resuming and closing a table are deliberately not offered here, even though the
+/// backend endpoints exist: they check GameService.requireInitiator/requireCanClose with no
+/// operator bypass, so an operator who is not the table's own host would get a 403 from every one
+/// of them. The note this screen shows instead of those controls states that plainly.
 class AdminTableEditScreen extends StatefulWidget {
   final String serverUrl;
   final String token;
@@ -44,6 +51,7 @@ class _AdminTableEditScreenState extends State<AdminTableEditScreen> {
 
   AdminTable? _table;
   List<({String name, int chips})> _seats = [];
+  int _pot = 0;
   bool _loading = true;
   bool _saving = false;
   String? _error;
@@ -78,11 +86,13 @@ class _AdminTableEditScreenState extends State<AdminTableEditScreen> {
       if (table == null) {
         throw ApiException(code: 'NOT_FOUND', message: 'Table not found');
       }
-      // The seat list is the one thing the admin table payload does not carry, because stacks
-      // belong to the game itself.
+      // Neither the seat list nor the pot is in the admin table payload: stacks and the pot both
+      // belong to the game itself, which is why this one screen pays for a replay that the rest of
+      // the admin surface deliberately avoids (see AdminTable's own doc comment).
       final game = await _api.getGame(widget.gameId);
       if (!mounted) return;
       final display = ChipDisplay.instance.value;
+      final currentDeal = game['currentDeal'] as Map<String, dynamic>?;
       setState(() {
         _table = table;
         _seats = [
@@ -92,6 +102,7 @@ class _AdminTableEditScreenState extends State<AdminTableEditScreen> {
               chips: (p['chips'] as num?)?.toInt() ?? 0,
             ),
         ];
+        _pot = (currentDeal?['pot'] as num?)?.toInt() ?? 0;
         _name.text = table.name;
         _small.text = AmountField.entryText(display, table.smallBlind ?? 0);
         _big.text = AmountField.entryText(display, table.bigBlind ?? 0);
@@ -156,6 +167,10 @@ class _AdminTableEditScreenState extends State<AdminTableEditScreen> {
     if (mounted) _say(t.adminRemovedFromTable(username), KarataColors.green);
   });
 
+  // No strategy picker, unlike the host's own add-bot dialog on the table screen: this is a
+  // one-button operator action, and a null strategy is already "let the server choose" there.
+  Future<void> _addBot() => _run(() => _api.addBot(widget.gameId));
+
   @override
   Widget build(BuildContext context) {
     final t = AppLocalizations.of(context);
@@ -171,109 +186,21 @@ class _AdminTableEditScreenState extends State<AdminTableEditScreen> {
         loading: _loading,
         error: _error,
         onRetry: _load,
+        // The design's own ratio: the settings column carries more content than the roster does.
+        leftFlex: 7,
+        rightFlex: 5,
+        wideRight: table == null
+            ? const []
+            : [
+                _seatedPlayersCard(table, t, chips),
+                _statsCard(table, t, chips),
+              ],
         children: table == null
             ? const []
             : [
-                SectionCard(
-                  title: t.adminTableSection,
-                  children: [
-                    LabeledField(
-                      label: t.name,
-                      child: KarataTextField(
-                        controller: _name,
-                        fillColor: KarataColors.backdrop,
-                        enabled: !_saving,
-                      ),
-                    ),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: LabeledField(
-                            label: t.smallBlind,
-                            child: AmountField(
-                              controller: _small,
-                              display: chips,
-                              fillColor: KarataColors.backdrop,
-                              enabled: !_saving,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: LabeledField(
-                            label: t.bigBlind,
-                            child: AmountField(
-                              controller: _big,
-                              display: chips,
-                              fillColor: KarataColors.backdrop,
-                              enabled: !_saving,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    SettingRow(
-                      title: t.adminTableIsPublic,
-                      // A room's table is not the operator's to publish - it is reached by
-                      // sitting down in the room, and the server refuses the change anyway.
-                      description: table.belongsToRoom
-                          ? t.adminRoomTableCannotBePublic
-                          : t.adminTableIsPublicHint,
-                      trailing: KarataSwitch(
-                        value: _isPublic,
-                        semanticLabel: t.adminTableIsPublic,
-                        onChanged: _saving || table.belongsToRoom
-                            ? null
-                            : (v) => setState(() => _isPublic = v),
-                      ),
-                    ),
-                  ],
-                ),
-                SectionCard(
-                  title: t.adminSeatedPlayers,
-                  trailing: t.adminSeatedOf(
-                    '${table.seated}',
-                    '${table.capacity}',
-                  ),
-                  children: _seats.isEmpty
-                      ? [AdminNote(t.adminOpenSeat)]
-                      : [for (final seat in _seats) _seatRow(seat, t, chips)],
-                ),
-                SectionCard(
-                  title: t.adminDangerZone,
-                  children: [
-                    SettingRow(
-                      title: table.paused ? t.resumeTable : t.pauseTable,
-                      description: t.adminPauseTableHint,
-                      trailing: KarataButton(
-                        label: table.paused ? t.resumeTable : t.pauseTable,
-                        style: KarataButtonStyle.surface,
-                        height: 38,
-                        fontSize: 13,
-                        expand: false,
-                        onPressed: _saving
-                            ? null
-                            : () => _run(
-                                () => table.paused
-                                    ? _api.resumeTable(widget.gameId)
-                                    : _api.pauseTable(widget.gameId),
-                              ),
-                      ),
-                    ),
-                    SettingRow(
-                      title: t.closeTable,
-                      description: t.adminCloseTableHint,
-                      trailing: KarataButton(
-                        label: t.closeTable,
-                        style: KarataButtonStyle.danger,
-                        height: 38,
-                        fontSize: 13,
-                        expand: false,
-                        onPressed: _saving ? null : () => _confirmClose(t),
-                      ),
-                    ),
-                  ],
-                ),
+                _tableCard(table, t, chips),
+                if (table.isPublic) _botsCard(t),
+                _noOperatorRouteNote(t),
                 KarataButton(
                   label: t.adminSaveChanges,
                   onPressed: _saving ? null : () => _save(t),
@@ -283,36 +210,158 @@ class _AdminTableEditScreenState extends State<AdminTableEditScreen> {
     );
   }
 
-  Future<void> _confirmClose(AppLocalizations t) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialog) => AlertDialog(
-        backgroundColor: KarataColors.surface,
-        title: Text(t.closeTableTitle, style: KarataText.sectionTitle),
-        content: Text(t.adminCloseTableHint, style: KarataText.body),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialog).pop(false),
-            child: Text(t.cancel),
+  Widget _tableCard(
+    AdminTable table,
+    AppLocalizations t,
+    ChipDisplaySettings chips,
+  ) {
+    return SectionCard(
+      ribbon: true,
+      title: t.adminTableSection,
+      children: [
+        LabeledField(
+          label: t.name,
+          child: KarataTextField(
+            controller: _name,
+            fillColor: KarataColors.backdrop,
+            enabled: !_saving,
           ),
-          TextButton(
-            onPressed: () => Navigator.of(dialog).pop(true),
-            child: Text(
-              t.closeTable,
-              style: karataText(
-                size: 14,
-                weight: 700,
-                color: KarataColors.orangeLight,
+        ),
+        Row(
+          children: [
+            Expanded(
+              child: LabeledField(
+                label: t.smallBlind,
+                child: AmountField(
+                  controller: _small,
+                  display: chips,
+                  fillColor: KarataColors.backdrop,
+                  enabled: !_saving,
+                ),
               ),
             ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: LabeledField(
+                label: t.bigBlind,
+                child: AmountField(
+                  controller: _big,
+                  display: chips,
+                  fillColor: KarataColors.backdrop,
+                  enabled: !_saving,
+                ),
+              ),
+            ),
+          ],
+        ),
+        SettingRow(
+          title: t.adminTableIsPublic,
+          // A room's table is not the operator's to publish - it is reached by sitting down in
+          // the room, and the server refuses the change anyway.
+          description: table.belongsToRoom
+              ? t.adminRoomTableCannotBePublic
+              : t.adminTableIsPublicHint,
+          trailing: KarataSwitch(
+            value: _isPublic,
+            semanticLabel: t.adminTableIsPublic,
+            onChanged: _saving || table.belongsToRoom
+                ? null
+                : (v) => setState(() => _isPublic = v),
           ),
+        ),
+      ],
+    );
+  }
+
+  Widget _botsCard(AppLocalizations t) {
+    return SectionCard(
+      title: t.adminBotsSection,
+      children: [
+        SettingRow(
+          title: t.addBot,
+          description: t.adminAddBotHint,
+          trailing: KarataButton(
+            label: t.adminAddBotButton,
+            style: KarataButtonStyle.surface,
+            height: 36,
+            fontSize: 13,
+            expand: false,
+            horizontalPadding: 16,
+            onPressed: _saving ? null : _addBot,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _noOperatorRouteNote(AppLocalizations t) => KarataCard(
+    child: Text(
+      t.adminNoOperatorRouteNote,
+      style: karataText(
+        size: 13,
+        weight: 500,
+        color: KarataColors.inkMuted,
+        height: 1.5,
+      ),
+    ),
+  );
+
+  Widget _seatedPlayersCard(
+    AdminTable table,
+    AppLocalizations t,
+    ChipDisplaySettings chips,
+  ) {
+    final openSeats = (table.capacity - _seats.length).clamp(0, table.capacity);
+    return SectionCard(
+      title: t.adminSeatedPlayers,
+      children: [
+        for (final seat in _seats) _seatRow(seat, t, chips),
+        for (var i = 0; i < openSeats; i++) _openSeatRow(t),
+      ],
+    );
+  }
+
+  Widget _statsCard(
+    AdminTable table,
+    AppLocalizations t,
+    ChipDisplaySettings chips,
+  ) {
+    return KarataCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _statRow(
+            t.adminPotSize,
+            ChipDisplay.formatWith(chips, _pot),
+            valueStyle: karataText(
+              size: 22,
+              weight: 800,
+              color: KarataColors.gold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          _statRow(
+            t.adminColumnBuyIn,
+            ChipDisplay.formatWith(chips, table.defaultBuyIn ?? 0),
+          ),
+          const SizedBox(height: 8),
+          _statRow(t.adminColumnSeated, '${table.seated} / ${table.capacity}'),
         ],
       ),
     );
-    if (confirmed != true || !mounted) return;
-    await _run(() => _api.closeTable(widget.gameId));
-    if (mounted) Navigator.of(context).maybePop();
   }
+
+  Widget _statRow(String label, String value, {TextStyle? valueStyle}) => Row(
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    crossAxisAlignment: CrossAxisAlignment.end,
+    children: [
+      Text(
+        label,
+        style: karataText(size: 14, weight: 500, color: KarataColors.inkMuted),
+      ),
+      Text(value, style: valueStyle ?? karataText(size: 15, weight: 800)),
+    ],
+  );
 
   Widget _seatRow(
     ({String name, int chips}) seat,
@@ -334,7 +383,7 @@ class _AdminTableEditScreenState extends State<AdminTableEditScreen> {
         Text(
           ChipDisplay.formatWith(chips, seat.chips),
           maxLines: 1,
-          style: karataText(size: 14, weight: 700, color: KarataColors.gold),
+          style: karataText(size: 14, weight: 800),
         ),
         const SizedBox(width: 12),
         KarataButton(
@@ -349,4 +398,28 @@ class _AdminTableEditScreenState extends State<AdminTableEditScreen> {
       ],
     );
   }
+
+  Widget _openSeatRow(AppLocalizations t) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 3),
+    child: Row(
+      children: [
+        const DashedRing(
+          diameter: 32,
+          color: KarataColors.lineStrong,
+          strokeWidth: 2,
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            t.adminOpenSeat,
+            style: karataText(
+              size: 14,
+              weight: 600,
+              color: KarataColors.inkFaint,
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
 }

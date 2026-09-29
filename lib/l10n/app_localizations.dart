@@ -269,8 +269,11 @@ class AppLocalizations {
   String get adminTableIsPublic => _s('adminTableIsPublic');
   String get adminTableIsPublicHint => _s('adminTableIsPublicHint');
   String get adminRoomTableCannotBePublic => _s('adminRoomTableCannotBePublic');
-  String get adminPauseTableHint => _s('adminPauseTableHint');
-  String get adminCloseTableHint => _s('adminCloseTableHint');
+  String get adminBotsSection => _s('adminBotsSection');
+  String get adminAddBotButton => _s('adminAddBotButton');
+  String get adminAddBotHint => _s('adminAddBotHint');
+  String get adminNoOperatorRouteNote => _s('adminNoOperatorRouteNote');
+  String get adminPotSize => _s('adminPotSize');
   String get adminSeatedPlayers => _s('adminSeatedPlayers');
   String get adminRemove => _s('adminRemove');
   String get adminOpenSeat => _s('adminOpenSeat');
@@ -843,10 +846,14 @@ class AppLocalizations {
           'Listed on everyone’s home screen and hosted by the house.',
       'adminRoomTableCannotBePublic':
           'A room’s table is reached by sitting down in the room, so it cannot be listed on its own.',
-      'adminPauseTableHint':
-          'Stops new hands from starting; seated players keep their chips.',
-      'adminCloseTableHint':
-          'Ends the table and returns every stack to its owner’s balance.',
+      'adminBotsSection': 'Bots',
+      'adminAddBotButton': 'Add bot',
+      'adminAddBotHint':
+          'This table is public, so you can seat a bot directly into an open seat.',
+      'adminNoOperatorRouteNote':
+          'Pausing, resuming and closing a table are done by its host, from the table itself — '
+          'there’s no operator route for them, so they’re not offered here.',
+      'adminPotSize': 'Pot size',
       'adminSeatedPlayers': 'Seated players',
       'adminRemove': 'Remove',
       'adminOpenSeat': 'Open seat',
@@ -1358,10 +1365,16 @@ class AppLocalizations {
           'Listée sur l’écran d’accueil de tous et hébergée par la maison.',
       'adminRoomTableCannotBePublic':
           'On rejoint la table d’un salon en s’y installant : elle ne peut pas être listée seule.',
-      'adminPauseTableHint':
-          'Empêche le démarrage de nouvelles mains ; les joueurs gardent leurs jetons.',
-      'adminCloseTableHint':
-          'Termine la table et rend chaque tapis au solde de son propriétaire.',
+      'adminBotsSection': 'Bots',
+      'adminAddBotButton': 'Ajouter un bot',
+      'adminAddBotHint':
+          'Cette table est publique, vous pouvez donc asseoir un bot directement à une place '
+          'libre.',
+      'adminNoOperatorRouteNote':
+          'La mise en pause, la reprise et la fermeture d’une table se font par son hôte, depuis '
+          'la table elle-même — il n’existe pas de voie opérateur pour cela, donc ce n’est pas '
+          'proposé ici.',
+      'adminPotSize': 'Taille du pot',
       'adminSeatedPlayers': 'Joueurs assis',
       'adminRemove': 'Retirer',
       'adminOpenSeat': 'Place libre',
