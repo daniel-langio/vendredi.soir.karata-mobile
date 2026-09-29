@@ -6,12 +6,14 @@ import '../common/clickable.dart';
 import '../common/karata_button.dart';
 import '../common/karata_icons.dart';
 import 'room_card_state.dart';
+import 'room_card_table.dart';
 import 'room_full_pill.dart';
 import 'room_quiet_well.dart';
 import 'room_stats_well.dart';
 import '../common/karata_tag.dart';
 
-/// One stake tier in the lobby's Rooms tab, on the phone.
+/// One stake tier in the lobby's Rooms tab - stacked full-width on the phone, and reused as a
+/// fixed-width tile in the desktop grid, since the design draws the two identically.
 ///
 /// It offers a seat, not a table: there is no table list behind it and nothing here identifies
 /// one. Tapping anywhere on the card does what its button does, the way [LobbyTableCard] works -
@@ -88,6 +90,7 @@ class RoomCard extends StatelessWidget {
             const Positioned.fill(
               child: ColoredBox(color: KarataColors.surface),
             ),
+            if (state != RoomCardState.quiet) const RoomCardTable(),
             // The design's `border-left: 4px solid`, transparent - so the card's own navy shows
             // through - until the room has something to flag.
             Positioned(

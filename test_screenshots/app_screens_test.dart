@@ -36,7 +36,6 @@ import 'package:karata_ui/screens/welcome_screen.dart';
 import 'package:karata_ui/sound_settings.dart';
 import 'package:karata_ui/widgets/common/karata_button.dart';
 import 'package:karata_ui/widgets/common/segmented_tabs.dart';
-import 'package:karata_ui/widgets/desktop/wide_room_card.dart';
 import 'package:karata_ui/widgets/rooms/room_card.dart';
 import 'package:karata_ui/theme/karata_text_styles.dart';
 import 'package:karata_ui/theme/karata_theme.dart';
@@ -231,9 +230,7 @@ final _screens = <_Screen>[
     // The buy-in sheet is a route of its own, and the only place the player decides anything
     // about a room - nothing else photographs it.
     then: (tester) async {
-      final card = find
-          .byWidgetPredicate((w) => w is RoomCard || w is WideRoomCard)
-          .first;
+      final card = find.byType(RoomCard).first;
       await tester.tap(
         find.descendant(of: card, matching: find.byType(KarataButton)),
       );

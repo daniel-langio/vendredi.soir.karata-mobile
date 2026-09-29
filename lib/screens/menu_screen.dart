@@ -28,7 +28,6 @@ import '../widgets/desktop/desktop_shell.dart';
 import '../widgets/desktop/desktop_sidebar.dart';
 import '../widgets/desktop/wide_balance_strip.dart';
 import '../widgets/desktop/wide_lobby_table_card.dart';
-import '../widgets/desktop/wide_room_card.dart';
 import '../widgets/wallet/balance_card.dart';
 
 /// Which of the lobby's three lists is on screen.
@@ -742,26 +741,51 @@ class _MenuScreenState extends State<MenuScreen> {
 
   Widget _wideRooms(AppLocalizations t, ChipDisplaySettings chips) {
     if (_loadingRooms && _rooms.isEmpty) {
-      return const Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+      return const Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          RoomCardSkeleton(),
-          SizedBox(height: 14),
-          RoomCardSkeleton(),
-          SizedBox(height: 14),
-          RoomCardSkeleton(),
+          Expanded(child: RoomCardSkeleton()),
+          SizedBox(width: 24),
+          Expanded(child: RoomCardSkeleton()),
         ],
       );
     }
     if (_roomsError != null) return _roomsErrorState(t);
     if (_rooms.isEmpty) return _note(t.noRoomsOpen);
 
+    return _roomGrid(t, chips);
+  }
+
+  /// The rooms laid out two to a row, on the design's 24px gutter - the same felt card as the
+  /// phone's Rooms tab, since the design draws the two identically.
+  Widget _roomGrid(AppLocalizations t, ChipDisplaySettings chips) {
+    const columns = 2;
+    final rows = <Widget>[];
+    for (var i = 0; i < _rooms.length; i += columns) {
+      rows.add(
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (var column = 0; column < columns; column++) ...[
+              if (column > 0) const SizedBox(width: 24),
+              Expanded(
+                child: i + column < _rooms.length
+                    ? _roomCard(_rooms[i + column], t, chips)
+                    // The last row of an odd-length list keeps its gutter rather than letting
+                    // the single card stretch across both columns.
+                    : const SizedBox.shrink(),
+              ),
+            ],
+          ],
+        ),
+      );
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        for (var i = 0; i < _rooms.length; i++) ...[
-          if (i > 0) const SizedBox(height: 14),
-          _wideRoomCard(_rooms[i], t, chips),
+        for (var i = 0; i < rows.length; i++) ...[
+          if (i > 0) const SizedBox(height: 24),
+          rows[i],
         ],
       ],
     );
@@ -781,32 +805,6 @@ class _MenuScreenState extends State<MenuScreen> {
   ) {
     final view = _roomView(room, t, chips);
     return RoomCard(
-      name: room.name,
-      blindsLabel: _blindsLabel(room, t, chips),
-      variantLabel: t.roomVariant(room.variant),
-      statusLabel: view.statusLabel,
-      statusTone: view.statusTone,
-      state: view.state,
-      tableCount: room.tableCount,
-      tablesLabel: t.roomTables(room.tableCount),
-      playerCount: room.playerCount,
-      playersLabel: t.roomPlayers(room.playerCount),
-      quietTitle: t.roomBeFirstToSit,
-      quietCaption: t.roomNoTablesRunning,
-      footerPrefix: view.footerPrefix,
-      footerAmount: view.footerAmount,
-      actionLabel: view.actionLabel,
-      onPressed: view.onPressed,
-    );
-  }
-
-  Widget _wideRoomCard(
-    RoomSummary room,
-    AppLocalizations t,
-    ChipDisplaySettings chips,
-  ) {
-    final view = _roomView(room, t, chips);
-    return WideRoomCard(
       name: room.name,
       blindsLabel: _blindsLabel(room, t, chips),
       variantLabel: t.roomVariant(room.variant),

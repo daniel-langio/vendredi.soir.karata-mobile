@@ -21,14 +21,17 @@ enum KarataTagTone {
 extension on KarataTagTone {
   Color get foreground => switch (this) {
     KarataTagTone.neutral => KarataColors.inkMuted,
-    KarataTagTone.cashout => KarataColors.teal,
+    // Translucent teal on translucent teal nearly disappeared once the room card grew a felt
+    // background: this is a near-opaque dark teal backdrop with a brighter mint text, so it
+    // stays legible regardless of what is underneath.
+    KarataTagTone.cashout => const Color(0xFF7FEAD6),
     KarataTagTone.seated => KarataColors.gold,
     KarataTagTone.full => KarataColors.orangeLight,
   };
 
   Color get background => switch (this) {
     KarataTagTone.neutral => KarataColors.surfaceRaised,
-    KarataTagTone.cashout => const Color(0x291F9D8B),
+    KarataTagTone.cashout => const Color(0xBF081C19),
     KarataTagTone.seated => const Color(0x24E9C46A),
     KarataTagTone.full => const Color(0x29C4502A),
   };
