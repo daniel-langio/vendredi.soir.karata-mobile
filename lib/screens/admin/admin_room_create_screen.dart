@@ -18,10 +18,13 @@ import '../../widgets/desktop/desktop_sidebar.dart';
 
 /// Opening a new stake tier.
 ///
-/// Deliberately shorter than the editor: a room's remaining settings - its table cap, whether it
-/// enforces its minimum buy-in, auto-rebuy - are things you reach for once a room is running and
-/// misbehaving, not decisions to guess at before anyone has sat down. They take the server's
-/// defaults here and can be changed afterwards.
+/// Carries every table setting a room can be stamped from except its table cap: that one is a
+/// thing you reach for once a room is running and misbehaving, not a decision to guess at before
+/// anyone has sat down. It takes the server's default here and can be changed afterwards.
+///
+/// Not offered here at all: making the table public. That switch belongs to a single table (see
+/// NewTableScreen), not to a room - a room is a stake tier players sit down at directly, and is
+/// never itself listed as a public table.
 class AdminRoomCreateScreen extends StatefulWidget {
   final String serverUrl;
   final String token;
@@ -47,6 +50,8 @@ class _AdminRoomCreateScreenState extends State<AdminRoomCreateScreen> {
 
   String _variant = 'TEXAS_HOLDEM';
   bool _cashout = true;
+  bool _enforceMinimumBuyIn = true;
+  bool _autoRebuyEnabled = false;
   bool _saving = false;
 
   @override
@@ -100,11 +105,11 @@ class _AdminRoomCreateScreenState extends State<AdminRoomCreateScreen> {
         defaultBuyIn: buyIn,
         variant: _variant,
         cashoutEnabled: _cashout,
-        // The three the form does not ask for. Sent explicitly because this is a PUT-shaped body
-        // where an omission is a default rather than "unchanged" - stating them is what makes the
-        // new room's terms the ones shown here and nothing else.
-        enforceMinimumBuyIn: true,
-        autoRebuyEnabled: false,
+        enforceMinimumBuyIn: _enforceMinimumBuyIn,
+        autoRebuyEnabled: _autoRebuyEnabled,
+        // The one setting this form does not ask for. Sent explicitly because this is a PUT-shaped
+        // body where an omission is a default rather than "unchanged" - null is the server's own
+        // "no cap", not a stand-in for a value the form left out.
         maxTables: null,
       );
       if (!mounted) return;
@@ -204,6 +209,28 @@ class _AdminRoomCreateScreenState extends State<AdminRoomCreateScreen> {
                   onChanged: _saving
                       ? null
                       : (v) => setState(() => _cashout = v),
+                ),
+              ),
+              SettingRow(
+                title: t.strictMinimumBuyIn,
+                description: t.strictMinimumBuyInHint,
+                trailing: KarataSwitch(
+                  value: _enforceMinimumBuyIn,
+                  semanticLabel: t.strictMinimumBuyIn,
+                  onChanged: _saving
+                      ? null
+                      : (v) => setState(() => _enforceMinimumBuyIn = v),
+                ),
+              ),
+              SettingRow(
+                title: t.autoRebuy,
+                description: t.autoRebuyHint,
+                trailing: KarataSwitch(
+                  value: _autoRebuyEnabled,
+                  semanticLabel: t.autoRebuy,
+                  onChanged: _saving
+                      ? null
+                      : (v) => setState(() => _autoRebuyEnabled = v),
                 ),
               ),
               NoteWell(text: t.adminNewRoomNote),
