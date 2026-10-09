@@ -61,7 +61,7 @@ class _ChipPurchaseScreenState extends State<ChipPurchaseScreen> {
   final _phoneController = TextEditingController();
   final _refController = TextEditingController();
   String _provider = 'MVOLA';
-  String? _houseReceivingPhoneNumber;
+  final Map<String, String?> _houseReceivingPhoneNumbers = {};
   int? _pricePerChip;
   int _depositFeePercent = 0;
   int _depositFeeMin = 0;
@@ -70,7 +70,18 @@ class _ChipPurchaseScreenState extends State<ChipPurchaseScreen> {
   Map<String, dynamic>? _purchase;
   Timer? _pollTimer;
 
-  static const _providers = ['MVOLA', 'ORANGE_MONEY'];
+  static const _providers = ['MVOLA', 'ORANGE_MONEY', 'AIRTEL_MONEY'];
+  static const _providerLabels = {
+    'MVOLA': 'MVola',
+    'ORANGE_MONEY': 'Orange Money',
+    'AIRTEL_MONEY': 'Airtel Money',
+  };
+
+  /// Only the providers the house actually has a receiving number for - Airtel Money's is
+  /// optional server-side, so it is left out here rather than offered with nothing to pay into.
+  List<String> get _availableProviders => _providers
+      .where((p) => (_houseReceivingPhoneNumbers[p] ?? '').isNotEmpty)
+      .toList();
 
   ChipDisplaySettings get _display => ChipDisplay.instance.value;
 
@@ -96,6 +107,10 @@ class _ChipPurchaseScreenState extends State<ChipPurchaseScreen> {
   }
 
   int get _totalPriceAr => _creditedValueAr + _feeAr;
+
+  /// Which number to send the payment to - changes with the selected [_provider].
+  String? get _houseReceivingPhoneNumber =>
+      _houseReceivingPhoneNumbers[_provider];
 
   /// The one-tap amounts under the field, in whichever unit the field is asking for.
   List<int> get _presetEntries => _display.inMoney
@@ -133,8 +148,16 @@ class _ChipPurchaseScreenState extends State<ChipPurchaseScreen> {
         _pricePerChip = (price['arPerChip'] as num).toInt();
         _depositFeePercent = (price['depositFeePercent'] as num?)?.toInt() ?? 0;
         _depositFeeMin = (price['depositFeeMin'] as num?)?.toInt() ?? 0;
-        _houseReceivingPhoneNumber =
-            config['houseReceivingPhoneNumber'] as String?;
+        _houseReceivingPhoneNumbers
+          ..['MVOLA'] = config['houseReceivingPhoneNumberMvola'] as String?
+          ..['ORANGE_MONEY'] =
+              config['houseReceivingPhoneNumberOrangeMoney'] as String?
+          ..['AIRTEL_MONEY'] =
+              config['houseReceivingPhoneNumberAirtelMoney'] as String?;
+        if (!_availableProviders.contains(_provider) &&
+            _availableProviders.isNotEmpty) {
+          _provider = _availableProviders.first;
+        }
         // Seed the default in the unit the field ended up asking for - "1" means one chip, which
         // is one rate's worth of Ariary once the amount is typed as money.
         _quantityController.text = AmountField.entryText(_display, 1);
@@ -359,9 +382,12 @@ class _ChipPurchaseScreenState extends State<ChipPurchaseScreen> {
       label: t.paymentProvider,
       child: SegmentedTabs(
         height: 40,
-        labels: const ['MVola', 'Orange Money'],
-        selectedIndex: _providers.indexOf(_provider),
-        onChanged: (i) => setState(() => _provider = _providers[i]),
+        labels: [
+          for (final p in _availableProviders) _providerLabels[p]!,
+        ],
+        selectedIndex: _availableProviders.indexOf(_provider),
+        onChanged: (i) =>
+            setState(() => _provider = _availableProviders[i]),
       ),
     ),
   ];
