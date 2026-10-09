@@ -707,7 +707,9 @@ class ApiClient {
     required int redeemFeeMin,
     required int rakePercent,
     required int rakeMin,
-    required String houseReceivingPhoneNumber,
+    required String houseReceivingPhoneNumberMvola,
+    required String houseReceivingPhoneNumberOrangeMoney,
+    String? houseReceivingPhoneNumberAirtelMoney,
     required bool enforceDepositOnRegistration,
   }) async {
     final response = await http.post(
@@ -720,7 +722,11 @@ class ApiClient {
         'redeemFeeMin': redeemFeeMin,
         'rakePercent': rakePercent,
         'rakeMin': rakeMin,
-        'houseReceivingPhoneNumber': houseReceivingPhoneNumber,
+        'houseReceivingPhoneNumberMvola': houseReceivingPhoneNumberMvola,
+        'houseReceivingPhoneNumberOrangeMoney':
+            houseReceivingPhoneNumberOrangeMoney,
+        'houseReceivingPhoneNumberAirtelMoney':
+            houseReceivingPhoneNumberAirtelMoney,
         // Required, not optional: each write is a whole new config row, so omitting this would
         // silently switch enforcement off rather than leave it as it was.
         'enforceDepositOnRegistration': enforceDepositOnRegistration,

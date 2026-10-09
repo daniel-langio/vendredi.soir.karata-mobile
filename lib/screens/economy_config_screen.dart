@@ -49,7 +49,9 @@ class _EconomyConfigScreenState extends State<EconomyConfigScreen> {
   final _redeemFeeMinController = TextEditingController();
   final _rakePercentController = TextEditingController();
   final _rakeMinController = TextEditingController();
-  final _housePhoneController = TextEditingController();
+  final _housePhoneMvolaController = TextEditingController();
+  final _housePhoneOrangeController = TextEditingController();
+  final _housePhoneAirtelController = TextEditingController();
 
   /// Whether a new player must fund their wallet before they can reach the rest of the app.
   bool _enforceDeposit = false;
@@ -73,7 +75,9 @@ class _EconomyConfigScreenState extends State<EconomyConfigScreen> {
     _redeemFeeMinController.dispose();
     _rakePercentController.dispose();
     _rakeMinController.dispose();
-    _housePhoneController.dispose();
+    _housePhoneMvolaController.dispose();
+    _housePhoneOrangeController.dispose();
+    _housePhoneAirtelController.dispose();
     super.dispose();
   }
 
@@ -96,7 +100,18 @@ class _EconomyConfigScreenState extends State<EconomyConfigScreen> {
         _redeemFeeMinController.text = text(config, 'redeemFeeMin');
         _rakePercentController.text = text(config, 'rakePercent');
         _rakeMinController.text = text(config, 'rakeMin');
-        _housePhoneController.text = text(config, 'houseReceivingPhoneNumber');
+        _housePhoneMvolaController.text = text(
+          config,
+          'houseReceivingPhoneNumberMvola',
+        );
+        _housePhoneOrangeController.text = text(
+          config,
+          'houseReceivingPhoneNumberOrangeMoney',
+        );
+        _housePhoneAirtelController.text = text(
+          config,
+          'houseReceivingPhoneNumberAirtelMoney',
+        );
         _enforceDeposit = config['enforceDepositOnRegistration'] == true;
       });
     } catch (e) {
@@ -161,7 +176,9 @@ class _EconomyConfigScreenState extends State<EconomyConfigScreen> {
     final redeemFeeMin = int.tryParse(_redeemFeeMinController.text.trim());
     final rakePercent = int.tryParse(_rakePercentController.text.trim());
     final rakeMin = int.tryParse(_rakeMinController.text.trim());
-    final housePhone = _housePhoneController.text.trim();
+    final housePhoneMvola = _housePhoneMvolaController.text.trim();
+    final housePhoneOrange = _housePhoneOrangeController.text.trim();
+    final housePhoneAirtel = _housePhoneAirtelController.text.trim();
     final fees = [
       depositFeePercent,
       depositFeeMin,
@@ -170,7 +187,11 @@ class _EconomyConfigScreenState extends State<EconomyConfigScreen> {
       rakePercent,
       rakeMin,
     ];
-    if (fees.any((v) => v == null || v < 0) || housePhone.isEmpty) {
+    // Airtel Money is optional - the backend has no legacy fallback for it, but it does not
+    // require one either.
+    if (fees.any((v) => v == null || v < 0) ||
+        housePhoneMvola.isEmpty ||
+        housePhoneOrange.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(t.fillValidValues),
@@ -188,7 +209,11 @@ class _EconomyConfigScreenState extends State<EconomyConfigScreen> {
         redeemFeeMin: redeemFeeMin!,
         rakePercent: rakePercent!,
         rakeMin: rakeMin!,
-        houseReceivingPhoneNumber: housePhone,
+        houseReceivingPhoneNumberMvola: housePhoneMvola,
+        houseReceivingPhoneNumberOrangeMoney: housePhoneOrange,
+        houseReceivingPhoneNumberAirtelMoney: housePhoneAirtel.isEmpty
+            ? null
+            : housePhoneAirtel,
         enforceDepositOnRegistration: _enforceDeposit,
       );
       if (mounted) {
@@ -384,9 +409,25 @@ class _EconomyConfigScreenState extends State<EconomyConfigScreen> {
       title: t.houseAccount,
       children: [
         LabeledField(
-          label: t.receivingPhoneNumber,
+          label: t.receivingPhoneNumberMvola,
           child: KarataTextField(
-            controller: _housePhoneController,
+            controller: _housePhoneMvolaController,
+            keyboardType: TextInputType.phone,
+            fillColor: KarataColors.backdrop,
+          ),
+        ),
+        LabeledField(
+          label: t.receivingPhoneNumberOrangeMoney,
+          child: KarataTextField(
+            controller: _housePhoneOrangeController,
+            keyboardType: TextInputType.phone,
+            fillColor: KarataColors.backdrop,
+          ),
+        ),
+        LabeledField(
+          label: t.receivingPhoneNumberAirtelMoney,
+          child: KarataTextField(
+            controller: _housePhoneAirtelController,
             keyboardType: TextInputType.phone,
             fillColor: KarataColors.backdrop,
           ),
