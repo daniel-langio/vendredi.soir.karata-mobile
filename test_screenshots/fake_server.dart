@@ -77,6 +77,9 @@ Object? _fixtureFor(String path) {
     case '/economy/config':
       return {
         'houseReceivingPhoneNumber': '+261 34 12 345 67',
+        'houseReceivingPhoneNumberMvola': '+261 34 12 345 67',
+        'houseReceivingPhoneNumberOrangeMoney': '+261 32 12 345 67',
+        'houseReceivingPhoneNumberAirtelMoney': '+261 33 12 345 67',
         'arPerChip': 100,
         'depositFeePercent': 10,
         'depositFeeMin': 500,

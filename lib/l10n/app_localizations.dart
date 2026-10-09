@@ -603,6 +603,11 @@ class AppLocalizations {
   String tooSmallForFee(String fee) => _fmt('tooSmallForFee', {'fee': fee});
   String get houseAccount => _s('houseAccount');
   String get receivingPhoneNumber => _s('receivingPhoneNumber');
+  String get receivingPhoneNumberMvola => _s('receivingPhoneNumberMvola');
+  String get receivingPhoneNumberOrangeMoney =>
+      _s('receivingPhoneNumberOrangeMoney');
+  String get receivingPhoneNumberAirtelMoney =>
+      _s('receivingPhoneNumberAirtelMoney');
   String get noMinimum => _s('noMinimum');
 
   // V2 design - the table
@@ -1119,6 +1124,10 @@ class AppLocalizations {
       'fees': 'Fees',
       'houseAccount': 'House account',
       'receivingPhoneNumber': 'Receiving phone number',
+      'receivingPhoneNumberMvola': 'Mvola receiving number',
+      'receivingPhoneNumberOrangeMoney': 'Orange Money receiving number',
+      'receivingPhoneNumberAirtelMoney':
+          'Airtel Money receiving number (optional)',
       'noMinimum': 'No minimum',
       'winner': 'Winner',
       'yourTurnBadge': 'Your turn',
@@ -1655,6 +1664,10 @@ class AppLocalizations {
       'fees': 'Frais',
       'houseAccount': 'Compte de la maison',
       'receivingPhoneNumber': 'Numéro de réception',
+      'receivingPhoneNumberMvola': 'Numéro de réception Mvola',
+      'receivingPhoneNumberOrangeMoney': 'Numéro de réception Orange Money',
+      'receivingPhoneNumberAirtelMoney':
+          'Numéro de réception Airtel Money (optionnel)',
       'noMinimum': 'Pas de minimum',
       'winner': 'Gagnant',
       'yourTurnBadge': 'À vous',
