@@ -59,6 +59,15 @@ class MyApp extends StatelessWidget {
             GlobalWidgetsLocalizations.delegate,
           ],
           onGenerateRoute: karataOnGenerateRoute,
+          // Flutter's default onGenerateInitialRoutes treats a cold-loaded path as a hierarchy of
+          // named routes and generates one route per prefix (e.g. /admin, then /admin/rooms, then
+          // /admin/rooms/<id>) - every route table here is flat, so those prefixes land on
+          // whatever karataOnGenerateRoute falls back to for a segment count it doesn't expect
+          // (RootScreen). That hidden route still runs its own initState, and when a session
+          // exists it does a stack-clearing pushNamedAndRemoveUntil('/menu', ...) - wiping out the
+          // real page a frame later. Generate a single route for the exact path instead.
+          onGenerateInitialRoutes: (initialRouteName) =>
+              [karataOnGenerateRoute(RouteSettings(name: initialRouteName))!],
           // No frame around the app on any platform. The web build used to be capped at 430px and
           // centred, because every screen was drawn phone-width and stretching one across a
           // browser window looked worse than boxing it in. Each screen now has a wide layout of
