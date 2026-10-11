@@ -109,7 +109,9 @@ class TableSeat extends StatelessWidget {
                       ? Avatar(
                           name: username,
                           diameter: avatarDiameter,
-                          ringColor: const Color(0x40FFFFFF),
+                          ringColor: isWinner
+                              ? KarataColors.gold
+                              : const Color(0x40FFFFFF),
                         )
                       : TurnRing(
                           diameter: avatarDiameter,
@@ -120,7 +122,14 @@ class TableSeat extends StatelessWidget {
                             ringColor: const Color(0x40FFFFFF),
                           ),
                         ),
-                  if (badge)
+                  // A winner gets the same pop-in pill as a showdown win, even though most hands
+                  // end by everyone else folding, with no cards to show down at all.
+                  if (isWinner)
+                    Positioned(
+                      bottom: -10,
+                      child: WinnerBadge(label: actionLabel ?? '', height: 24),
+                    )
+                  else if (badge)
                     Positioned(
                       bottom: -10,
                       child: SeatActionBadge(
