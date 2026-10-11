@@ -7,11 +7,12 @@ import 'card_code.dart';
 import 'flip_card.dart';
 import 'playing_card.dart';
 
-/// The hero's hand the moment it is dealt: each card drops into place and flips face-up, rather
-/// than simply appearing the way [FannedHand] draws a settled hand.
+/// The hero's hand the moment it is first dealt: each card drops into place and flips face-up,
+/// rather than simply appearing the way [FannedHand] draws a settled hand.
 ///
-/// Plays once, on mount. The table screen gives this a key derived from the deal id, which is
-/// what restarts it hand to hand rather than replaying on every rebuild.
+/// Plays once - when [cards] goes from nothing to a hand, which only ever happens at the start of
+/// a game (the table carries a player's cards from one hand into the next rather than clearing
+/// them between deals, so a later hand's different cards update in place with no replay).
 ///
 /// The reference board flies both cards to one overlapping point; here they fall straight into
 /// their own fanned slot instead, since that is where [FannedHand] actually lands them.
@@ -46,13 +47,34 @@ class _DealFlipHandState extends State<DealFlipHand>
     duration: const Duration(milliseconds: 900),
   );
 
+  bool get _hasCards => widget.cards.any((c) => c != null);
+
   @override
   void initState() {
     super.initState();
+    // A fresh mount never plays the entrance: the normal case is the empty hand before the first
+    // deal, which has nothing to animate anyway, and the only way this mounts with cards already
+    // in hand is landing mid-hand (a reconnect, or toggling the draw-discard picker on and off),
+    // where replaying the deal would be wrong.
+    _controller.value = 1;
+  }
+
+  @override
+  void didUpdateWidget(DealFlipHand old) {
+    super.didUpdateWidget(old);
+    final hadCards = old.cards.any((c) => c != null);
+    if (hadCards == _hasCards) {
+      return;
+    }
+    if (!_hasCards) {
+      // Back to empty between games - ready to play again once the next one deals in.
+      _controller.value = 0;
+      return;
+    }
     if (MediaQuery.maybeOf(context)?.disableAnimations ?? false) {
       _controller.value = 1;
     } else {
-      _controller.forward();
+      _controller.forward(from: 0);
     }
   }
 

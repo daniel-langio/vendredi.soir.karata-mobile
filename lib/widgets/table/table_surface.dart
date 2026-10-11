@@ -40,7 +40,6 @@ class TableSurface extends StatelessWidget {
     this.metrics = TableMetrics.phone,
     this.heroIsWinner = false,
     this.winnerLabel,
-    this.dealKey,
   });
 
   final List<SeatData> opponents;
@@ -74,10 +73,6 @@ class TableSurface extends StatelessWidget {
 
   /// Already localised "Winner" text for that pill.
   final String? winnerLabel;
-
-  /// Identifies the current hand, so the deal-and-flip entrance on the hero's cards only plays
-  /// once per hand rather than on every rebuild while it is in progress.
-  final Object? dealKey;
 
   /// The board's own height, from the card width the row is drawn at.
   double get _boardHeight => metrics.boardCardWidth * 1.385;
@@ -305,7 +300,6 @@ class TableSurface extends StatelessWidget {
         children: [
           if (onHeroCardTap == null)
             DealFlipHand(
-              key: ValueKey(dealKey),
               cards: heroCards,
               cardWidth: metrics.heroCardWidth,
               muted: heroDimmed,
