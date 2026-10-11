@@ -17,7 +17,6 @@ import '../widgets/common/karata_icons.dart';
 import '../widgets/common/loading_logo.dart';
 import '../widgets/table/bet_sizer_row.dart';
 import '../widgets/table/last_action_label.dart';
-import '../widgets/table/outcome_banner.dart';
 import '../widgets/table/seat_action_badge.dart';
 import '../widgets/table/seat_data.dart';
 import '../widgets/table/table_action_bar.dart';
@@ -648,7 +647,7 @@ class _TableScreenState extends State<TableScreen> {
       opponents: [
         for (final p in _players)
           if (p['username'] != widget.username)
-            _seatFor(p as Map<String, dynamic>, t, revealedHands),
+            _seatFor(p as Map<String, dynamic>, t, revealedHands, outcome),
       ],
       board:
           (deal?['communityCards'] as List<dynamic>? ??
@@ -667,9 +666,6 @@ class _TableScreenState extends State<TableScreen> {
       winnerLabel: t.winner,
       selectedHeroCards: _selectedDiscardIndices,
       onHeroCardTap: _phase == 'DRAW' && _isMyTurn ? _toggleDiscard : null,
-      banner: outcome == null
-          ? null
-          : OutcomeBanner(outcome: outcome, myUsername: widget.username),
     );
   }
 
@@ -695,6 +691,7 @@ class _TableScreenState extends State<TableScreen> {
     Map<String, dynamic> player,
     AppLocalizations t,
     Map<String, Map<String, dynamic>> revealedHands,
+    Map<String, dynamic>? outcome,
   ) {
     final playerId = player['playerId']?.toString();
     final status = player['status']?.toString();
@@ -702,9 +699,15 @@ class _TableScreenState extends State<TableScreen> {
     final isActive = playerId != null && playerId == _activePlayerId;
     final revealed = revealedHands[playerId];
     final lastAction = player['lastAction']?.toString();
+    // Checked against the outcome's own winners rather than `revealed?['winner']`: most hands end
+    // by everyone else folding, with no showdown at all, and an opponent who takes the pot that
+    // way still deserves their "Winner" pill even though they never revealed a hand.
+    final isWinner =
+        outcome != null &&
+        _isUserWinner(outcome, player['username']?.toString() ?? '');
 
     final (action, label) = switch (true) {
-      _ when revealed?['winner'] == true => (SeatAction.winner, t.winner),
+      _ when isWinner => (SeatAction.winner, t.winner),
       _ when folded => (SeatAction.folded, t.fold),
       // Somebody else's seat, so never "Your turn" - that badge is only ever drawn on an
       // opponent here, since the hero's own prompt lives in the action bar below the felt.

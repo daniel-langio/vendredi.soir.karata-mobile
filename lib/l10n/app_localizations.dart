@@ -421,19 +421,10 @@ class AppLocalizations {
   String get allIn => _s('allIn');
   String get handStrengthAvailableSoon => _s('handStrengthAvailableSoon');
 
-  /// Three separate keys rather than one, because French has to agree with its subject: the
-  /// winner speaks in the second person ("tu remportes"), anyone else in the third ("il
-  /// remporte"), and several winners in the plural ("remportent"). English uses "won" throughout.
-  String won(String names, String amount) =>
-      _fmt('won', {'names': names, 'amount': amount});
-  String wonByYou(String amount) => _fmt('wonByYou', {'amount': amount});
-  String wonBySeveral(String names, String amount) =>
-      _fmt('wonBySeveral', {'names': names, 'amount': amount});
   String get winnerTag => _s('winnerTag');
   String get sb => _s('sb');
   String get bb => _s('bb');
   String get allInTag => _s('allInTag');
-  String get you => _s('you');
   String get playing => _s('playing');
   String get spectating => _s('spectating');
   String get gameVariant => _s('gameVariant');
@@ -958,14 +949,10 @@ class AppLocalizations {
       'pot': 'Pot',
       'allIn': 'All-in',
       'handStrengthAvailableSoon': 'Hand strength\navailable soon',
-      'won': '{names} won {amount}',
-      'wonByYou': 'You won {amount}',
-      'wonBySeveral': '{names} won {amount}',
       'winnerTag': 'WINNER',
       'sb': 'SB',
       'bb': 'BB',
       'allInTag': 'ALL',
-      'you': 'You',
       'playing': 'Playing',
       'spectating': 'Spectating',
       'gameVariant': 'Game variant',
@@ -1488,14 +1475,10 @@ class AppLocalizations {
       'pot': 'Pot',
       'allIn': 'Tapis',
       'handStrengthAvailableSoon': 'Force de la main\nbientôt disponible',
-      'won': '{names} remporte {amount}',
-      'wonByYou': 'Tu remportes {amount}',
-      'wonBySeveral': '{names} remportent {amount}',
       'winnerTag': 'GAGNANT',
       'sb': 'PB',
       'bb': 'GB',
       'allInTag': 'TAPIS',
-      'you': 'Toi',
       'playing': 'En jeu',
       'spectating': 'Spectateur',
       'gameVariant': 'Variante jouée',

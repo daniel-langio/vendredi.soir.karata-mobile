@@ -35,7 +35,6 @@ class TableSurface extends StatelessWidget {
     this.heroIsDealer = false,
     this.onHeroCardTap,
     this.selectedHeroCards = const {},
-    this.banner,
     this.potAmount,
     this.metrics = TableMetrics.phone,
     this.heroIsWinner = false,
@@ -57,9 +56,6 @@ class TableSurface extends StatelessWidget {
   /// Draw games let the player pick cards to discard.
   final ValueChanged<int>? onHeroCardTap;
   final Set<int> selectedHeroCards;
-
-  /// The outcome announcement, shown over the board.
-  final Widget? banner;
 
   /// The pot in chips, for the chip glyphs the wide layout draws beside the figure. Null leaves
   /// them off, which is also what the phone's metrics do.
@@ -126,10 +122,11 @@ class TableSurface extends StatelessWidget {
               ),
             ),
             // The board is anchored, not flowed. Everything that comes and goes around it - the
-            // pot, the outcome banner, the hand's name - is placed relative to it
-            // rather than stacked with it, so the cards never shift as those appear. Together
-            // with the board keeping all five slots whatever has been dealt, that leaves the
-            // centre of the felt still while a hand plays out.
+            // pot, the hand's name - is placed relative to it rather than stacked with it, so the
+            // cards never shift as those appear. Together with the board keeping all five slots
+            // whatever has been dealt, that leaves the centre of the felt still while a hand plays
+            // out. Who won is announced on their own seat instead of here - see [TableSeat]'s
+            // winner pill - so there is no banner over the board to place.
             Positioned(
               left: felt.left,
               top: boardTop,
@@ -143,13 +140,6 @@ class TableSurface extends StatelessWidget {
                 ),
               ),
             ),
-            if (banner != null && !metrics.bannerBelowBoard)
-              Positioned(
-                left: felt.left,
-                width: felt.width,
-                bottom: area.height - boardTop + 10,
-                child: banner!,
-              ),
             // The phone prints the pot under the board; the wide table lifts it above, with the
             // chips it stands for beside the figure. Either way the name of the winning hand
             // stays under the board, where it reads with the cards it describes.
@@ -177,13 +167,8 @@ class TableSurface extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   if (!metrics.potChips) PotAmount(pot),
-                  if (banner != null && metrics.bannerBelowBoard) ...[
-                    if (!metrics.potChips) const SizedBox(height: 6),
-                    banner!,
-                  ],
                   if (handLabel != null) ...[
-                    if (!metrics.potChips || banner != null)
-                      const SizedBox(height: 6),
+                    if (!metrics.potChips) const SizedBox(height: 6),
                     HandLabel(handLabel!),
                   ],
                 ],
