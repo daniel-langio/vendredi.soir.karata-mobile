@@ -665,7 +665,6 @@ class _TableScreenState extends State<TableScreen> {
       heroIsDealer: _you?['dealer'] == true,
       heroIsWinner: outcome != null && _isUserWinner(outcome, widget.username),
       winnerLabel: t.winner,
-      dealKey: _dealId,
       selectedHeroCards: _selectedDiscardIndices,
       onHeroCardTap: _phase == 'DRAW' && _isMyTurn ? _toggleDiscard : null,
       banner: outcome == null
