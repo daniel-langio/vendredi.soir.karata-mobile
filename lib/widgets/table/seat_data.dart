@@ -12,6 +12,7 @@ class SeatData {
     this.isDealer = false,
     this.revealedCards,
     this.bet,
+    this.turnFraction,
   });
 
   final String username;
@@ -34,4 +35,8 @@ class SeatData {
   /// in. The wide table draws it as chips pushed onto the felt between the seat and the pot; the
   /// phone leaves it to the "Bet 35" badge under the avatar, which both layouts show.
   final int? bet;
+
+  /// How much of this seat's turn clock is left, 1 down to 0 - null whenever it is not their
+  /// turn, which is what keeps the ring off every other seat.
+  final double? turnFraction;
 }

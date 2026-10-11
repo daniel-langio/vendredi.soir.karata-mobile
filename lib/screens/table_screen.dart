@@ -14,6 +14,7 @@ import '../widgets/common/karata_button.dart';
 import '../widgets/common/karata_card.dart';
 import '../widgets/common/amount_field.dart';
 import '../widgets/common/karata_icons.dart';
+import '../widgets/common/loading_logo.dart';
 import '../widgets/table/bet_sizer_row.dart';
 import '../widgets/table/last_action_label.dart';
 import '../widgets/table/outcome_banner.dart';
@@ -604,11 +605,9 @@ class _TableScreenState extends State<TableScreen> {
                 ),
               ),
               if (_isLoading)
-                const ColoredBox(
-                  color: Color(0x73000000),
-                  child: Center(
-                    child: CircularProgressIndicator(color: KarataColors.gold),
-                  ),
+                ColoredBox(
+                  color: const Color(0x73000000),
+                  child: Center(child: LoadingLogo(size: 84, label: t.loading)),
                 ),
             ],
           ),
@@ -664,12 +663,32 @@ class _TableScreenState extends State<TableScreen> {
       heroCards: _myCards.map((c) => c?.toString()).toList(),
       heroDimmed: _you?['status'] == 'FOLDED',
       heroIsDealer: _you?['dealer'] == true,
+      heroIsWinner: outcome != null && _isUserWinner(outcome, widget.username),
+      winnerLabel: t.winner,
+      dealKey: _dealId,
       selectedHeroCards: _selectedDiscardIndices,
       onHeroCardTap: _phase == 'DRAW' && _isMyTurn ? _toggleDiscard : null,
       banner: outcome == null
           ? null
           : OutcomeBanner(outcome: outcome, myUsername: widget.username),
     );
+  }
+
+  /// How much of [playerId]'s turn clock is left, 1 down to 0 - null whenever it is not their
+  /// turn. Mirrors the arithmetic [_turnStatus] drains its bar with, so a seat's ring always
+  /// agrees with that bar.
+  double? _turnFractionFor(String? playerId) {
+    if (playerId == null || playerId != _activePlayerId) return null;
+    final deadline = _turnDeadline;
+    final start = _turnWindowStart;
+    if (deadline == null || start == null || _phase == 'SHOWDOWN') {
+      return null;
+    }
+    final remaining = deadline.difference(DateTime.now());
+    final left = remaining.isNegative ? Duration.zero : remaining;
+    final total = deadline.difference(start);
+    if (total.inMilliseconds <= 0) return null;
+    return (left.inMilliseconds / total.inMilliseconds).clamp(0.0, 1.0);
   }
 
   /// One opponent, with whatever they last did resolved into a badge.
@@ -715,6 +734,7 @@ class _TableScreenState extends State<TableScreen> {
           : (revealed['holeCards'] as List<dynamic>? ?? [])
                 .map((c) => c?.toString())
                 .toList(),
+      turnFraction: _turnFractionFor(playerId),
     );
   }
 
