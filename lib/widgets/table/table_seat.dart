@@ -4,6 +4,8 @@ import '../../theme/karata_colors.dart';
 import '../../theme/karata_text_styles.dart';
 import '../common/avatar.dart';
 import 'seat_action_badge.dart';
+import 'turn_ring.dart';
+import 'winner_badge.dart';
 
 /// One player around the table: their avatar, what they last did, their name and their stack.
 ///
@@ -22,6 +24,8 @@ class TableSeat extends StatelessWidget {
     this.nameSize = 12,
     this.stackSize = 13,
     this.cards,
+    this.isWinner = false,
+    this.turnFraction,
   });
 
   final String username;
@@ -43,6 +47,13 @@ class TableSeat extends StatelessWidget {
   /// A revealed hand at showdown, shown in place of the avatar.
   final Widget? cards;
 
+  /// Whether this is a showdown seat that took the pot - only meaningful alongside [cards].
+  final bool isWinner;
+
+  /// How much of this seat's turn clock is left, 1 down to 0 - drawn as a ring around their
+  /// avatar. Null whenever it is not their turn.
+  final double? turnFraction;
+
   @override
   Widget build(BuildContext context) {
     final badge = action != null && actionLabel != null;
@@ -55,17 +66,60 @@ class TableSeat extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (cards != null)
-              cards!
+              Stack(
+                clipBehavior: Clip.none,
+                alignment: Alignment.topCenter,
+                children: [
+                  cards!,
+                  // The avatar shrinks to a ring on top of the revealed pair - gold for the
+                  // winner, a dim white for everyone else shown down.
+                  Positioned(
+                    top: -16,
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: KarataColors.backdrop,
+                        border: Border.all(
+                          color: isWinner
+                              ? KarataColors.gold
+                              : const Color(0x4DFFFFFF),
+                          width: 2,
+                        ),
+                      ),
+                    ),
+                  ),
+                  if (isWinner)
+                    Positioned(
+                      bottom: -12,
+                      child: WinnerBadge(
+                        label: actionLabel ?? '',
+                        height: 24,
+                      ),
+                    ),
+                ],
+              )
             else
               Stack(
                 clipBehavior: Clip.none,
                 alignment: Alignment.center,
                 children: [
-                  Avatar(
-                    name: username,
-                    diameter: avatarDiameter,
-                    ringColor: const Color(0x40FFFFFF),
-                  ),
+                  turnFraction == null
+                      ? Avatar(
+                          name: username,
+                          diameter: avatarDiameter,
+                          ringColor: const Color(0x40FFFFFF),
+                        )
+                      : TurnRing(
+                          diameter: avatarDiameter,
+                          fraction: turnFraction!,
+                          child: Avatar(
+                            name: username,
+                            diameter: avatarDiameter,
+                            ringColor: const Color(0x40FFFFFF),
+                          ),
+                        ),
                   if (badge)
                     Positioned(
                       bottom: -10,

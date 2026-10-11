@@ -15,6 +15,7 @@ class FannedHand extends StatelessWidget {
     this.cardWidth = 58,
     this.faceDown = false,
     this.muted = false,
+    this.winningCards,
   });
 
   /// The hand, in deal order. Nulls draw as card backs.
@@ -22,7 +23,14 @@ class FannedHand extends StatelessWidget {
 
   final double cardWidth;
   final bool faceDown;
+
+  /// Ignored once [winningCards] is given - a showdown hand's own cards decide this per card
+  /// instead of as a single flag.
   final bool muted;
+
+  /// When set, cards making the winning hand are highlighted and the rest dimmed, the way the
+  /// board greys down once a showdown is known.
+  final Set<String>? winningCards;
 
   /// How far each card sits to the right of the one before it.
   double get _step => cardWidth;
@@ -35,6 +43,7 @@ class FannedHand extends StatelessWidget {
     if (cards.isEmpty) return const SizedBox.shrink();
     final height = cardWidth * 1.385;
     final width = _step * (cards.length - 1) + cardWidth;
+    final showdown = winningCards?.isNotEmpty ?? false;
 
     return SizedBox(
       width: width,
@@ -54,7 +63,11 @@ class FannedHand extends StatelessWidget {
                     : PlayingCard(
                         code: CardCode(cards[i]!),
                         width: cardWidth,
-                        muted: muted,
+                        muted: showdown
+                            ? !winningCards!.contains(cards[i])
+                            : muted,
+                        highlighted:
+                            showdown && winningCards!.contains(cards[i]),
                       ),
               ),
             ),

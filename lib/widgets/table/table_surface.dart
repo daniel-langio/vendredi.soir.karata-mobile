@@ -1,17 +1,21 @@
 import 'package:flutter/widgets.dart';
 
 import '../common/clickable.dart';
-import 'board_row.dart';
+import 'animated_board_row.dart';
 import 'chip_glyph.dart';
+import 'deal_flip_hand.dart';
 import 'dealer_button.dart';
 import 'fanned_hand.dart';
 import 'hand_label.dart';
 import 'pot_amount.dart';
+import 'seat_action_badge.dart';
 import 'seat_data.dart';
 import 'seat_layout.dart';
 import 'table_felt.dart';
+import 'table_light.dart';
 import 'table_metrics.dart';
 import 'table_seat.dart';
+import 'winner_badge.dart';
 
 /// The felt and everything sitting on it: the seats around the rail, the board and pot at the
 /// centre, and the player's own cards below.
@@ -34,6 +38,9 @@ class TableSurface extends StatelessWidget {
     this.banner,
     this.potAmount,
     this.metrics = TableMetrics.phone,
+    this.heroIsWinner = false,
+    this.winnerLabel,
+    this.dealKey,
   });
 
   final List<SeatData> opponents;
@@ -61,6 +68,16 @@ class TableSurface extends StatelessWidget {
 
   /// Which of the design's two tables to draw.
   final TableMetrics metrics;
+
+  /// Whether the hero took this pot - draws their winner pill over their own cards.
+  final bool heroIsWinner;
+
+  /// Already localised "Winner" text for that pill.
+  final String? winnerLabel;
+
+  /// Identifies the current hand, so the deal-and-flip entrance on the hero's cards only plays
+  /// once per hand rather than on every rebuild while it is in progress.
+  final Object? dealKey;
 
   /// The board's own height, from the card width the row is drawn at.
   double get _boardHeight => metrics.boardCardWidth * 1.385;
@@ -92,9 +109,19 @@ class TableSurface extends StatelessWidget {
         );
         final boardTop = felt.top + felt.height * metrics.boardTopFraction;
 
+        final lightSize = Size(felt.width * 1.09, felt.height * 1.17);
         return Stack(
           clipBehavior: Clip.none,
           children: [
+            Positioned(
+              left: felt.left - (lightSize.width - felt.width) / 2,
+              top: felt.top - (lightSize.height - felt.height) / 2,
+              child: TableLight(
+                size: lightSize,
+                winning: winningCards.isNotEmpty,
+                mobile: metrics == TableMetrics.phone,
+              ),
+            ),
             Positioned(
               left: felt.left,
               top: felt.top,
@@ -113,7 +140,7 @@ class TableSurface extends StatelessWidget {
               top: boardTop,
               width: felt.width,
               child: Center(
-                child: BoardRow(
+                child: AnimatedBoardRow(
                   cards: board,
                   winningCards: winningCards,
                   cardWidth: metrics.boardCardWidth,
@@ -205,11 +232,14 @@ class TableSurface extends StatelessWidget {
             avatarDiameter: metrics.avatarDiameter,
             nameSize: metrics.seatNameSize,
             stackSize: metrics.seatStackSize,
+            isWinner: seat.action == SeatAction.winner,
+            turnFraction: seat.turnFraction,
             cards: seat.revealedCards == null
                 ? null
                 : FannedHand(
                     cards: seat.revealedCards!,
                     cardWidth: metrics.revealedCardWidth,
+                    winningCards: winningCards,
                   ),
           ),
           // Parked at the seat's outer corner, clear of the action badge that hangs under the
@@ -271,12 +301,15 @@ class TableSurface extends StatelessWidget {
       top: centre.dy - 40,
       child: Stack(
         clipBehavior: Clip.none,
+        alignment: Alignment.topCenter,
         children: [
           if (onHeroCardTap == null)
-            FannedHand(
+            DealFlipHand(
+              key: ValueKey(dealKey),
               cards: heroCards,
               cardWidth: metrics.heroCardWidth,
               muted: heroDimmed,
+              winningCards: winningCards,
             )
           else
             _SelectableHand(
@@ -284,6 +317,11 @@ class TableSurface extends StatelessWidget {
               cardWidth: metrics.heroCardWidth,
               selected: selectedHeroCards,
               onTap: onHeroCardTap!,
+            ),
+          if (heroIsWinner)
+            Positioned(
+              bottom: -12,
+              child: WinnerBadge(label: winnerLabel ?? '', height: 28),
             ),
           if (heroIsDealer)
             const Positioned(right: -26, top: 30, child: DealerButton()),

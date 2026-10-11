@@ -612,6 +612,7 @@ class AppLocalizations {
 
   // V2 design - the table
   String get winner => _s('winner');
+  String get loading => _s('loading');
   String get yourTurnBadge => _s('yourTurnBadge');
 
   /// The same badge on somebody else's seat. "Your turn" there is addressed to the wrong player.
@@ -1130,6 +1131,7 @@ class AppLocalizations {
           'Airtel Money receiving number (optional)',
       'noMinimum': 'No minimum',
       'winner': 'Winner',
+      'loading': 'Loading...',
       'yourTurnBadge': 'Your turn',
       'toActBadge': 'To act',
       'handStrength': 'Hand strength',
@@ -1670,6 +1672,7 @@ class AppLocalizations {
           'Numéro de réception Airtel Money (optionnel)',
       'noMinimum': 'Pas de minimum',
       'winner': 'Gagnant',
+      'loading': 'Chargement...',
       'yourTurnBadge': 'À vous',
       'toActBadge': 'À parler',
       'handStrength': 'Force de la main',
