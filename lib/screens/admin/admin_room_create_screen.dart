@@ -137,6 +137,51 @@ class _AdminRoomCreateScreenState extends State<AdminRoomCreateScreen> {
         loading: false,
         error: null,
         onRetry: () {},
+        wideRight: [
+          SectionCard(
+            title: t.adminRoomOptions,
+            children: [
+              SettingRow(
+                title: t.adminCashoutEnabled,
+                description: t.adminCashoutEnabledHint,
+                trailing: KarataSwitch(
+                  value: _cashout,
+                  semanticLabel: t.adminCashoutEnabled,
+                  onChanged: _saving
+                      ? null
+                      : (v) => setState(() => _cashout = v),
+                ),
+              ),
+              SettingRow(
+                title: t.strictMinimumBuyIn,
+                description: t.strictMinimumBuyInHint,
+                trailing: KarataSwitch(
+                  value: _enforceMinimumBuyIn,
+                  semanticLabel: t.strictMinimumBuyIn,
+                  onChanged: _saving
+                      ? null
+                      : (v) => setState(() => _enforceMinimumBuyIn = v),
+                ),
+              ),
+              SettingRow(
+                title: t.autoRebuy,
+                description: t.autoRebuyHint,
+                trailing: KarataSwitch(
+                  value: _autoRebuyEnabled,
+                  semanticLabel: t.autoRebuy,
+                  onChanged: _saving
+                      ? null
+                      : (v) => setState(() => _autoRebuyEnabled = v),
+                ),
+              ),
+              NoteWell(text: t.adminNewRoomNote),
+            ],
+          ),
+          KarataButton(
+            label: t.adminCreateRoom,
+            onPressed: _saving ? null : () => _create(t),
+          ),
+        ],
         children: [
           SectionCard(
             title: t.adminRoomSection,
@@ -200,45 +245,7 @@ class _AdminRoomCreateScreenState extends State<AdminRoomCreateScreen> {
                   enabled: !_saving,
                 ),
               ),
-              SettingRow(
-                title: t.adminCashoutEnabled,
-                description: t.adminCashoutEnabledHint,
-                trailing: KarataSwitch(
-                  value: _cashout,
-                  semanticLabel: t.adminCashoutEnabled,
-                  onChanged: _saving
-                      ? null
-                      : (v) => setState(() => _cashout = v),
-                ),
-              ),
-              SettingRow(
-                title: t.strictMinimumBuyIn,
-                description: t.strictMinimumBuyInHint,
-                trailing: KarataSwitch(
-                  value: _enforceMinimumBuyIn,
-                  semanticLabel: t.strictMinimumBuyIn,
-                  onChanged: _saving
-                      ? null
-                      : (v) => setState(() => _enforceMinimumBuyIn = v),
-                ),
-              ),
-              SettingRow(
-                title: t.autoRebuy,
-                description: t.autoRebuyHint,
-                trailing: KarataSwitch(
-                  value: _autoRebuyEnabled,
-                  semanticLabel: t.autoRebuy,
-                  onChanged: _saving
-                      ? null
-                      : (v) => setState(() => _autoRebuyEnabled = v),
-                ),
-              ),
-              NoteWell(text: t.adminNewRoomNote),
             ],
-          ),
-          KarataButton(
-            label: t.adminCreateRoom,
-            onPressed: _saving ? null : () => _create(t),
           ),
         ],
       ),

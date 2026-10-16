@@ -176,6 +176,37 @@ class _AdminPlayerEditScreenState extends State<AdminPlayerEditScreen> {
         loading: _loading,
         error: _error,
         onRetry: _load,
+        wideRight: detail == null
+            ? const []
+            : [
+                SectionCard(
+                  title: t.adminDangerZone,
+                  children: [
+                    SettingRow(
+                      title: t.adminResetBalance,
+                      description: detail.player.seated
+                          ? t.adminCannotResetWhileSeated
+                          : t.adminResetBalanceHint,
+                      trailing: KarataButton(
+                        label: t.adminResetBalanceAction,
+                        style: KarataButtonStyle.danger,
+                        height: 38,
+                        fontSize: 13,
+                        expand: false,
+                        // The server refuses this while they are seated, and saying so before the
+                        // tap is kinder than a snackbar after it.
+                        onPressed: _saving || detail.player.seated
+                            ? null
+                            : () => _resetBalance(t),
+                      ),
+                    ),
+                  ],
+                ),
+                KarataButton(
+                  label: t.adminSaveChanges,
+                  onPressed: _saving ? null : () => _save(t),
+                ),
+              ],
         children: detail == null
             ? const []
             : [
@@ -204,33 +235,6 @@ class _AdminPlayerEditScreenState extends State<AdminPlayerEditScreen> {
                       ),
                     ),
                   ],
-                ),
-                SectionCard(
-                  title: t.adminDangerZone,
-                  children: [
-                    SettingRow(
-                      title: t.adminResetBalance,
-                      description: detail.player.seated
-                          ? t.adminCannotResetWhileSeated
-                          : t.adminResetBalanceHint,
-                      trailing: KarataButton(
-                        label: t.adminResetBalanceAction,
-                        style: KarataButtonStyle.danger,
-                        height: 38,
-                        fontSize: 13,
-                        expand: false,
-                        // The server refuses this while they are seated, and saying so before the
-                        // tap is kinder than a snackbar after it.
-                        onPressed: _saving || detail.player.seated
-                            ? null
-                            : () => _resetBalance(t),
-                      ),
-                    ),
-                  ],
-                ),
-                KarataButton(
-                  label: t.adminSaveChanges,
-                  onPressed: _saving ? null : () => _save(t),
                 ),
               ],
       ),

@@ -210,6 +210,42 @@ class _AdminRoomEditScreenState extends State<AdminRoomEditScreen> {
         loading: _loading,
         error: _error,
         onRetry: _load,
+        wideRight: entry == null
+            ? const []
+            : [
+                if (_liveTables.isNotEmpty)
+                  SectionCard(
+                    title: t.adminTablesInThisRoom,
+                    children: [
+                      for (final table in _liveTables) _tableRow(table, t),
+                    ],
+                  ),
+                SectionCard(
+                  title: t.adminDangerZone,
+                  children: [
+                    SettingRow(
+                      title: t.adminDisableRoom,
+                      description: t.adminDisableRoomHint,
+                      trailing: KarataButton(
+                        label: entry.closed
+                            ? t.adminEnableRoomAction
+                            : t.adminDisableRoomAction,
+                        style: entry.closed
+                            ? KarataButtonStyle.surface
+                            : KarataButtonStyle.danger,
+                        height: 38,
+                        fontSize: 13,
+                        expand: false,
+                        onPressed: _saving ? null : () => _toggleClosed(t),
+                      ),
+                    ),
+                  ],
+                ),
+                KarataButton(
+                  label: t.adminSaveChanges,
+                  onPressed: _saving ? null : () => _save(t),
+                ),
+              ],
         children: entry == null
             ? const []
             : [
@@ -288,38 +324,6 @@ class _AdminRoomEditScreenState extends State<AdminRoomEditScreen> {
                     ),
                     NoteWell(text: t.adminEditsReachNewTablesOnly),
                   ],
-                ),
-                if (_liveTables.isNotEmpty)
-                  SectionCard(
-                    title: t.adminTablesInThisRoom,
-                    children: [
-                      for (final table in _liveTables) _tableRow(table, t),
-                    ],
-                  ),
-                SectionCard(
-                  title: t.adminDangerZone,
-                  children: [
-                    SettingRow(
-                      title: t.adminDisableRoom,
-                      description: t.adminDisableRoomHint,
-                      trailing: KarataButton(
-                        label: entry.closed
-                            ? t.adminEnableRoomAction
-                            : t.adminDisableRoomAction,
-                        style: entry.closed
-                            ? KarataButtonStyle.surface
-                            : KarataButtonStyle.danger,
-                        height: 38,
-                        fontSize: 13,
-                        expand: false,
-                        onPressed: _saving ? null : () => _toggleClosed(t),
-                      ),
-                    ),
-                  ],
-                ),
-                KarataButton(
-                  label: t.adminSaveChanges,
-                  onPressed: _saving ? null : () => _save(t),
                 ),
               ],
       ),
