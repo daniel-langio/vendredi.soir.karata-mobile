@@ -107,6 +107,8 @@ void main() {
       await tester.enterText(fieldLabelled('Small blind'), '10');
       await tester.enterText(fieldLabelled('Big blind'), '20');
       await tester.enterText(fieldLabelled('Default buy-in'), '2000');
+      // Let the focused field finish scrolling itself into view first, or it undoes the scroll below.
+      await tester.pumpAndSettle();
       final createButton = find.text('Create room');
       await tester.ensureVisible(createButton);
       await tester.pumpAndSettle();

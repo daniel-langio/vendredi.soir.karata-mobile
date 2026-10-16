@@ -249,6 +249,7 @@ class AppLocalizations {
   String get adminEditRoom => _s('adminEditRoom');
   String get adminEditRoomSubtitle => _s('adminEditRoomSubtitle');
   String get adminRoomSection => _s('adminRoomSection');
+  String get adminRoomOptions => _s('adminRoomOptions');
   String get adminCashoutEnabled => _s('adminCashoutEnabled');
   String get adminCashoutEnabledHint => _s('adminCashoutEnabledHint');
   String get adminDisableRoom => _s('adminDisableRoom');
@@ -820,6 +821,7 @@ class AppLocalizations {
       'adminEditRoom': 'Edit room',
       'adminEditRoomSubtitle': 'Editing this room.',
       'adminRoomSection': 'Room',
+      'adminRoomOptions': 'Options',
       'adminCashoutEnabled': 'Cashout enabled',
       'adminCashoutEnabledHint':
           'Chips at this room convert back to real money.',
@@ -1340,6 +1342,7 @@ class AppLocalizations {
       'adminEditRoom': 'Modifier le salon',
       'adminEditRoomSubtitle': 'Modification de ce salon.',
       'adminRoomSection': 'Salon',
+      'adminRoomOptions': 'Options',
       'adminCashoutEnabled': 'Encaissement activé',
       'adminCashoutEnabledHint':
           'Les jetons de ce salon se reconvertissent en argent réel.',
